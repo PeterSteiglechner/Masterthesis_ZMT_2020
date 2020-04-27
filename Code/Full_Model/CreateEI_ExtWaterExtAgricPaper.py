@@ -1,52 +1,47 @@
 #!/usr/bin/env python3
 
-'''
-Peter Steiglechner, 6.3.2020
-# edited to fit Model Class on 9.3.2020
-# edited to include a water penalty
-# edited to be able to pickle.dump a object.
-# edited to give nr of agriculture sites 25.03.2020
-# edited to get agriculture not from elevation/slope but from Paper Puleston2017  02.04.2020
 
-This script contains a class Map
-It sets up a Map which performs the triangulation, 
-    stores triangles (with midpoints, elevation, slope, ...) 
-    and variables (tree density, carrying_cap, agriculture_sites, water penalty)
-
-It uses two pictures of pixel size 900x600 of elevation and slope of Easter Island 
-These were created through Google Earth Enginge API
-'''
-
-''' 
-USAGE:
-    config.TreeDensityConditionParams = {'minElev':10, 'maxElev':430,'maxSlope':7}
-    config.N_init_trees = 12e6
-    config.gridpoints_y=100
-    config.AgriConds={'minElev':20,'maxElev_highQu':250,'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,'MaxWaterPenalty':300,}
-    config.params= {"resource_search_radius":500}
-    config.AngleThreshold = 0
-
-    config.EI= Map(config.gridpoints_y, N_init_trees=config.N_init_trees, angleThreshold=config.AngleThreshold)
-    triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.EI.points_EI_km[:,1], triangles = config.EI.all_triangles, mask=config.EI.mask)
-
-    print(config.EI.get_triangle_of_point([1e4, 1e4], triObject))
-    config.EI.plot_agriculture(which="high", save=True)
-    config.EI.plot_agriculture(which="low", save=True)
-    config.EI.plot_agriculture(which="both", save=True)
-    config.EI.plot_TreeMap_and_hist(name_append="T12e6", hist=True, save=True)
-    config.EI.plot_water_penalty()
-
-    with open("EI_grid"+str(config.gridpoints_y), "wb") as store_file:
-        pickle.dump(config.EI,  store_file)
-
-    with open("EI_grid"+str(config.gridpoints_y), "rb") as store_file:
-        EI_l = pickle.load(store_file)
-'''
+#Peter Steiglechner, 6.3.2020
+## edited to fit Model Class on 9.3.2020
+## edited to include a water penalty
+## edited to be able to pickle.dump a object.
+## edited to give nr of agriculture sites 25.03.2020
+## edited to get agriculture not from elevation/slope but from Paper Puleston2017  02.04.2020
+#
+#This script contains a class Map
+#It sets up a Map which performs the triangulation, 
+#    stores triangles (with midpoints, elevation, slope, ...) 
+#    and variables (tree density, carrying_cap, agriculture_sites, water penalty)
+#
+#It uses two pictures of pixel size 900x600 of elevation and slope of Easter Island 
+#These were created through Google Earth Enginge API
+#
+#USAGE:
+#config.TreeDensityConditionParams = {'minElev':10, 'maxElev':430,'maxSlope':7}
+#config.N_init_trees = 12e6
+#config.gridpoints_y=100
+#config.AgriConds={'minElev':20,'maxElev_highQu':250,'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,'MaxWaterPenalty':300,}
+#config.params= {"resource_search_radius":500}
+#config.AngleThreshold = 0
+#
+#config.EI= Map(config.gridpoints_y, N_init_trees=config.N_init_trees, angleThreshold=config.AngleThreshold)
+#triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.EI.points_EI_km[:,1], triangles = config.EI.all_triangles, mask=config.EI.mask)
+#
+#print(config.EI.get_triangle_of_point([1e4, 1e4], triObject))
+#config.EI.plot_agriculture(which="high", save=True)
+#config.EI.plot_agriculture(which="low", save=True)
+#config.EI.plot_agriculture(which="both", save=True)
+#config.EI.plot_TreeMap_and_hist(name_append="T12e6", hist=True, save=True)
+#config.EI.plot_water_penalty()
+#
+#with open("EI_grid"+str(config.gridpoints_y), "wb") as store_file:
+#    pickle.dump(config.EI,  store_file)
+#
+#with open("EI_grid"+str(config.gridpoints_y), "rb") as store_file:
+#    EI_l = pickle.load(store_file)
 
 import config
-'''
-config.py is the file that stores global variables such as EI, map_type (="EI"), 
-'''
+# config.py is the file that stores global variables such as EI, map_type (="EI"), 
 
 import matplotlib as mpl 
 import numpy as np
@@ -61,14 +56,14 @@ import pickle
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-# Disable
+
 def blockPrint():
+    ''' Disable Printing '''
     sys.stdout = open(os.devnull, 'w')
 
-# Restore
 def enablePrint():
+    ''' Enabling Printing '''
     sys.stdout = sys.__stdout__
-
 
 class Map:
     '''
@@ -170,13 +165,13 @@ class Map:
         self.TreeNeighbours_of_triangles = []
         self.TreeNeighbourhoodRad = config.params['tree_search_radius']
         self.get_neighbour_triangles_ind(self.TreeNeighbours_of_triangles , self.TreeNeighbourhoodRad)
-        self.TreeNeighbours_of_triangles = np.array(self.TreeNeighbours_of_triangles).astype(int)
+        #self.TreeNeighbours_of_triangles = np.array(self.TreeNeighbours_of_triangles).astype(int)
 
         print("Calculate the neighbours for agriculture...")
         self.AgricNeighbours_of_triangles = []
         self.AgricNeighbourhoodRad = config.params['agriculture_radius']
         self.get_neighbour_triangles_ind(self.AgricNeighbours_of_triangles , self.AgricNeighbourhoodRad)
-        self.AgricNeighbours_of_triangles = np.array(self.AgricNeighbours_of_triangles).astype(int)
+        #self.AgricNeighbours_of_triangles = np.array(self.AgricNeighbours_of_triangles).astype(int)
 
         print("DONE")
 
@@ -268,9 +263,7 @@ class Map:
         return (angleA>thr and angleB>thr and angleC>thr)
 
     def get_mask(self, AngleThreshold, EI_elevation):
-        '''
-        create mask; reduce the all_triangles to EI_triangles
-        '''
+        '''create mask; reduce the all_triangles to EI_triangles'''
         midpoints_all_int = [self.midpoint_int(t) for t in self.all_triangles]
         midpointcond = [(EI_elevation[int(m[1]), int(m[0])]>0) for m in midpoints_all_int]
         anglecond = [self.check_angles(t, AngleThreshold) for t in self.all_triangles]
@@ -292,11 +285,11 @@ class Map:
     ################################################
 
     def get_triangle_of_point(self, point, triObject):
-        ''' 
-        returns the triangle of a 2D point given in km coordinates
+        ''' returns the triangle of a 2D point given in km coordinates 
         return: index of triangle, midpoint in pixel coord, midpoint in km coordinates
         if point is not in a triangle, which is on Easter Island return ind=-1
         '''
+        
         #point = self.transform(point)
         triangle_finder = triObject.get_trifinder()
         mask = triObject.mask
@@ -332,8 +325,8 @@ class Map:
     #############################
 
     def get_TreeProb(self):
-        ''' 
-        CRUCIAL FUNCTION THAT CALCULATES THE DEPENDENCY OF ELEVATION AND SLOPE TO THE TREE DENSITY
+        ''' Function to calculate the tree probability 
+        DEPENDENCY OF ELEVATION AND SLOPE TO THE TREE DENSITY
         '''
         minElev = config.TreeDensityConditionParams['minElev']
         ElevHighD = config.TreeDensityConditionParams['ElevHighD']
@@ -472,83 +465,83 @@ class Map:
         inds_low = np.where(self.nr_lowqualitysites>0)[0]
         print("Area Low Quality: ", np.sum(self.EI_triangles_areas[inds_low]), " (i.e. in Percent: ", np.sum(self.EI_triangles_areas[inds_low]) /np.sum(self.EI_triangles_areas)) 
 
-    '''   
-    def get_agriculture_sites(self):
-        minElev = config.AgriConds['minElev']
-        maxElev_highQu = config.AgriConds['maxElev_highQu']
-        maxElev_lowQu = config.AgriConds['maxElev_lowQu']
-        maxSlope_highQu = config.AgriConds['maxSlope_highQu']
-        maxSlope_lowQu = config.AgriConds['maxSlope_lowQu']
-
-        print("Conditions on Agri: ", minElev, maxElev_highQu, maxElev_lowQu, maxSlope_highQu, maxSlope_lowQu)
-
-        for n,_ in enumerate(self.EI_midpoints):
-            e = self.EI_midpoints_elev[n]
-            s = self.EI_midpoints_slope[n]
-            elevslope_high_cond = ( e<maxElev_highQu and e>minElev and s<maxSlope_highQu)
-            elevslope_low_cond = (e<maxElev_lowQu and e>minElev) and (s<maxSlope_lowQu)
-            not_on_water_cond = (not n in self.water_triangle_inds) 
-            available_water_cond = (self.water_penalties[n] < config.AgriConds['MaxWaterPenalty'])
-            
-            if elevslope_high_cond and available_water_cond and not_on_water_cond:
-                self.nr_highqualitysites[n] =  int(self.EI_triangles_areas[n]*config.km2_to_acre) # Flenley/Bahn 2017 p 218, 2 acres per 5-7 people- 1 hh will need up to 8 agriculture sites.
-                self.nr_lowqualitysites[n] = 0
-            else:
-                self.nr_highqualitysites[n]=0
-                if elevslope_low_cond and not_on_water_cond:
-                    self.nr_lowqualitysites[n] = int(self.EI_triangles_areas[n]*config.km2_to_acre/(2)) 
-                else:
-                    self.nr_lowqualitysites[n] = 0
-
-        print("High Quality SItes: ", np.sum(self.nr_highqualitysites), " on ", np.sum(self.nr_highqualitysites>0))
-        print("Low Quality SItes: ", np.sum(self.nr_lowqualitysites), " on ", np.sum(self.nr_lowqualitysites>0))
-        inds_high = np.where(self.nr_highqualitysites>0)[0]
-        print("Area High Quality: ", np.sum(self.EI_triangles_areas[inds_high]), " (i.e. in Percent: ", np.sum(self.EI_triangles_areas[inds_high]) /np.sum(self.EI_triangles_areas)) 
-        inds_low = np.where(self.nr_lowqualitysites>0)[0]
-        print("Area Low Quality: ", np.sum(self.EI_triangles_areas[inds_low]), " (i.e. in Percent: ", np.sum(self.EI_triangles_areas[inds_low]) /np.sum(self.EI_triangles_areas)) 
-
-        return # self.nr_highqualitysites, self.nr_lowqualitysites  
-    '''
-
+    
+    #  def get_agriculture_sites(self):
+    #      ''' Agriculture Site Availability depends on elevation and slope '''
+    #      minElev = config.AgriConds['minElev']
+    #      maxElev_highQu = config.AgriConds['maxElev_highQu']
+    #      maxElev_lowQu = config.AgriConds['maxElev_lowQu']
+    #      maxSlope_highQu = config.AgriConds['maxSlope_highQu']
+    #      maxSlope_lowQu = config.AgriConds['maxSlope_lowQu']
+ 
+    #      print("Conditions on Agri: ", minElev, maxElev_highQu, maxElev_lowQu, maxSlope_highQu, maxSlope_lowQu)
+ 
+    #      for n,_ in enumerate(self.EI_midpoints):
+    #          e = self.EI_midpoints_elev[n]
+    #          s = self.EI_midpoints_slope[n]
+    #          elevslope_high_cond = ( e<maxElev_highQu and e>minElev and s<maxSlope_highQu)
+    #          elevslope_low_cond = (e<maxElev_lowQu and e>minElev) and (s<maxSlope_lowQu)
+    #          not_on_water_cond = (not n in self.water_triangle_inds) 
+    #          available_water_cond = (self.water_penalties[n] < config.AgriConds['MaxWaterPenalty'])
+    #          
+    #          if elevslope_high_cond and available_water_cond and not_on_water_cond:
+    #              self.nr_highqualitysites[n] =  int(self.EI_triangles_areas[n]*config.km2_to_acre) # Flenley/Bahn 2017 p 218, 2 acres per 5-7 people- 1 hh will need up to 8 agriculture sites.
+    #              self.nr_lowqualitysites[n] = 0
+    #          else:
+    #              self.nr_highqualitysites[n]=0
+    #              if elevslope_low_cond and not_on_water_cond:
+    #                  self.nr_lowqualitysites[n] = int(self.EI_triangles_areas[n]*config.km2_to_acre/(2)) 
+    #              else:
+    #                  self.nr_lowqualitysites[n] = 0
+ 
+    #      print("High Quality SItes: ", np.sum(self.nr_highqualitysites), " on ", np.sum(self.nr_highqualitysites>0))
+    #      print("Low Quality SItes: ", np.sum(self.nr_lowqualitysites), " on ", np.sum(self.nr_lowqualitysites>0))
+    #      inds_high = np.where(self.nr_highqualitysites>0)[0]
+    #      print("Area High Quality: ", np.sum(self.EI_triangles_areas[inds_high]), " (i.e. in Percent: ", np.sum(self.EI_triangles_areas[inds_high]) /np.sum(self.EI_triangles_areas)) 
+    #      inds_low = np.where(self.nr_lowqualitysites>0)[0]
+    #      print("Area Low Quality: ", np.sum(self.EI_triangles_areas[inds_low]), " (i.e. in Percent: ", np.sum(self.EI_triangles_areas[inds_low]) /np.sum(self.EI_triangles_areas)) 
+ 
+    #      return # self.nr_highqualitysites, self.nr_lowqualitysites  
+    #  
+ 
 
     #################################################
     ######       SAVE NCDF NOT USED          ########
     #################################################
 
-    '''
-    def save_ncdf(self, gridpoints_y):
-        ds = xr.Dataset(
-            {
-                'tree_density':(("triangle_ind"),self.tree_density),
-                'EI_midpoints':(("triangle_ind", "xy"),self.EI_midpoints),
-                'agentOccupancy':(("triangle_ind"),self.agentOccupancy),
-                'populationOccupancy':(("triangle_ind"),self.populationOccupancy),
-                'points_EI_km':(("points_ind", "xy"),self.points_EI_km),
-                'EI_triangles':(("triangle_ind", "tri"),self.EI_triangles),
-                'carrying_cap':(("triangle_ind"),self.carrying_cap),
-                'EI_triangles_areas':(("triangle_ind"),self.EI_triangles_areas),
-                'EI_midpoints_elev':(("triangle_ind"),self.EI_midpoints_elev),
-                'EI_midpoints_slope':(("triangle_ind"),self.EI_midpoints_slope),
-                'water_penalties':(("triangle_ind"),self.water_penalties),
-            }, 
-            coords = 
-                {
-                    "triangles_ind":np.arange(self.N_els),
-                    "points_ind":np.arange(len(self.points_EI_km)),
-                    "xy":[0,1],
-                    "tri":[0,1,2]
-                }
-        )
-        ds.attrs["N_els"] = self.N_els
-        ds.attrs["corner upper left"] = self.corners['upper_left']
-        ds.attrs["pixel_dim"]=self.pixel_dim
-        ds.attrs['d_km_lat']=self.d_km_lat
-        ds.attrs['d_km_lon']=self.d_km_lon
-        ds.attrs['gridpoints_y'] = gridpoints_y
-        ds.to_netcdf("EImap_"+str(gridpoints_y)+".ncdf")
-        return 
-    '''
-
+    
+    # def save_ncdf(self, gridpoints_y):
+    #     ds = xr.Dataset(
+    #         {
+    #             'tree_density':(("triangle_ind"),self.tree_density),
+    #             'EI_midpoints':(("triangle_ind", "xy"),self.EI_midpoints),
+    #             'agentOccupancy':(("triangle_ind"),self.agentOccupancy),
+    #             'populationOccupancy':(("triangle_ind"),self.populationOccupancy),
+    #             'points_EI_km':(("points_ind", "xy"),self.points_EI_km),
+    #             'EI_triangles':(("triangle_ind", "tri"),self.EI_triangles),
+    #             'carrying_cap':(("triangle_ind"),self.carrying_cap),
+    #             'EI_triangles_areas':(("triangle_ind"),self.EI_triangles_areas),
+    #             'EI_midpoints_elev':(("triangle_ind"),self.EI_midpoints_elev),
+    #             'EI_midpoints_slope':(("triangle_ind"),self.EI_midpoints_slope),
+    #             'water_penalties':(("triangle_ind"),self.water_penalties),
+    #         }, 
+    #         coords = 
+    #             {
+    #                 "triangles_ind":np.arange(self.N_els),
+    #                 "points_ind":np.arange(len(self.points_EI_km)),
+    #                 "xy":[0,1],
+    #                 "tri":[0,1,2]
+    #             }
+    #     )
+    #     ds.attrs["N_els"] = self.N_els
+    #     ds.attrs["corner upper left"] = self.corners['upper_left']
+    #     ds.attrs["pixel_dim"]=self.pixel_dim
+    #     ds.attrs['d_km_lat']=self.d_km_lat
+    #     ds.attrs['d_km_lon']=self.d_km_lon
+    #     ds.attrs['gridpoints_y'] = gridpoints_y
+    #     ds.to_netcdf("EImap_"+str(gridpoints_y)+".ncdf")
+    #     return 
+   
 
     ##############################################
     ##########     PLOTTING    ###################
@@ -601,10 +594,10 @@ class Map:
             #fig.colorbar(plot)#, cax = cbaxes) 
         else:
             inds = np.where(self.agriculture>0)
-            ax.plot(self.EI_midpoints[inds,0], self.corners['upper_left'][1]- self.EI_midpoints[inds,1], 'x', color="red")
+            ax.plot(self.EI_midpoints[inds,0], self.corners['upper_left'][1]- self.EI_midpoints[inds,1], 'x',markersize=3, color="red")
         
         for i in self.water_midpoints:
-            ax.plot([i[0]], [self.corners['upper_left'][1]- i[1]], 'x',markersize=1, color="blue")
+            ax.plot([i[0]], [self.corners['upper_left'][1]- i[1]], 'x',markersize=3, color=(3/255,169/255,244/255 ,1 ))
 
         if save:
             plt.savefig(folder+"Map_AgricDensity_grid"+str(self.gridpoints_y)+".svg")
@@ -633,7 +626,7 @@ class Map:
     def plot_agriculture(self, which,  ax =None, fig=None, save=False):
         if ax==None:
             fig = plt.figure(figsize=(10,6))
-            ax = fig.add_subplot(1,1,1,fc='aquamarine')
+            ax = fig.add_subplot(1,1,1,fc=(3/255,169/255,244/255 ,1 ))
         #ax.tripcolor(self.points_EI_km[:,0], self.corners['upper_left'][1] - self.points_EI_km[:,1], 
         #    self.EI_triangles, facecolors=np.array([1 for _ in range(self.N_els)]), vmin = 0, vmax = 1, cmap="binary", alpha=1)
         if which=="high":
@@ -657,10 +650,11 @@ class Map:
             divider = make_axes_locatable(plt.gca())
             cax = divider.append_axes("right", "5%", pad="3%")
             plt.colorbar(plot, cax =cax) 
-            plt.savefig("Map/Map_Agriculutre_"+which+".svg")
+            plt.savefig("Map/Map_Agriculutre_"+which+"_grid"+str(self.gridpoints_y)+".svg")
         return
 
 
+    
 
                 
 if __name__=="__main__":

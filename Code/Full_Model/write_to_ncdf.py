@@ -15,6 +15,17 @@ def final_saving():
     ''' Saves the aggregated Numbers to a ncdf file'''
     times = np.arange(config.StartTime,config.EndTime+1)
     agent_indices = np.arange(config.index_count)
+
+    #possize = np.array(config.agents_pos_size)
+    PosAgents = np.empty([config.index_count, 2,len(times)])
+    PosAgents[:] = np.nan 
+    SizeAgents = np.empty([config.index_count, len(times)])
+    SizeAgents[:] = np.nan
+    for t in range(len(times)):
+        if not config.nr_agents[t]==0:
+            SizeAgents[config.agents_pos_size[t][:,0].astype(int), t] = config.agents_pos_size[t][:,3]
+            PosAgents[config.agents_pos_size[t][:,0].astype(int), :,t] = config.agents_pos_size[t][:,1:3]
+
     ds = xr.Dataset(
         {
             "total_agents":("time", config.nr_agents),
@@ -25,12 +36,15 @@ def final_saving():
             "agriculture":(("triangles","time"), config.Array_agriculture),
             "populationOccupancy":(("triangles","time"), config.Array_populationOccupancy),
             "happyFraction":(("time",),config.nr_happyAgents),
+            "SizeAgents":(('index', 'time'),SizeAgents),
+            "PosAgents":(('index', '2d', "time"), PosAgents),
             #"agents":(("ag_ind", "properties", "time"), t1)
         },
         {
             "time": times,
             "index":agent_indices,
-            "triangles":np.arange(config.EI.N_els)
+            "triangles":np.arange(config.EI.N_els),
+            "2d":["x","y"],
         }#, "ag_ind": indices_agents, "properties": properties},
     )
     if len(config.fire)>0:
@@ -49,8 +63,8 @@ def final_saving():
         'tree_need_per_capita': config.tree_need_per_capita,
         'MinTreeNeed': config.MinTreeNeed,
         'BestTreeNr_forNewSpot': config.BestTreeNr_forNewSpot,
-        'Nr_AgricStages': config.Nr_AgricStages,
-        'dStage': config.dStage,
+        #'Nr_AgricStages': config.Nr_AgricStages,
+        #'dStage': config.dStage,
         'agricSites_need_per_Capita': config.agricSites_need_per_Capita,
         'treePref_decrease_per_year': config.treePref_decrease_per_year, 
         'treePref_change_per_BadYear': config.treePref_change_per_BadYear,
@@ -65,6 +79,7 @@ def final_saving():
         'alpha_p':config.alpha_p,
         'alpha_a':config.alpha_a,
         'alpha_m':config.alpha_m,
+        'PenalToProb_Prefactor':config.PenalToProb_Prefactor,
         #"NrOfEquivalentBestSitesToMove":config.NrOfEquivalentBestSitesToMove,
         }
     
@@ -109,6 +124,7 @@ def final_saving():
     #    ds.attrs["AgricConds_"+key] = config.AgriConds[key]
     
     ds.to_netcdf(path=config.folder+"Statistics.ncdf")
+    print("SAVED NCDF TO ",config.folder+"Statistics.ncdf" )
     return 
 
 '''

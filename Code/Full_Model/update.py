@@ -30,8 +30,12 @@ def update_time_step(t):
     config.nr_deaths.append(config.deaths)
     config.deaths = 0
     # config.fires (updated during update)
-    config.agents_stages.append(np.histogram([ag.stage for ag in config.agents], bins=np.arange(config.Nr_AgricStages+1))[0])
-    
+    #config.agents_stages.append(np.histogram([ag.stage for ag in config.agents], bins=np.arange(config.Nr_AgricStages+1))[0])
+    config.agents_stages.append(np.histogram([ag.treePref for ag in config.agents], bins=np.linspace(config.MinTreeNeed, config.init_TreePreference, num=10))[0])
+
+    posSize = [np.array([int(ag.index), ag.x, ag.y, ag.pop]) for ag in config.agents]
+    config.agents_pos_size.append(np.array(posSize))
+
     # ENVIRONMENT:
     config.nr_agricultureSites = np.append(config.nr_agricultureSites, np.sum(config.EI.agriculture))
     if not len(config.agents)==0:
@@ -43,7 +47,7 @@ def update_time_step(t):
     config.Array_populationOccupancy = np.concatenate((config.Array_populationOccupancy, config.EI.populationOccupancy.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
 
     print("Run ",t,"  Stats: ",config.nr_agents[-1], config.nr_trees[-1], 
-    config.nr_deaths[-1], config.nr_pop[-1], "\t Happy: ",config.nr_happyAgents[-1],"\t Time tot: ", '%.2f'  % (time()-start_step))
+    config.nr_deaths[-1], config.nr_pop[-1], "\t Happy: ","%.3f" % config.nr_happyAgents[-1],"\t Time tot: ", '%.2f'  % (time()-start_step))
 
 
     return 
@@ -51,8 +55,14 @@ def update_time_step(t):
 def update_single_agent(ag,t):
     ''' for agent `ag': perform update step ''' 
     
-    ag.change_tree_pref(-config.treePref_decrease_per_year)
-    
+    #ag.change_tree_pref(-config.treePref_decrease_per_year)
+    ag.calc_new_tree_pref()
+
+
+    ##########################
+    ## HARVEST AGRICULTRE   ##
+    ##########################
+
     agric_neighbours_inds = np.array(config.EI.AgricNeighbours_of_triangles[ag.triangle_ind])
     
     if ag.AgriNeed  <= len(ag.AgricSites):
@@ -195,36 +205,47 @@ def update_single_agent(ag,t):
     tree_fill = (total_tree_number_inRad/int(ag.tree_need)).clip(0.,1.)
 
     if tree_fill==1 and agriculture_fill==1:
-        ag.happy=True
+        ag.happy=1.0
         #ag.happyPeriod+=1
+
+        ###########################
+        ###   CHECK PENALTY    ####
+        ###########################
+        # ag.mv_inds exists
+        config.EI.agriculture[np.array(ag.AgricSites)] -=1
+
+        WhichTrianglesToCalc_inds = [ag.triangle_ind]
+        _,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
+        
+        config.EI.agriculture[np.array(ag.AgricSites)] +=1
+
+        # total_penalties, maske, penalties, masken
+        if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
+            ag.move_water_agric(t)
+        
+
     else:
         if tree_fill<1:
-            ag.change_tree_pref(-config.treePref_change_per_BadYear * config.dStage) # half stage down
+            ag.treePref = (ag.treePref- config.treePref_change_per_BadYear)# * config.dStage) # half stage down
         if agriculture_fill<1:
-            ag.change_tree_pref(config.treePref_change_per_BadYear * config.dStage)
-        if ag.happy:
-            #die_fraction = 0
-            #ag.pop_shock()
+            ag.treePref = (ag.treePref + config.treePref_change_per_BadYear)
+            #ag.change_tree_pref(config.treePref_change_per_BadYear)# * config.dStage)
+        ag.treePref = ag.treePref.clip(config.MinTreeNeed, config.init_TreePreference)
+
+        # ag.happy from last time!!
+        # CASE 1: Agent was happy before --> no one should die
+        # CASE 2: Agent was happy before --> now 0 trees / agric --> mean? or no one
+        # CASE 3: Agent was slightly unhappy before, moved, still slightly unhappy: --> current unhappy should die (or mean?)
+        # CASe 4: Previously 0, now 0.9 happy: only 10% should die this time.
+        ag.happy= max(ag.happy, np.mean([tree_fill, agriculture_fill]))
+        survived =  ag.pop_shock() # survived
+        if survived:
             ag.move_water_agric(t)
-        else: # ag.happy = False
-            ag.pop_shock()
-            ag.move_water_agric(t)
-        ag.happy=False
-
-
-    # if not enough tree:
-    #       death_prob of population? increase every year.
-    #       if pop< init_pop: agent dies
-    #       decrease tree pref by a stage(?) #no: and check whether we can do more agriculture.
-    #       #store that tree pref has stepped
-    #       move
-    #
-
-
+            ag.happy =  np.mean([tree_fill, agriculture_fill])
 
 
     ### 2. Perhaps Reproduce
-    if ag.happy:
+    if ag.happy==1.0:
         ag.Reproduce(t)
     
     ag.calc_tree_need()
@@ -238,29 +259,3 @@ def update_single_agent(ag,t):
         print("ERROR: agricultures do not match")
     return 
         
-'''
-def eat(nb_trees, nr = 1):
-    # select random tree or tree index nearby
-    for _ in range(nr):
-        cut_tree_ind = np.random.choice(nb_trees, 1)
-        # Eat that tree
-        config.EI.tree_density[cut_tree_ind]-=1
-        if config.EI.tree_density[cut_tree_ind]==0:
-            nb_trees.remove(cut_tree_ind)
-            nb_trees.remove(cut_tree_ind)
-    return 
-'''
-'''
-def Reproduction(ag):
-    ag.pop += np.round(ag.reprod_rate*ag.pop)
-    if ag.pop > ag.max_pop_per_household:        #SPLIT
-        child = copy(ag)
-        child.pop = np.floor(ag.pop/2)
-        ag.pop = np.ceil(ag.pop/2)
-        child.calc_tree_need()
-        child.move_water()
-        config.agents.append(child)      
-    ag.calc_tree_need()
-
-    return
-'''

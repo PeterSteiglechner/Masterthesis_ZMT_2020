@@ -35,12 +35,7 @@ def observe(t):
 
 
 def observe_density(t, fig=None, ax=None, save=True, hist=False, folder=config.folder, specific_ag_to_follow=None):# agents, EI, t, agent_type, folder):
-    agent_points = []
-    for ag in config.agents:
-        # subtracting ag.y from the upper left corner gives a turned picture (note matrix [0][0] is upper left)
-        agent_points.append([ag.x, config.EI.corners['upper_left'][1]-ag.y, 2*ag.pop])
 
-    agent_points_np = np.array(agent_points)
 
     if ax==None:
         fig = plt.figure(figsize=(10,6))
@@ -54,20 +49,16 @@ def observe_density(t, fig=None, ax=None, save=True, hist=False, folder=config.f
     #  config.EI.EI_triangles, facecolors=config.EI.tree_density, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
     ##cbaxes = fig.add_axes([0.9, 0.0, 0.03, 1.0]) 
     #fig.colorbar(plot)#, cax = cbaxes)  
-    if len(config.agents)>0:
-        ax.scatter(agent_points_np[:,0], agent_points_np[:,1], s=agent_points_np[:,2], color='blue')
-        if specific_ag_to_follow==None:
-            specific_ag_to_follow = config.agents[0]
-        move_circle, tree_circle, agric_cirle = follow_ag0(specific_ag_to_follow)
-        ax.add_artist(move_circle)
-        ax.add_artist(tree_circle)
-        ax.add_artist(agric_cirle)
+    ax = plot_agents_on_top(ax, t,ncdf=False, specific_ag_to_follow=specific_ag_to_follow)
+
     if save:
         ax.set_title("Time "+str(t))
         fig.tight_layout()
         plt.savefig(config.folder+"map_time"+str(t)+".png")
         plt.close()
     return fig,ax
+
+
 
 def follow_ag0(ag):
     ''' plot circle around ag0 with resource and move search radius'''
@@ -129,7 +120,7 @@ def follow_ag0(ag):
 
 
 def plot_movingProb(t,ag, newpos):
-    fig = plt.figure(figsize=(15,9))
+    fig = plt.figure(figsize=(12,12))
     ax = fig.add_subplot(3,3,1,fc='aquamarine')
     rcParams={'font.size':10}
     plt.rcParams.update(rcParams)
@@ -147,7 +138,7 @@ def plot_movingProb(t,ag, newpos):
     ax.set_xlim(ag.x-ag.moving_radius*1.1, ag.x+ag.moving_radius*1.1)
     ax.set_ylim(config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1, config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1)
     ax.set_aspect(1)
-    ax.plot(newpos[0], config.EI.corners['upper_left'][1] - newpos[1], "o", markersize = 5,color='cyan')
+    ax.plot(newpos[0], config.EI.corners['upper_left'][1] - newpos[1], "o", markersize = 8,color='magenta')
     #divider = make_axes_locatable(plt.gca())
     #cax = divider.append_axes("right", "5%", pad="3%")
     #plt.colorbar(plot, cax =cax) 
@@ -174,25 +165,39 @@ def plot_movingProb(t,ag, newpos):
         ax2.set_xticklabels([])
         ax2.set_yticklabels([])
 
-        prob = np.zeros([config.EI.N_els])
-        prob[config.AG0_mv_inds] = penalty
         #for p in range(config.EI.N_els):
         #    if p in config.AG0_mv_inds:
         #        prob[p] = penalty[np.where(config.AG0_mv_inds==p)[0]]
         if k==9:
-            cmap = colors.ListedColormap(['black', 'white','red','green', 'yellow'])
-            boundaries = [-0.1, 0.5, 1.5, 3.5, 5.5,7.5]
-            norm = colors.BoundaryNorm(boundaries, cmap.N, clip=True)
-            vmax=7.5
+            #cmap = colors.ListedColormap(['black', 'white','red','green', 'yellow'])
+            #boundaries = [-0.1, 0.5, 1.5, 2.5, 3.5, 5.5,6.5,7.5]
+            #norm = colors.BoundaryNorm(boundaries, cmap.N, clip=True)
+            # 0 none
+            # 1 Y:S, N:T,A
+            # 2 Y:A, N:S,T
+            # 3 Y:S,A N:T
+            # 4  ....
+            #liste = {'#00000000':0,'#000000ff':1,'#0000ff00':2,'#00ff0000':3,'#ff000000':4,'#ffffffff':5}#,'#00ff00ff', '#00ffffff', '#ffffffff', '#00000000']
+            #labels = ["Not allowed", "Not (slope cond)", "Not (pop cond)", "Not (tree cond)", "No (agric cond)", "Allowed"]
+            #cmap = mpl.colors.ListedColormap(liste.keys())
+            #boundaries = np.arange(-0.5, 5.5, step=1)
+            #norm = mpl.colors.BoundaryNorm(boundaries, cmap.N, clip=True)#
+
+            colors = np.array([0 for i in range(config.EI.N_els)])
+            #colors[config.AG0_mv_inds] = [liste[mpl.colors.to_hex(penalty[:,i], keep_alpha=True)] for i in range(penalty.shape[1])]
+            colors[config.AG0_mv_inds] = [1 if np.sum(penalty[:,i])==4 else 0 for i in range(penalty.shape[1])]
             plot  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-                config.EI.EI_triangles, facecolors=prob,vmin=0,vmax=vmax, cmap=cmap, norm = norm, alpha=1)
+                config.EI.EI_triangles, facecolors=colors, vmin = 0, cmap='binary_r',alpha=1)
         else:
+            prob = np.zeros([config.EI.N_els])
+            prob[config.AG0_mv_inds] = penalty
+
             if k==3:
                 cmap="hot_r"
-                vmax=np.max(prob)
+                vmax=np.max(prob).clip(min=0.01)
             elif k ==2:
                 cmap="Reds"
-                vmax=np.max(prob)
+                vmax=np.max(prob).clip(min=0.01)
             else:
                 cmap="Reds"
                 vmax=1
@@ -201,7 +206,7 @@ def plot_movingProb(t,ag, newpos):
 
 
         
-        ax2.plot(newpos[0], config.EI.corners['upper_left'][1]-newpos[1], "o", markersize = 5,color='cyan', fillstyle="none")
+        ax2.plot(newpos[0], config.EI.corners['upper_left'][1]-newpos[1], "o", markersize = 8,color='magenta', fillstyle="none")
 
         
         ax2.set_title(key)
@@ -214,5 +219,37 @@ def plot_movingProb(t,ag, newpos):
         cax = divider.append_axes("right", "5%", pad="3%")
         plt.colorbar(plot, cax =cax) 
 
+    fig.tight_layout()
     #fig.colorbar(p)
-    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".png")
+    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".png", bbox_inches='tight')
+
+
+
+
+
+
+
+
+
+
+
+######################################################################
+###########        PLOT FUNCTIONS LATER                 ##############
+######################################################################
+def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None, color = 'purple'):
+    if ncdf==False:
+        agent_points_np = np.array([[ag.x, ag.y, ag.pop] for ag in config.agents])# subtracting ag.y from the upper left corner gives a turned picture (note matrix [0][0] is upper left)
+        agent_size = agent_points_np[:,2]
+    else:
+        agent_points_np = data.PosAgents.sel(time=t).to_series().dropna()
+        agent_size = data.SizeAgents.set(time=t).to_series().dropna()
+
+    if len(config.agents)>0:
+        ax.scatter(agent_points_np[:,0], config.EI.corners['upper_left'][1] - agent_points_np[:,1], s=agent_size, color='purple')
+        if specific_ag_to_follow==None:
+            specific_ag_to_follow = config.agents[0]
+        move_circle, tree_circle, agric_cirle = follow_ag0(specific_ag_to_follow)
+        ax.add_artist(move_circle)
+        ax.add_artist(tree_circle)
+        ax.add_artist(agric_cirle)
+    return ax

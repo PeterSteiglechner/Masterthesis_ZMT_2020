@@ -55,64 +55,66 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 config.N_agents = 5
 config.N_trees = 12e6
 config.init_pop=int(15)
-config.init_TreePreference = 1.
+config.init_TreePreference = 0.8
 config.index_count=0
 
 ### RUN
 config.updatewithreplacement = False
 config.StartTime = 800
-config.EndTime=1900
+config.EndTime=1800
 config.N_timesteps = config.EndTime-config.StartTime
 config.seed= 8
 #config.folder= LATER
 
 ### HOUSEHOLD PARAMS
-config.MaxSettlementSlope=4
+config.MaxSettlementSlope=6
 #config.MaxSettlementElev=300
 #config.MinSettlementElev=10
 config.SweetPointSettlementElev = 0
 
 config.max_pop_per_household = 50
 
-config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
+config.MaxPopulationDensity=173*3  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
-config.MinTreeNeed=0.5      #Fraction
+config.MinTreeNeed=0.3      #Fraction
 
-config.BestTreeNr_forNewSpot = 20*config.max_pop_per_household*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
+config.BestTreeNr_forNewSpot = 10*config.max_pop_per_household*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 
-config.Nr_AgricStages = 10
-config.dStage = ((1-config.MinTreeNeed)/config.Nr_AgricStages)
+#config.Nr_AgricStages = 10
+#config.dStage = ((1-config.MinTreeNeed)/config.Nr_AgricStages)
 
 #config.agricSites_need_per_Capita = 2./6.  # Flenley Bahn
 config.agricSites_need_per_Capita = 0.5  # Puleston High N
 
-YearsOfDecreasingTreePref = 1000-config.StartTime #400
+YearsOfDecreasingTreePref = 1400-config.StartTime #400
 config.treePref_decrease_per_year = (config.init_TreePreference - config.MinTreeNeed)/YearsOfDecreasingTreePref #0.002
-config.treePref_change_per_BadYear =  1. # THIS IS THE FRACTION of a dStage! #0.02 
+config.treePref_change_per_BadYear = 0.1 # UPDATE: NOT FRACTION ANYMORE, but actual percentage of tree pref! #1. # THIS IS THE FRACTION of a dStage! #0.02 
 
 #config.HowManyDieInPopulationShock = 10
-config.FractionDeathsInPopShock = 0.2
+#NOT NEEDED ANYMORE: config.FractionDeathsInPopShock = 0.2
 
 # Each agent can (in the future) have these parameters different
 config.params={'tree_search_radius': 1., 
         'agriculture_radius':0.5,
-        'moving_radius': 6,
+        'moving_radius': 8,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
 
 # DEFAULT RUN
-config.alpha_w= 0.15
-config.alpha_t = 0.3
-config.alpha_p = 0.2
-config.alpha_a = 0.3
-config.alpha_m = 0.05
-#config.alpha_w= 0.25
+#config.alpha_w= 0.3
 #config.alpha_t = 0.2
-#config.alpha_p = 0.15
-#config.alpha_a = 0.2
+#config.alpha_p = 0.0
+#config.alpha_a = 0.3
 #config.alpha_m = 0.2
+config.alpha_w= 0.2
+config.alpha_t = 0.2
+config.alpha_p = 0.2
+config.alpha_a = 0.2
+config.alpha_m = 0.2
+
+config.PenalToProb_Prefactor = 10
 
 #NrOfEquivalentBestSitesToMove= 10
 
@@ -145,6 +147,9 @@ config.tree_regrowth_rate=0.05 # every 20 years all trees are back?  # Brandt Me
 print("################   LOAD / CREATE MAP ###############")
 NewMap=False
 
+#if NewMap==False and (not config.N_init_trees==12e6 or not config.):
+#   print("Probably you should create a new Map!!")
+
 filename = "Map/EI_grid"+str(config.gridpoints_y)+"_rad"+str(config.params['tree_search_radius'])+"+"+str(config.params['agriculture_radius'])
 if Path(filename).is_file() and NewMap==False:
     with open(filename, "rb") as EIfile:
@@ -175,7 +180,7 @@ print("################   DONE: MAP ###############")
 #################################################
 
 config.folder = "Figs/"
-config.folder += "FullModel_grid50_repr0,007_06Ap_new_1000YearStage10/"#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
+config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard/"#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
 #for bla in string: print(bla)
@@ -211,17 +216,18 @@ def run():
         if len(config.agents)>0:
 
             ag = config.agents[0]
-            print("Following agent ",ag.index, "(pop",ag.pop,"): Stage+Pref ",ag.stage,"/", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
+            print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
         
-            if (t+1)%10==0:
+            if (t+1)%50==0:
+                observe(t+1)
+            if (t+1)%50==0:
                 plt.cla()
                 _,ax = config.EI.plot_agricultureSites(ax=None, fig=None, save=False, CrossesOrFacecolor="Facecolor")
                 ax.set_title("Time "+str(t+1))
                 plt.savefig(config.folder+"AgricDensityMap_t"+str(t+1)+".png")
                 plt.close()
-                observe(t+1)
         
-
+    print("Finished running Model in folder: ", config.folder)
 
 
         

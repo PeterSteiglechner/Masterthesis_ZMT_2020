@@ -2,7 +2,7 @@
 
 # Peter Steiglechner, contains the classes agents
 
-import config 
+import config
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,36 +14,34 @@ from observefunc import plot_movingProb
 class agent:
     ''' Agent of Base HopVes'''
     def __init__(self, x, y, params): #resource_search_radius, moving_radius, fertility):
-        ''' location x,y. 
-        Agent_type = "individual"/"household", 
-        map_type="EI"/"unitsquare", 
-        params = {'fertility_rate':...}
-        '''
         self.index = config.index_count
         config.index_count += 1
+
         # Position on map
         self.x = x 
         self.y = y
-        
         self.triangle_ind = -1
         self.triangle_midpoint = [-1,-1]
-        self.mv_inds = []
-        
+
         # Search for resource in area with radius 
         self.tree_search_radius = params['tree_search_radius']
         self.agriculture_radius = params['agriculture_radius']
         # If not enough resources found, move to random new position in area moving_radius
         self.moving_radius = params['moving_radius']
- 
+       
+        self.mv_inds = [n for n,m in enumerate(config.EI.EI_midpoints) 
+                if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
+        
+
         self.reprod_rate = params["reproduction_rate"]
         
         self.pop = config.init_pop
 
-        self.stage = 0  # of config.Nr_AgricStages
+
+        # Tree and Agriculture Harves
+        #self.stage = 0  # of config.Nr_AgricStages
         # 0 --> 100% Tree Need, 
         # Nr_AgricStages --> (100%-MinTreeNeed) Tree and Agri= Rest Agriculture
-        
-
         # calculate total Tree and Agriculture Need:
         self.AgriNeed = 0
         self.tree_need = 0
@@ -53,7 +51,7 @@ class agent:
 
         self.AgricSites = []
 
-        self.happy=True
+        self.happy=1.0# TRUE 
         #self.happyPeriod=0
 
         self.alpha_w = config.alpha_w#0.3
@@ -65,15 +63,22 @@ class agent:
         return 
     
     def calc_tree_need(self):
-        self.tree_need = int(config.tree_need_per_capita*self.pop * (1-config.dStage * self.stage))
+        self.tree_need = np.round((config.tree_need_per_capita*self.pop * self.treePref)).astype(int) #
+        # self.tree_need = int(config.tree_need_per_capita*self.pop* (1-config.dStage * self.stage))
         return 
     def calc_agri_need(self):
-        self.AgriNeed = np.round(self.pop * config.agricSites_need_per_Capita *  self.stage / config.Nr_AgricStages).astype(int)
+        self.AgriNeed = np.round(self.pop * config.agricSites_need_per_Capita *  (1-self.treePref)).astype(int)
 
-    def change_tree_pref(self, amount):
-        self.treePref = np.clip(self.treePref + amount, config.MinTreeNeed, 1)  # e.g. -config.treePref_decrease_per_year
-        #self.stage = (1-self.treePref)  - ((1-self.treePref)  %  config.dStage) #
-        self.stage = int((1-self.treePref) / config.dStage)
+    #def change_tree_pref(self, amount):
+    #    self.treePref = np.clip(self.treePref + amount, config.MinTreeNeed, 1)  # e.g. -config.treePref_decrease_per_year
+    #    #self.stage = (1-self.treePref)  - ((1-self.treePref)  %  config.dStage) #
+    #    #self.stage = int((1-self.treePref) / config.dStage)
+    #    self.calc_tree_need()
+    #    self.calc_agri_need()
+    #    return 
+
+    def calc_new_tree_pref(self):
+        self.treePref = np.clip( config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum(), config.MinTreeNeed, config.init_TreePreference)
         self.calc_tree_need()
         self.calc_agri_need()
         return 
@@ -87,10 +92,13 @@ class agent:
     def pop_shock(self):
         # REMOVE SOME POPULATION
         #dead_pop = np.random.randint(0,self.pop/2) # TODO: Make a decision if fraction dies or fixed number! #min(config.HowManyDieInPopulationShock, self.pop)
-        dead_pop = np.floor(config.FractionDeathsInPopShock * self.pop).astype(int) 
+        
+        fraction = 1-self.happy
+        #fraction = config.FractionDeathsInPopShock
+        dead_pop = np.floor(fraction * self.pop).astype(int) 
         config.deaths += dead_pop
         self.pop -= dead_pop
-        config.EI.populationOccupancy[self.triangle_ind]-=dead_pop
+        config.EI.populationOccupancy[self.triangle_ind]-= dead_pop
 
         # CHECK IF AGENT IS STILL LARGE ENOUGH OR DIES
         if self.pop < config.init_pop:
@@ -106,38 +114,23 @@ class agent:
         
         # REDUCE AGRICULTURE SITES
         self.calc_agri_need()
+        self.calc_tree_need()
         reduceAgric = int(len(self.AgricSites)- self.AgriNeed)#self.AgriNeed*(self.pop-config.init_pop)/self.pop)
         for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
             config.EI.agriculture[self.AgricSites[site]]-=1
             self.AgricSites.remove(self.AgricSites[site])
-        
         return True # i.e. survived
 
 
+    def calc_penalty(self, WhichTrianglesToCalc_inds, t):  
+        ''' Calculate the penalty of the current triangle '''
 
-    def move_water_agric(self, t):
-       
-        # CLEAR YOUR OLD SPACE!
-        config.EI.agentOccupancy[self.triangle_ind] -=1
-        config.EI.populationOccupancy[self.triangle_ind] -=self.pop
-        for site in self.AgricSites:
-            config.EI.agriculture[site] -=1
-        self.AgricSites=[]
-
-        # GET POSSIBLE TRIANGLES!
-        # get triangles within moving radius, # values are indices of EI.EI_triangles etc.
-        self.mv_inds = [n for n,m in enumerate(config.EI.EI_midpoints) 
-                    if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
-       
-        # Loop through mv_inds and assign tree densitiy within resource search radius 
-        # mvTris_inds_arr gives for every column (triangles within mv radius) a 1 in the column if the corresponding triangle (row) is within the radius.
-        mvTris_inds_arr_tree = np.zeros([config.EI.N_els, len(self.mv_inds)], dtype=np.uint8)
-        mvTris_inds_arr_agric = np.zeros([config.EI.N_els, len(self.mv_inds)], dtype=np.uint8)
-        for i,ind in enumerate(self.mv_inds):
+        mvTris_inds_arr_tree = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
+        mvTris_inds_arr_agric = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
+        for i,ind in enumerate(WhichTrianglesToCalc_inds):
             mvTris_inds_arr_tree[config.EI.TreeNeighbours_of_triangles[ind], i]=1
             mvTris_inds_arr_agric[config.EI.AgricNeighbours_of_triangles[ind],i]=1
 
-        
         ############################# 
         ## TREE PENALTY  ############
         #############################
@@ -173,7 +166,7 @@ class agent:
         ## Water     PENALTY  #######
         #############################
         # Water Penalty of all triangles in moving radius       
-        water_penalty =config.EI.water_penalties[self.mv_inds]
+        water_penalty =config.EI.water_penalties[WhichTrianglesToCalc_inds]
         
 
         ############################# 
@@ -210,14 +203,16 @@ class agent:
         #####     MAP PENALTY   ########
         ################################
 
-        map_penalty =  abs(1./ (max(config.EI.EI_midpoints_elev)-config.SweetPointSettlementElev) * (config.EI.EI_midpoints_elev[self.mv_inds] - config.SweetPointSettlementElev))
-        map_penalty = map_penalty  
+        map_penalty_elev =  abs(1./ (max(config.EI.EI_midpoints_elev)-config.SweetPointSettlementElev) * (config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds] - config.SweetPointSettlementElev))
+        map_penalty_slope = (config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] * (1/config.MaxSettlementSlope)).clip(max=1)
+        map_penalty = np.maximum(map_penalty_elev, map_penalty_slope)
+        # Why max of slope or elev? At top of mountain, slope=0, but elev high. At coast: slope=large, but elev good. In the middle if they are similar then, max and mean would be the same anyway.)
 
         
         ################################
         ## Allowed Settlements! #####
         ################################
-        slopes_cond = config.EI.EI_midpoints_slope[self.mv_inds] < config.MaxSettlementSlope
+        slopes_cond = config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] < config.MaxSettlementSlope
         # AND POPULATION DENSITY
 
        
@@ -230,7 +225,6 @@ class agent:
         #alpha_m = 0.1
 
         maske = np.array(slopes_cond)*np.array(population_cond) 
-        maske_plot = 2*survivalCond_agric +4*survivalCond_tree  + 1*maske #map_penalty
         maske = maske * survivalCond_agric * survivalCond_tree
 
         #_ = (self.alpha_w * water_penalty,   
@@ -242,7 +236,35 @@ class agent:
 
         total_penalties = ( self.alpha_w * water_penalty +  self.alpha_t* tree_penalty + self.alpha_p * pop_density_penalty + self.alpha_a * agriculture_penalty + self.alpha_m * map_penalty) 
         
-        probabilities= maske * np.exp(-total_penalties)#(1-total_penalties))
+        return total_penalties, maske, [water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty], [slopes_cond, population_cond, survivalCond_agric, survivalCond_tree]
+
+    def move_water_agric(self, t):
+       
+        # CLEAR YOUR OLD SPACE!
+        config.EI.agentOccupancy[self.triangle_ind] -=1
+        config.EI.populationOccupancy[self.triangle_ind] -=self.pop
+        for site in self.AgricSites:
+            config.EI.agriculture[site] -=1
+        self.AgricSites=[]
+
+        # GET POSSIBLE TRIANGLES!
+        # get triangles within moving radius, # values are indices of EI.EI_triangles etc.
+        #self.mv_inds = [n for n,m in enumerate(config.EI.EI_midpoints) 
+        #            if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
+        #!!!!! self.mv_inds is previously calculated 
+        
+        
+        # Loop through mv_inds and assign tree densitiy within resource search radius 
+        # mvTris_inds_arr gives for every column (triangles within mv radius) a 1 in the column if the corresponding triangle (row) is within the radius.
+
+        WhichTrianglesToCalc_inds = self.mv_inds
+        total_penalties, maske, penalties, masken = self.calc_penalty(WhichTrianglesToCalc_inds,t)
+        
+
+        probabilities= maske *  np.exp(-config.PenalToProb_Prefactor*total_penalties)#(1-total_penalties))
+
+        #probabilities = np.exp(-config.PenalToProb_Prefactor*total_penalties)#(1-total_penalties))
+
 
         ####################
         ##   MOVE   #######
@@ -265,7 +287,10 @@ class agent:
         ###########################################
         ####   PLOT PENALTIES FOR A FEW AGENTS   ##
         ###########################################
-        if config.analysisOn==True and self.index<5:
+        if config.analysisOn==True and (self.index<=25 and self.index>20):
+            water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty = penalties
+            slopes_cond, population_cond, survivalCond_agric, survivalCond_tree = masken
+            allowed_colors = np.array([survivalCond_agric,survivalCond_tree, np.array(population_cond),np.array(slopes_cond)],dtype=np.uint8)
             print("Saving Agent ", self.index,"'s penalty")
             config.AG0_mv_inds=np.array(self.mv_inds)
             config.AG0_total_penalties = total_penalties * maske
@@ -274,19 +299,34 @@ class agent:
             config.AG0_pop_density_penalty =  pop_density_penalty
             config.AG0_agriculture_penalty =  agriculture_penalty
             config.AG0_map_penalty = map_penalty
-            config.AG0_nosettlement_zones = maske_plot
+            config.AG0_nosettlement_zones = allowed_colors
             config.AG0_MovingProb =probabilities 
 
             plot_movingProb(t,self,self.triangle_midpoint)
             plt.close()
 
-
-        # TODO!!! NEED TO USE BARYcEnTRIC CORRD TO GET NON_MIDPOINT x,y
-        self.x = self.triangle_midpoint[0]
-        self.y = self.triangle_midpoint[1] 
+        ###################################################
+        # Within the triangle search for random position! #
+        ###################################################
+        A,B,C =  config.EI.points_EI_km[config.EI.EI_triangles[self.triangle_ind]]
+        # Draw points in trapez:
+        bary1 = np.random.random()
+        bary2= np.random.random()
+        # random point in trapezoid. If in other half of trapezoid (not in triangle), just mirror along the diagonal
+        p = A+ bary1 * (B-A) + bary2*(C-A)  
+        if bary1+bary2 <1:
+            p = p
+        else:
+            # Mirror point:
+            M = C + np.dot((p-C), C-B) * (C-B)/(np.linalg.norm(C-B)**2)
+            p = p+2*(M-p)
+        self.x = p[0] #self.triangle_midpoint[0]
+        self.y = p[1] #self.triangle_midpoint[1]
         config.EI.agentOccupancy[self.triangle_ind] +=1
         config.EI.populationOccupancy[self.triangle_ind] += self.pop
-            
+
+        self.mv_inds = [n for n,m in enumerate(config.EI.EI_midpoints) 
+                if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
         return 
 
     def Reproduce(self, t):
@@ -328,7 +368,7 @@ def init_agents():#N_agents, init_option, agent_type, map_type):
         while searching_for_new_spot:        
             # init_option = "anakena"
             midp = config.EI.transform([520,config.EI.pixel_dim[0]-480]) # This is roughly the coast anakena where they landed.
-            w = 0.1 # Random number (in km)
+            w = 1 # Random number (in km)
             x = np.random.random()*w - w/2 + midp[0]
             y = np.random.random()*w - w/2 + midp[1] 
             ind, _, m_meter = config.EI.get_triangle_of_point([x,y], config.EI_triObject)

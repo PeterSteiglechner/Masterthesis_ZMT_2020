@@ -61,8 +61,8 @@ MinTreeNeed=0. #Fraction
 
 BestTreeNr_forNewSpot = 0
 
-Nr_AgricStages = 1
-dStage = ((1-MinTreeNeed)/Nr_AgricStages)
+#Nr_AgricStages = 1
+#dStage = ((1-MinTreeNeed)/Nr_AgricStages)
 
 agricSites_need_per_Capita = 0
 
@@ -77,6 +77,8 @@ alpha_t=0
 alpha_p=0
 alpha_a=1
 alpha_m= 0
+
+PenalToProb_Prefactor=0
 
 NrOfEquivalentBestSitesToMove = 0
 
@@ -144,8 +146,11 @@ nr_agents, nr_trees, nr_deaths, nr_pop = [[], [], [], []] #[nr_agents, nr_trees,
 deaths = 0
 fire=[]
 agents_stages=[]
+agents_pos_size = []
 nr_happyAgents=[]
 nr_agricultureSites=[]
 Array_tree_density = np.array([])
 Array_agriculture = np.array([])
 Array_populationOccupancy = np.array([])
+
+
