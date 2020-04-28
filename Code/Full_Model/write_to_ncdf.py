@@ -38,6 +38,8 @@ def final_saving():
             "happyFraction":(("time",),config.nr_happyAgents),
             "SizeAgents":(('index', 'time'),SizeAgents),
             "PosAgents":(('index', '2d', "time"), PosAgents),
+            "Penalty_Mean":(('time'), config.Penalty_mean),
+            "Penalty_Std":(('time'), config.Penalty_std),
             #"agents":(("ag_ind", "properties", "time"), t1)
         },
         {

@@ -55,13 +55,13 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 config.N_agents = 5
 config.N_trees = 12e6
 config.init_pop=int(15)
-config.init_TreePreference = 0.8
+config.init_TreePreference = 0.9
 config.index_count=0
 
 ### RUN
 config.updatewithreplacement = False
-config.StartTime = 800
-config.EndTime=1800
+config.StartTime = 1200
+config.EndTime=1500
 config.N_timesteps = config.EndTime-config.StartTime
 config.seed= 8
 #config.folder= LATER
@@ -88,18 +88,18 @@ config.BestTreeNr_forNewSpot = 10*config.max_pop_per_household*config.tree_need_
 #config.agricSites_need_per_Capita = 2./6.  # Flenley Bahn
 config.agricSites_need_per_Capita = 0.5  # Puleston High N
 
-YearsOfDecreasingTreePref = 1400-config.StartTime #400
-config.treePref_decrease_per_year = (config.init_TreePreference - config.MinTreeNeed)/YearsOfDecreasingTreePref #0.002
-config.treePref_change_per_BadYear = 0.1 # UPDATE: NOT FRACTION ANYMORE, but actual percentage of tree pref! #1. # THIS IS THE FRACTION of a dStage! #0.02 
+#YearsOfDecreasingTreePref = 1400-config.StartTime #400
+#config.treePref_decrease_per_year = (config.init_TreePreference - config.MinTreeNeed)/YearsOfDecreasingTreePref #0.002
+#config.treePref_change_per_BadYear = 0.1 # UPDATE: NOT FRACTION ANYMORE, but actual percentage of tree pref! #1. # THIS IS THE FRACTION of a dStage! #0.02 
 
 #config.HowManyDieInPopulationShock = 10
 #NOT NEEDED ANYMORE: config.FractionDeathsInPopShock = 0.2
 
 # Each agent can (in the future) have these parameters different
-config.params={'tree_search_radius': 1., 
-        'agriculture_radius':0.5,
+config.params={'tree_search_radius': 1.6, 
+        'agriculture_radius':0.8,
         'moving_radius': 8,
-        'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
+        'reproduction_rate': 0.03,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
 
 # DEFAULT RUN
@@ -133,7 +133,7 @@ config.TreeDensityConditionParams = {
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=50
+config.gridpoints_y=20
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -179,7 +179,7 @@ print("################   DONE: MAP ###############")
 ########   Folder and Run Prepa   ###############
 #################################################
 
-config.folder = "Figs/"
+config.folder = "Figs/Test/"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard/"#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
@@ -211,7 +211,7 @@ def run():
 
 
         update_time_step(t)  
-        #regrow_update(config.tree_regrowth_rate)
+        regrow_update(config.tree_regrowth_rate)
         #observe(t+1)
         if len(config.agents)>0:
 

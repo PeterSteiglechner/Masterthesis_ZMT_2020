@@ -26,7 +26,7 @@ def regrow_update(g0):
     return 
 
 if __name__ == "__main__":
-    from CreateEI_ExtWater import Map
+    #from CreateEI_ExtWater import Map
 
     config.TreeDensityConditionParams = {'minElev':0, 'maxElev':430,'maxSlope':7}
 

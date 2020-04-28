@@ -60,6 +60,8 @@ class agent:
         self.alpha_a = config.alpha_a# 0.2
         self.alpha_m = config.alpha_m
 
+        self.penalty = 0
+
         return 
     
     def calc_tree_need(self):
@@ -325,8 +327,11 @@ class agent:
         config.EI.agentOccupancy[self.triangle_ind] +=1
         config.EI.populationOccupancy[self.triangle_ind] += self.pop
 
-        self.mv_inds = [n for n,m in enumerate(config.EI.EI_midpoints) 
-                if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
+        self.penalty = total_penalties[np.where(self.triangle_ind==self.mv_inds)[0]]
+
+        self.mv_inds = np.where(config.EI.distMatrix[:,10]<self.moving_radius)[0]
+            #[n for n,m in enumerate(config.EI.EI_midpoints) 
+            #    if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
         return 
 
     def Reproduce(self, t):

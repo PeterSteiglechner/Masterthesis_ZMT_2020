@@ -7,6 +7,8 @@
 ## edited to be able to pickle.dump a object.
 ## edited to give nr of agriculture sites 25.03.2020
 ## edited to get agriculture not from elevation/slope but from Paper Puleston2017  02.04.2020
+## edited for distance matrix 28.04.2020
+
 #
 #This script contains a class Map
 #It sets up a Map which performs the triangulation, 
@@ -54,7 +56,12 @@ import pandas as pd
 import sys, os
 import pickle
 
+import scipy.spatial.distance
+
+
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
 
 
 def blockPrint():
@@ -96,6 +103,7 @@ class Map:
         self.gridpoints_y = gridpoints_y
         self.create_grid_of_points(self.gridpoints_y, EI_elevation)
 
+
         # Triangulation
         triObject = mpl.tri.Triangulation(self.points_EI_km[:,0], self.points_EI_km[:,1])
         self.all_triangles = triObject.triangles
@@ -110,6 +118,10 @@ class Map:
         # Get Properties of the EI_triangles: midpoint, elevation, slope, area
         midpoints_EI_int = [self.midpoint_int(t) for t in self.EI_triangles]
         self.EI_midpoints = np.array([self.transform(m) for m in midpoints_EI_int])
+
+        # Matrix that calculates all the different points
+        self.distMatrix = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(self.EI_midpoints)).astype(np.float32)
+
 
         elev = np.array([EI_elevation[int(m[1]), int(m[0])] for m in midpoints_EI_int])
         self.EI_midpoints_elev = elev.astype(float)*500/255 # 500 is max from Google Earth Engine
@@ -174,10 +186,11 @@ class Map:
         #self.AgricNeighbours_of_triangles = np.array(self.AgricNeighbours_of_triangles).astype(int)
 
         print("DONE")
-
+        print("Get Agriculture Sites ...")
         self.nr_highqualitysites = np.zeros(self.N_els)
         self.nr_lowqualitysites = np.zeros(self.N_els)
         self.get_agriculture_sites()
+
 
 
 
@@ -314,10 +327,15 @@ class Map:
 
     def get_neighbour_triangles_ind(self, array, r):
         for i in range(self.N_els):
-            atnb_resourceRad = [int(n) for n in range(self.N_els) 
-                        if np.linalg.norm(self.EI_midpoints[n]-self.EI_midpoints[i] )<r]
-            array.append(atnb_resourceRad)
-        return 
+            array.append(np.where(self.distMatrix[:,i]<r)[0])
+
+    # OLD
+    #def get_neighbour_triangles_ind(self, array, r):
+    #    for i in range(self.N_els):
+    #        atnb_resourceRad = [int(n) for n in range(self.N_els) 
+    #                    if np.linalg.norm(self.EI_midpoints[n]-self.EI_midpoints[i] )<r]
+    #        array.append(atnb_resourceRad)
+    #    return 
 
     
     #############################
@@ -680,18 +698,22 @@ if __name__=="__main__":
     config.N_trees = 12e6
 
     config.gridpoints_y=100
-    config.TreeDensityConditionParams = {'minElev':5, 'maxElev': 430,'maxSlope':9,'maxSlopeHighD': 5, "ElevHighD":250, "factorBetweenHighandLowTreeDensity":2}
+    config.TreeDensityConditionParams = {'minElev':5, 'maxElev': 430,'maxSlope':9,'maxSlopeHighD': 5, "ElevHighD":250, "factorBetweenHighandLowTreeDensity":1.5}
     #config.AgriConds={'minElev':5,'maxElev_highQu':120,
     #    'maxSlope_highQu':3,'maxElev_lowQu':300,'maxSlope_lowQu':5,
     #    'MaxWaterPenalty':0.7,}
     # REPLACED BY AGRICULTURE FROM PULESTON 2017
-    config.AngleThreshold = 15
+    config.AngleThreshold = 30
 
-    config.params={'resource_search_radius':0.5}
+    config.params={'tree_search_radius': 1.6, 
+        'agriculture_radius':0.8
+    }
+
 
     config.EI = Map(config.gridpoints_y,N_init_trees = config.N_trees, angleThreshold=config.AngleThreshold)
-    with open("Map/EI_grid"+str(config.gridpoints_y)+"_rad"+str(config.params['resource_search_radius']), "wb") as EIfile:
-        
+    filename = "Map/EI_grid"+str(config.gridpoints_y)+"_rad"+str(config.params['tree_search_radius'])+"+"+str(config.params['agriculture_radius'])
+
+    with open(filename, "wb") as EIfile:
         pickle.dump(config.EI, EIfile)
 
     config.EI_triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.EI.points_EI_km[:,1], triangles = config.EI.all_triangles, mask=config.EI.mask)

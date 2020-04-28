@@ -11,6 +11,7 @@ class EI_empty:
         self.EI_midpoints=[]
         self.pixel_dim=[]
         self.points_EI_km=np.array([[0,0],[0,0]])
+        self.distMatrix=np.zeros([self.N_els, self.N_els])
         self.all_triangles = []
         self.mask = []
         self.EI_triangles=[]
@@ -26,6 +27,7 @@ class EI_empty:
         self.nr_highqualitysites = []
         self.nr_lowqualitysites = []
         self.max_tree_density = 0
+
         
         # WILL CHANGE OVER TIME
         self.agentOccupancy=np.array([])
@@ -152,5 +154,8 @@ nr_agricultureSites=[]
 Array_tree_density = np.array([])
 Array_agriculture = np.array([])
 Array_populationOccupancy = np.array([])
+Penalty_std = np.array([])
+Penalty_mean = np.array([])
+
 
 

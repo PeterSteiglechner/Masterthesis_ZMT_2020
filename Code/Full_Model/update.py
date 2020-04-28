@@ -39,9 +39,14 @@ def update_time_step(t):
     # ENVIRONMENT:
     config.nr_agricultureSites = np.append(config.nr_agricultureSites, np.sum(config.EI.agriculture))
     if not len(config.agents)==0:
-        config.nr_happyAgents = np.append(config.nr_happyAgents, (np.sum([ag.happy for ag in config.agents])/len(config.agents)))
+        config.nr_happyAgents = np.append(config.nr_happyAgents, (np.mean([ag.happy for ag in config.agents])))
+        config.Penalty_mean = np.append(config.Penalty_mean, (np.mean([ag.penalty for ag in config.agents])) )
+        config.Penalty_std = np.append(config.Penalty_std, (np.std([ag.penalty for ag in config.agents])))
+
     else:
          config.nr_happyAgents = np.append(config.nr_happyAgents,0)
+         config.Penalty_std = np.append(config.Penalty_std,0)
+         config.Penalty_mean = np.append(config.Penalty_std,0)
     config.Array_tree_density = np.concatenate((config.Array_tree_density, config.EI.tree_density.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
     config.Array_agriculture = np.concatenate((config.Array_agriculture, config.EI.agriculture.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
     config.Array_populationOccupancy = np.concatenate((config.Array_populationOccupancy, config.EI.populationOccupancy.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
@@ -215,14 +220,16 @@ def update_single_agent(ag,t):
         config.EI.agriculture[np.array(ag.AgricSites)] -=1
 
         WhichTrianglesToCalc_inds = [ag.triangle_ind]
-        _,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
-        
+        total_penalties,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
+
         config.EI.agriculture[np.array(ag.AgricSites)] +=1
 
         # total_penalties, maske, penalties, masken
         if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
             ag.move_water_agric(t)
-        
+        else:
+            ag.penalty = total_penalties
+
 
     else:
         if tree_fill<1:
