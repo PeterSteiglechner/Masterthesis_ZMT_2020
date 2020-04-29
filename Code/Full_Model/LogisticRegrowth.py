@@ -25,17 +25,32 @@ def regrow_update(g0):
     #print("#new nr of trees: ", np.sum(config.EI.tree_density))
     return 
 
+def agric_update():
+    notreecells = np.where(config.EI.tree_density==0)[0]
+    config.EI.treeless_years[notreecells]+=1
+    # For all cells with 20 years without trees, decrease soil quality to Eroded Soil yield or even lower
+    config.EI.agric_yield[notreecells] =  np.array([np.min(config.EI.agric_yield[i], config.ErodedSoilYield) if config.EI.treeless_years[i]>config.YearsBeforeErosionDegradation else config.EI.agric_yield[i] for i in notreecells])
+    #for n,triang in enumerate(config.EI.EI_triangles):
+    #    if 
+    return 
+
+def popuptrees():
+    # SET treeless_years to 0
+    return 
+
+
 if __name__ == "__main__":
+    pass
     #from CreateEI_ExtWater import Map
 
-    config.TreeDensityConditionParams = {'minElev':0, 'maxElev':430,'maxSlope':7}
+    #config.TreeDensityConditionParams = {'minElev':0, 'maxElev':430,'maxSlope':7}
 
 
-    config.EI = Map(50, N_init_trees= 1e6, verbose=True)
-    config.EI.plot_TreeMap_and_hist(name_append = -1)
+    #config.EI = Map(50, N_init_trees= 1e6, verbose=True)
+    #config.EI.plot_TreeMap_and_hist(name_append = -1)
 
-    config.EI.init_trees(3e5)
-    for i in range(100):
-        if i%5==0:
-            config.EI.plot_TreeMap_and_hist(name_append = i)
-        regrow_update(1)    
+    #config.EI.init_trees(3e5)
+    #for i in range(100):
+    #    if i%5==0:
+    #        config.EI.plot_TreeMap_and_hist(name_append = i)
+    #    regrow_update(1)    

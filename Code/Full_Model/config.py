@@ -26,14 +26,16 @@ class EI_empty:
         self.water_penalties=[]
         self.nr_highqualitysites = []
         self.nr_lowqualitysites = []
+        self.agric_yield=np.array([])
+        self.treeless_years = np.array([])
         self.max_tree_density = 0
-
         
         # WILL CHANGE OVER TIME
         self.agentOccupancy=np.array([])
         self.populationOccupancy = np.array([])
         self.tree_density=np.array([])
         self.agriculture = np.array([])
+        self.AnakenaBeach_ind=-1
 
     def transform(self, pos):
         return pos
@@ -66,10 +68,10 @@ BestTreeNr_forNewSpot = 0
 #Nr_AgricStages = 1
 #dStage = ((1-MinTreeNeed)/Nr_AgricStages)
 
-agricSites_need_per_Capita = 0
+agricYield_need_per_Capita = 0
 
-treePref_decrease_per_year = 0.0
-treePref_change_per_BadYear = 0.0
+#treePref_decrease_per_year = 0.0
+#treePref_change_per_BadYear = 0.0
 
 #HowManyDieInPopulationShock = 0
 FractionDeathsInPopShock=0.0
@@ -91,6 +93,8 @@ params={'tree_search_radius': 0,
         'reproduction_rate': 0.,
         }
 
+MaxFisherAgents = 0
+
 
 ###  INIT
 N_agents = 0
@@ -98,7 +102,6 @@ N_trees = 0
 init_pop = 0
 init_TreePreference = 1.
 index_count=0  # Index of agent (index is unique regardless of dead households)
-
 
 
 ### RUNS ###
@@ -112,6 +115,9 @@ N_timesteps = 0
 
 ###  MAP  ###
 TreeDensityConditionParams = {'minElev':0, 'maxElev':0,'maxSlope':0}
+UpperLandSoilQuality = 0
+ErodedSoilYield = 0 # Max
+YearsBeforeErosionDegradation=0
 #AgriConds={'minElev':0,'maxElev_highQu':0,
 #    'maxSlope_highQu':0,'maxElev_lowQu':0,'maxSlope_lowQu':0,
 #    'MaxWaterPenalty':0,}
@@ -156,6 +162,8 @@ Array_agriculture = np.array([])
 Array_populationOccupancy = np.array([])
 Penalty_std = np.array([])
 Penalty_mean = np.array([])
+FisherAgents = 0
+NrFisherAgents = np.array([])
 
 
 

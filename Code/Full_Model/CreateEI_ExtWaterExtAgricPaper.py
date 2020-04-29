@@ -8,6 +8,7 @@
 ## edited to give nr of agriculture sites 25.03.2020
 ## edited to get agriculture not from elevation/slope but from Paper Puleston2017  02.04.2020
 ## edited for distance matrix 28.04.2020
+## edited add fish in agriculture 29.04.2020
 
 #
 #This script contains a class Map
@@ -157,11 +158,12 @@ class Map:
         print("Check if Tree probability works: ", np.sum(self.treeProb), " Cells: ", np.sum(self.treeProb>0), " of ", self.treeProb.shape[0])
         
         # mutable Variables of triangles 
-        self.agriculture = np.zeros([self.N_els], dtype=np.int32)
-        self.agentOccupancy = np.zeros([self.N_els], dtype = np.int32)
-        self.populationOccupancy = np.zeros([self.N_els], dtype = np.int32)
+        self.agriculture = np.zeros([self.N_els], dtype=np.int16)
+        self.agentOccupancy = np.zeros([self.N_els], dtype = np.int16)
+        self.populationOccupancy = np.zeros([self.N_els], dtype = np.int16)
         self.tree_density= np.zeros([self.N_els], dtype=np.int32)
         
+        print("Initialising Trees, ...")
         self.init_trees(N_init_trees)
         print("Total Trees:", np.sum(self.tree_density))
         print("Fraction of islands with forest: ", 
@@ -189,10 +191,12 @@ class Map:
         print("Get Agriculture Sites ...")
         self.nr_highqualitysites = np.zeros(self.N_els)
         self.nr_lowqualitysites = np.zeros(self.N_els)
+        self.agric_yield = np.zeros(self.N_els)
+        self.treeless_years = np.zeros(self.N_els).astype(np.uint8)
         self.get_agriculture_sites()
 
 
-
+        self.get_AnakenaBeach(triObject)
 
         #self.plot_agriculture(which="high", save=True)
         #self.plot_agriculture(which="low", save=True)
@@ -247,6 +251,7 @@ class Map:
         #Points on Easter Island in kms from left lower corner
         self.points_EI_km = np.array([self.transform(p) for p in self.points_EI_int])
 
+        
         return 
 
     def midpoint_int(self, t):
@@ -483,7 +488,36 @@ class Map:
         inds_low = np.where(self.nr_lowqualitysites>0)[0]
         print("Area Low Quality: ", np.sum(self.EI_triangles_areas[inds_low]), " (i.e. in Percent: ", np.sum(self.EI_triangles_areas[inds_low]) /np.sum(self.EI_triangles_areas)) 
 
+        self.agric_yield[inds_high]=1
+        self.agric_yield[inds_low]=config.UpperLandSoilQuality 
     
+    # def get_fishing(self):
+    #     for _ in range(10):
+    #         anakena_point = config.EI.transform([520,config.EI.pixel_dim[0]-480]) # This is roughly the coast anakena where they landed.
+            
+    #         triangle, _, _ = config.EI.get_triangle_of_point(anakena_point, config.EI_triObject)
+    #         if self.agric_yield[triangle]==1:
+    #             print("Note: high quality agric site is overwritten by fishery at anakena")
+    #         self.fish_sites = config.HowManyFishSites
+    #         self.agric_yield[triangle] = 100#config.FisheryYield
+
+    def get_AnakenaBeach(self, triObject):
+        # Pixel Coordinates taken from the elevation.tif (in gimp)
+        # lat lon 27°04'23.8"S 109°19'23.6"W, Chile
+        #d_gradlat_per_pixel = abs(latmax-latmin)/pixel_y  #[degrees lat per pixel]
+        #self.d_km_lat = 111.320*d_gradlat_per_pixel # [m/lat_deg * lat_deg/pixel = m/pixel]
+        # according to wikipedia 1deg Latitude = 111.32km
+        #d_gradlon_per_pixel = abs(lonmax-lonmin)/pixel_x #[degrees lon per pixel]
+        #self.d_km_lon = 111.320 * abs(np.cos((latmax+latmin)*0.5*2*np.pi/360)) * d_gradlon_per_pixel  #[m/pixel]]
+        #111.320 * abs(np.cos(anakena_lat)*2*np.pi/360) 
+
+        AnakenaBeach_m =self.transform([520,self.pixel_dim[0]-480]) # This is roughly the coast anakena where they landed.
+        self.AnakenaBeach_ind, _, _ = self.get_triangle_of_point(AnakenaBeach_m, triObject)
+
+        if self.AnakenaBeach_ind ==-1:            
+            print("ERROR, Anakena is not on EI")
+        return 
+
     #  def get_agriculture_sites(self):
     #      ''' Agriculture Site Availability depends on elevation and slope '''
     #      minElev = config.AgriConds['minElev']
@@ -521,7 +555,7 @@ class Map:
  
     #      return # self.nr_highqualitysites, self.nr_lowqualitysites  
     #  
- 
+    
 
     #################################################
     ######       SAVE NCDF NOT USED          ########

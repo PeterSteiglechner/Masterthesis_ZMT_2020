@@ -39,7 +39,7 @@ from observefunc import observe, observe_density, plot_movingProb
 from agents import agent, init_agents#, init_agents_EI
 #from agents import Tree
 from update import update_single_agent, update_time_step
-from LogisticRegrowth import regrow_update   # EasterIslands/Code/TreeRegrowth_spatExt/")
+from LogisticRegrowth import regrow_update, agric_update  # EasterIslands/Code/TreeRegrowth_spatExt/")
 
 from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 #from analyse_ncdf import plot_statistics
@@ -86,7 +86,7 @@ config.BestTreeNr_forNewSpot = 10*config.max_pop_per_household*config.tree_need_
 #config.dStage = ((1-config.MinTreeNeed)/config.Nr_AgricStages)
 
 #config.agricSites_need_per_Capita = 2./6.  # Flenley Bahn
-config.agricSites_need_per_Capita = 0.5  # Puleston High N
+config.agricYield_need_per_Capita = 0.5  # Puleston High N  in ACRE!
 
 #YearsOfDecreasingTreePref = 1400-config.StartTime #400
 #config.treePref_decrease_per_year = (config.init_TreePreference - config.MinTreeNeed)/YearsOfDecreasingTreePref #0.002
@@ -99,7 +99,7 @@ config.agricSites_need_per_Capita = 0.5  # Puleston High N
 config.params={'tree_search_radius': 1.6, 
         'agriculture_radius':0.8,
         'moving_radius': 8,
-        'reproduction_rate': 0.03,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
+        'reproduction_rate': 0.02,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
 
 # DEFAULT RUN
@@ -128,12 +128,14 @@ config.TreeDensityConditionParams = {
     'maxElev': 430,'maxSlope':8.5,
     "factorBetweenHighandLowTreeDensity":2}
 
-
+config.UpperLandSoilQuality=0.2
+config.ErodedSoilYield=0.7
+config.YearsBeforeErosionDegradation=20
 # need to make sure that 80% (RULL) are covered
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=20
+config.gridpoints_y=100
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -218,7 +220,7 @@ def run():
             ag = config.agents[0]
             print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
         
-            if (t+1)%50==0:
+            if (t+1)%10==0:
                 observe(t+1)
             if (t+1)%50==0:
                 plt.cla()

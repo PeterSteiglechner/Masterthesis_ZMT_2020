@@ -45,11 +45,14 @@ class agent:
         # calculate total Tree and Agriculture Need:
         self.AgriNeed = 0
         self.tree_need = 0
-        self.treePref = config.init_TreePreference
-        self.calc_tree_need()
-        self.calc_agri_need()
+        
+        self.fisher=False 
 
-        self.AgricSites = []
+        self.treePref = config.init_TreePreference
+
+
+        self.AgricSites = np.array([]).astype(int)
+
 
         self.happy=1.0# TRUE 
         #self.happyPeriod=0
@@ -65,11 +68,14 @@ class agent:
         return 
     
     def calc_tree_need(self):
-        self.tree_need = np.round((config.tree_need_per_capita*self.pop * self.treePref)).astype(int) #
+        self.tree_need = np.round((config.tree_need_per_capita*self.pop * self.treePref)).astype(int)         #
         # self.tree_need = int(config.tree_need_per_capita*self.pop* (1-config.dStage * self.stage))
         return 
     def calc_agri_need(self):
-        self.AgriNeed = np.round(self.pop * config.agricSites_need_per_Capita *  (1-self.treePref)).astype(int)
+        if self.fisher:
+            self.AgriNeed=0
+        else:
+            self.AgriNeed = np.round(self.pop * config.agricYield_need_per_Capita *  (1-self.treePref)).astype(int)
 
     #def change_tree_pref(self, amount):
     #    self.treePref = np.clip(self.treePref + amount, config.MinTreeNeed, 1)  # e.g. -config.treePref_decrease_per_year
@@ -81,8 +87,14 @@ class agent:
 
     def calc_new_tree_pref(self):
         self.treePref = np.clip( config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum(), config.MinTreeNeed, config.init_TreePreference)
-        self.calc_tree_need()
-        self.calc_agri_need()
+        
+        # FOR FISHER MAKE AGRICULTURE NEED HIGH!
+        #if self.fisher:
+        #    self.treePref = config.MinTreeNeed
+        
+        #self.calc_tree_need()
+        #self.calc_agri_need()
+
         return 
 
 
@@ -107,6 +119,7 @@ class agent:
             config.deaths+= self.pop
             config.EI.agentOccupancy -=1
             config.EI.populationOccupancy[self.triangle_ind] -= dead_pop
+            if self.fisher: config.FisherAgents-=1
             for i in self.AgricSites:
                 config.EI.agriculture[i]-=1
             self.AgricSites=[]
@@ -117,14 +130,25 @@ class agent:
         # REDUCE AGRICULTURE SITES
         self.calc_agri_need()
         self.calc_tree_need()
-        reduceAgric = int(len(self.AgricSites)- self.AgriNeed)#self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-        for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
-            config.EI.agriculture[self.AgricSites[site]]-=1
-            self.AgricSites.remove(self.AgricSites[site])
+        #reduceAgric = int(np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed)#self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+        #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
+        #    config.EI.agriculture[self.AgricSites[site]]-=1
+        #    self.AgricSites = np.delete(self.AgricSites, site).astype(int)
+        reduceAgric = (np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+        while reduceAgric>0:
+            site = np.argmin(config.EI.agric_yield[self.AgricSites])
+            if reduceAgric - config.EI.agric_yield[self.AgricSites[site]] > 0:
+                config.EI.agriculture[self.AgricSites[site]]-=1
+                self.AgricSites = np.delete(self.AgricSites, site)
         return True # i.e. survived
 
 
+
+
     def calc_penalty(self, WhichTrianglesToCalc_inds, t):  
+        if not self.triangle_ind == config.EI.get_triangle_of_point([self.x, self.y], config.EI_triObject)[0]:
+            print("ERRROR, triangle ind is not correct")
+
         ''' Calculate the penalty of the current triangle '''
 
         mvTris_inds_arr_tree = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
@@ -169,6 +193,7 @@ class agent:
         #############################
         # Water Penalty of all triangles in moving radius       
         water_penalty =config.EI.water_penalties[WhichTrianglesToCalc_inds]
+
         
 
         ############################# 
@@ -195,12 +220,22 @@ class agent:
         agriculture_penalty = agriculture_penalty/max_agriculture_penalty
         '''
         # OPTION 2: Take all non-taken agric sites (perhaps with trees). 
-        nrAvailAgrisSites_aroundSites = np.dot(config.EI.nr_highqualitysites-config.EI.agriculture, mvTris_inds_arr_agric)
-        maxNeededAgric = np.ceil(config.max_pop_per_household*config.agricSites_need_per_Capita)
-        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (maxNeededAgric - nrAvailAgrisSites_aroundSites.clip(min=0, max=maxNeededAgric))/maxNeededAgric
+        #nrAvailAgrisSites_aroundSites = np.dot(config.EI.nr_highqualitysites-config.EI.agriculture, mvTris_inds_arr_agric)  
+
+        # OPTION 2 updated: Including low quality and eroded soil
+        AvailAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
         
-        survivalCond_agric =  nrAvailAgrisSites_aroundSites>self.AgriNeed
         
+        maxNeededAgric = np.ceil(config.max_pop_per_household*config.agricYield_need_per_Capita)
+        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (maxNeededAgric - AvailAgrisYield_aroundSites.clip(min=0, max=maxNeededAgric))/maxNeededAgric
+
+        survivalCond_agric =  AvailAgrisYield_aroundSites>self.AgriNeed
+
+        if config.FisherAgents < config.MaxFisherAgents: # still place for Fishers
+            fishpossibility = np.dot(np.eye(1,config.EI.N_els, config.EI.AnakenaBeach_ind, dtype=np.uint8), mvTris_inds_arr_agric)
+            agriculture_penalty[np.where(fishpossibility[0,:])] = 0
+            survivalCond_agric[np.where(fishpossibility[0,:])] = 1
+                
         ################################
         #####     MAP PENALTY   ########
         ################################
@@ -247,7 +282,12 @@ class agent:
         config.EI.populationOccupancy[self.triangle_ind] -=self.pop
         for site in self.AgricSites:
             config.EI.agriculture[site] -=1
-        self.AgricSites=[]
+        self.AgricSites=np.array([]).astype(int)
+        if self.fisher: 
+            config.FisherAgents-=1
+            self.fisher = False
+            self.calc_agri_need()
+
 
         # GET POSSIBLE TRIANGLES!
         # get triangles within moving radius, # values are indices of EI.EI_triangles etc.
@@ -320,16 +360,18 @@ class agent:
             p = p
         else:
             # Mirror point:
-            M = C + np.dot((p-C), C-B) * (C-B)/(np.linalg.norm(C-B)**2)
+            M = C+(B-C)*0.5#C + np.dot((p-C), C-B) * (C-B)/(np.linalg.norm(C-B)**2)
             p = p+2*(M-p)
         self.x = p[0] #self.triangle_midpoint[0]
         self.y = p[1] #self.triangle_midpoint[1]
         config.EI.agentOccupancy[self.triangle_ind] +=1
         config.EI.populationOccupancy[self.triangle_ind] += self.pop
 
+        if not self.triangle_ind == config.EI.get_triangle_of_point([self.x, self.y], config.EI_triObject)[0]:
+            print("ERRROR, triangle ind is not correct", self.index)
         self.penalty = total_penalties[np.where(self.triangle_ind==self.mv_inds)[0]]
 
-        self.mv_inds = np.where(config.EI.distMatrix[:,10]<self.moving_radius)[0]
+        self.mv_inds = np.where(config.EI.distMatrix[:,self.triangle_ind]<self.moving_radius)[0]
             #[n for n,m in enumerate(config.EI.EI_midpoints) 
             #    if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
         return 
@@ -350,7 +392,7 @@ class agent:
             child.pop = int(config.init_pop)
             child.calc_agri_need()
             child.calc_tree_need()
-            child.AgricSites=[] # Note, if child doesn't have any garden, we also do not clear space when moving
+            child.AgricSites=np.array([]) # Note, if child doesn't have any garden, we also do not clear space when moving
             child.move_water_agric(t)
 
             # Adjust parent agent and reduce its agriculture.
@@ -358,10 +400,15 @@ class agent:
             self.calc_tree_need()
             self.calc_agri_need()
             config.agents.append(child)
-            reduceAgric = int(len(self.AgricSites)- self.AgriNeed)#self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-            for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
-                config.EI.agriculture[self.AgricSites[site]]-=1
-                self.AgricSites.remove(self.AgricSites[site])
+            reduceAgric = (np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+            while reduceAgric>0:
+                site = np.argmin(config.EI.agric_yield[self.AgricSites])
+                if reduceAgric - config.EI.agric_yield[self.AgricSites[site]] > 0:
+                    config.EI.agriculture[self.AgricSites[site]]-=1
+                    self.AgricSites = np.delete(self.AgricSites, site)
+            #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
+            #    config.EI.agriculture[self.AgricSites[site]]-=1
+            #    self.AgricSites.remove(self.AgricSites[site])
 
 
 
@@ -387,7 +434,8 @@ def init_agents():#N_agents, init_option, agent_type, map_type):
         ag.triangle_midpoint = m_meter
         config.EI.agentOccupancy[ind]+=1
         config.EI.populationOccupancy[ind] += ag.pop
-
+        ag.calc_tree_need()
+        ag.calc_agri_need()
         config.agents.append(ag)  # add agent to list
     return 
 

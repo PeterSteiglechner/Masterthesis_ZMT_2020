@@ -125,7 +125,7 @@ def plot_movingProb(t,ag, newpos):
     rcParams={'font.size':10}
     plt.rcParams.update(rcParams)
 
-    fig, ax = observe_density(t, fig=fig, ax=ax, save=False, hist=False, folder="")
+    fig, ax = observe_density(t, fig=fig, ax=ax, save=False, hist=False, folder="", specific_ag_to_follow=ag)
     fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=10)
@@ -151,7 +151,6 @@ def plot_movingProb(t,ag, newpos):
     #ax_text.set_xticklabels([])
     #ax_text.set_yticklabels([])
 
-    # TODO! PLOT MAP Penalty 
     penalties = [config.AG0_total_penalties, config.AG0_MovingProb, config.AG0_water_penalties, config.AG0_tree_penalty, config.AG0_agriculture_penalty, config.AG0_pop_density_penalty, config.AG0_map_penalty, config.AG0_nosettlement_zones]
     penalties_key = ["total_penalties", "MovingProb","water_penalties", "tree_penalty", "agriculture_penalty", "pop_density_penalty", "Map_Penalty","Allowed_settlements"]
     for k, penalty,key in zip([2,3,4,5,6,7,8,9], penalties, penalties_key):
@@ -205,7 +204,8 @@ def plot_movingProb(t,ag, newpos):
                 config.EI.EI_triangles, facecolors=prob,vmin=0,vmax=vmax, cmap=cmap, alpha=1)
 
 
-        
+        if not all(config.AG0_mv_inds==ag.mv_inds):
+            print("Error in Plot Penalties")
         ax2.plot(newpos[0], config.EI.corners['upper_left'][1]-newpos[1], "o", markersize = 8,color='magenta', fillstyle="none")
 
         

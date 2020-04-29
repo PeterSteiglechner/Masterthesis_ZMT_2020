@@ -40,6 +40,7 @@ def final_saving():
             "PosAgents":(('index', '2d', "time"), PosAgents),
             "Penalty_Mean":(('time'), config.Penalty_mean),
             "Penalty_Std":(('time'), config.Penalty_std),
+            "FishersPop":(("time"), config.NrFisherAgents)
             #"agents":(("ag_ind", "properties", "time"), t1)
         },
         {
@@ -67,9 +68,9 @@ def final_saving():
         'BestTreeNr_forNewSpot': config.BestTreeNr_forNewSpot,
         #'Nr_AgricStages': config.Nr_AgricStages,
         #'dStage': config.dStage,
-        'agricSites_need_per_Capita': config.agricSites_need_per_Capita,
-        'treePref_decrease_per_year': config.treePref_decrease_per_year, 
-        'treePref_change_per_BadYear': config.treePref_change_per_BadYear,
+        'agricYield': config.agricYield_need_per_Capita,
+        #'treePref_decrease_per_year': config.treePref_decrease_per_year, 
+        #'treePref_change_per_BadYear': config.treePref_change_per_BadYear,
         #'HowManyDieInPopulationShock': config.HowManyDieInPopulationShock,
         'FractionDeathsInPopShock':config.FractionDeathsInPopShock,
         'tree_search_radius': config.params['tree_search_radius'], 
@@ -82,6 +83,7 @@ def final_saving():
         'alpha_a':config.alpha_a,
         'alpha_m':config.alpha_m,
         'PenalToProb_Prefactor':config.PenalToProb_Prefactor,
+        "MaxFisherAgents":config.MaxFisherAgents,
         #"NrOfEquivalentBestSitesToMove":config.NrOfEquivalentBestSitesToMove,
         }
     
@@ -112,6 +114,9 @@ def final_saving():
     'AngleThreshold': config.AngleThreshold ,
     'km2_to_acre': config.km2_to_acre,
     'tree_regrowth_rate': config.tree_regrowth_rate,
+    "UpperLandSoilQuality":config.UpperLandSoilQuality,
+    "ErodedSoilYield":config.ErodedSoilYield,
+    "YearsBeforeErosionDegradation":config.YearsBeforeErosionDegradation,
     }
     for key in params_map.keys():
         ds.attrs[key]=params_map[key]

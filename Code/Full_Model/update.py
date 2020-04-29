@@ -42,11 +42,13 @@ def update_time_step(t):
         config.nr_happyAgents = np.append(config.nr_happyAgents, (np.mean([ag.happy for ag in config.agents])))
         config.Penalty_mean = np.append(config.Penalty_mean, (np.mean([ag.penalty for ag in config.agents])) )
         config.Penalty_std = np.append(config.Penalty_std, (np.std([ag.penalty for ag in config.agents])))
-
+        config.NrFisherAgents = np.append(config.NrFisherAgents, config.FisherAgents)
     else:
-         config.nr_happyAgents = np.append(config.nr_happyAgents,0)
-         config.Penalty_std = np.append(config.Penalty_std,0)
-         config.Penalty_mean = np.append(config.Penalty_std,0)
+        config.nr_happyAgents = np.append(config.nr_happyAgents,0)
+        config.Penalty_std = np.append(config.Penalty_std,0)
+        config.Penalty_mean = np.append(config.Penalty_std,0)
+        config.NrFisherAgents = np.append(config.NrFisherAgents, 0)
+
     config.Array_tree_density = np.concatenate((config.Array_tree_density, config.EI.tree_density.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
     config.Array_agriculture = np.concatenate((config.Array_agriculture, config.EI.agriculture.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
     config.Array_populationOccupancy = np.concatenate((config.Array_populationOccupancy, config.EI.populationOccupancy.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
@@ -68,66 +70,78 @@ def update_single_agent(ag,t):
     ## HARVEST AGRICULTRE   ##
     ##########################
 
+
     agric_neighbours_inds = np.array(config.EI.AgricNeighbours_of_triangles[ag.triangle_ind])
+
+    if not ag.fisher and config.EI.AnakenaBeach_ind in agric_neighbours_inds:
+        if config.FisherAgents < config.MaxFisherAgents:
+            ag.fisher = True
+            config.FisherAgents+=1
+            ag.calc_agri_need()
+            ag.calc_tree_need()
     
-    if ag.AgriNeed  <= len(ag.AgricSites):
+    if ag.AgriNeed  <= np.sum(config.EI.agric_yield[ag.AgricSites]):
         # agent has enough agriculture.
         agriculture_fill = 1.0
     else:  # NEED MORE AGRICULTURE
         # get potential sites (non-occupied and allowed)
-        potential_sites_inds = agric_neighbours_inds[np.where(config.EI.nr_highqualitysites[agric_neighbours_inds].astype(int)>config.EI.agriculture[agric_neighbours_inds])] #np.dot(neighbours, config.EI.nr_highqualitysites)        
-        #nr_potential_sites = np.sum(config.EI.nr_highqualitysites[potential_sites_inds]-config.EI.agriculture[potential_sites_inds])   # 15 = 2 sites on 4 cells and 7 with one
+
+        for sites in [config.EI.nr_highqualitysites, config.EI.nr_lowqualitysites]:
+            potential_sites_inds = agric_neighbours_inds[np.where(sites[agric_neighbours_inds].astype(int)>config.EI.agriculture[agric_neighbours_inds])] #np.dot(neighbours, config.EI.nr_highqualitysites)        
+                
+            # Tree densities / Carr Cap  on the triangles with potential for agriculture
+            TreeDens_onPotentialAgri = config.EI.tree_density[potential_sites_inds] / (config.EI.carrying_cap[potential_sites_inds]).clip(1e-5)
             
-        # Tree densities / Carr Cap  on the triangles with potential for agriculture
-        TreeDens_onPotentialAgri = config.EI.tree_density[potential_sites_inds] / (config.EI.carrying_cap[potential_sites_inds]).clip(1e-5)
-        
-        # Space for Agriculture: nr of acres not covered by tree and not occupied by agriculture
-        TreelessSpaceForAgr = config.EI.EI_triangles_areas[potential_sites_inds] * config.km2_to_acre *  (1- TreeDens_onPotentialAgri) - config.EI.agriculture[potential_sites_inds] 
-        TreelessSpaceForAgr_int = np.floor(TreelessSpaceForAgr) # Round down.
-        
-        #TEST: if any(TreelessSpaceForAgr > config.EI.nr_highqualitysites[potential_sites_inds]):
-        #    print("ERROR in CALC SPACE FOR AGR ", potential_sites_inds, TreelessSpaceForAgr, config.EI.nr_highqualitysites[potential_sites_inds] )
-        #    quit()
-        
-        # TODO   I COULD COMBINE THIS WITH THE TREE BURNING LATER AND JUST TAKE THE ONES WHERE 0 BURNING REQUIRED.
+            # Space for Agriculture: nr of acres not covered by tree and not occupied by agriculture
+            TreelessSpaceForAgr = config.EI.EI_triangles_areas[potential_sites_inds] * config.km2_to_acre *  (1- TreeDens_onPotentialAgri) - config.EI.agriculture[potential_sites_inds] 
+            TreelessSpaceForAgr_int = np.floor(TreelessSpaceForAgr) # Round down.
+            
+            #TEST: if any(TreelessSpaceForAgr > config.EI.nr_highqualitysites[potential_sites_inds]):
+            #    print("ERROR in CALC SPACE FOR AGR ", potential_sites_inds, TreelessSpaceForAgr, config.EI.nr_highqualitysites[potential_sites_inds] )
+            #    quit()
+            
+            # TODO   I COULD COMBINE THIS WITH THE TREE BURNING LATER AND JUST TAKE THE ONES WHERE 0 BURNING REQUIRED.
 
-        # The indices of the triangles of ALL acres, that are unoccupied, tree-less and have potential agriculture . e.g. [1,1,1,4,4,5,8,6,13,13,13]
-        treeless_sites_inds = [i  for n,i in enumerate(potential_sites_inds) for k in range(int(TreelessSpaceForAgr_int[n])) ]
+            # The indices of the triangles of ALL acres, that are unoccupied, tree-less and have potential agriculture . e.g. [1,1,1,4,4,5,8,6,13,13,13]
+            treeless_sites_inds = [i  for n,i in enumerate(potential_sites_inds) for k in range(int(TreelessSpaceForAgr_int[n])) ]
 
-        # Nr of trees that the agent will occupy without burning
-        Nr_NewSites_NoBurning = min(ag.AgriNeed - len(ag.AgricSites), len(treeless_sites_inds))
+            # Nr of trees that the agent will occupy without burning
+            Nr_NewSites_NoBurning = min(ag.AgriNeed - len(ag.AgricSites), len(treeless_sites_inds))
 
-        NewSites_NoBurning = np.random.choice(treeless_sites_inds, size = Nr_NewSites_NoBurning, replace=False)
-        for s in NewSites_NoBurning:
-            ag.AgricSites.append(s)
-            config.EI.agriculture[s] +=1
-            treeless_sites_inds.remove(s)
+            NewSites_NoBurning = np.random.choice(treeless_sites_inds, size = Nr_NewSites_NoBurning, replace=False)
+            for s in NewSites_NoBurning:
+                ag.AgricSites = np.append(ag.AgricSites, s).astype(int)
+                #ag.AgricYield += config.EI.agric_yield[s]
+                config.EI.agriculture[s] +=1
+                treeless_sites_inds.remove(s)
+                if ag.AgriNeed  <= np.sum(config.EI.agric_yield[ag.AgricSites]):  
+                    agriculture_fill = 1.0
+                    break
+                if config.EI.agriculture[s] == sites[s]:
+                    potential_sites_inds.delete(np.where(potential_sites_inds = s, axis=0))
 
 
-        if len(ag.AgricSites) >= (ag.AgriNeed):  
-            # THERE WAS ENOUGH CLEARED AREA FOR AGRICULTURE
-            #ag.happy=True 
-            # PROBLEM: Now happy and when there's no wood --> unhapy and move but will never go into popshock
-            agriculture_fill = 1.0
-        else:
-            ######### BURN ####################   
-            '''
-            We have now FreeSpace = (1-N_trees/CarrCap) * Area - AgricAcres <1
-            But we want it to be 1.
-            Hence (1- (Ntrees-DelN)/CarrCap) * Area - AgricAcres >= 1
-            then DelN = N - C*(1- (1+AgricAcres)/A)  need to be cut for the next acre
-            '''
-            # update Space: (should not have anything >=1)
-            # TODO BETTER: INSTEAD OF DOING IT AGAIN REMOVE THE CORRESPONDING ENTRIES IN THE UPPER CALCULATION
-            potential_sites_inds = agric_neighbours_inds[np.where(config.EI.nr_highqualitysites[agric_neighbours_inds].astype(int)>config.EI.agriculture[agric_neighbours_inds])] #np.dot(neighbours, config.EI.nr_highqualitysites)        
-            if len(potential_sites_inds)==0:
-                agriculture_fill= len(ag.AgricSites)/ag.AgriNeed
-            else:
-                #TreeDens_onPotentialAgri = config.EI.tree_density[potential_sites_inds] / (config.EI.carrying_cap[potential_sites_inds]).clip(1e-5)
-                #SpaceForAgr = config.EI.EI_triangles_areas[potential_sites_inds] * config.km2_to_acre * (1- TreeDens_onPotentialAgri)  - config.EI.agriculture[potential_sites_inds] 
+            if ag.AgriNeed  > np.sum(config.EI.agric_yield[ag.AgricSites]) and len(potential_sites_inds)>0:  
+                ######### BURN ####################   
+                '''
+                We have now FreeSpace = (1-N_trees/CarrCap) * Area - AgricAcres <1
+                But we want it to be 1.
+                Hence (1- (Ntrees-DelN)/CarrCap) * Area - AgricAcres >= 1
+                then DelN = N - C*(1- (1+AgricAcres)/A)  need to be cut for the next acre
+                '''
+                # update Space: (should not have anything >=1)
+                # TODO BETTER: INSTEAD OF DOING IT AGAIN REMOVE THE CORRESPONDING ENTRIES IN THE UPPER CALCULATION
+                #potential_sites_inds = agric_neighbours_inds[np.where(config.EI.sites[agric_neighbours_inds].astype(int)>config.EI.agriculture[agric_neighbours_inds])] #np.dot(neighbours, config.EI.nr_highqualitysites)        
+                #if len(potential_sites_inds)==0:
+                #    agriculture_fill= len(ag.AgricSites)/ag.AgriNeed
+                #else:
+                    #TreeDens_onPotentialAgri = config.EI.tree_density[potential_sites_inds] / (config.EI.carrying_cap[potential_sites_inds]).clip(1e-5)
+                    #SpaceForAgr = config.EI.EI_triangles_areas[potential_sites_inds] * config.km2_to_acre * (1- TreeDens_onPotentialAgri)  - config.EI.agriculture[potential_sites_inds] 
+                
                 if any(config.EI.tree_density<0):
                     print("Error already here", np.where(config.EI.tree_density<0))
                     quit()
+                
                 for _ in range(ag.AgriNeed - len(ag.AgricSites)):
                     howmanytreesneedtoburn = np.ceil( 
                         config.EI.tree_density[potential_sites_inds] - 
@@ -165,15 +179,16 @@ def update_single_agent(ag,t):
                     if config.EI.tree_density[Site_ind]<0:
                         print("ERROR!!!! in ",Site_ind)
                         quit()
-                    ag.AgricSites.append(Site_ind)
+                    ag.AgricSites= np.append(ag.AgricSites,Site_ind).astype(int)
                     config.EI.agriculture[Site_ind]+=1
 
-                    if config.EI.agriculture[Site_ind] >= config.EI.nr_highqualitysites[Site_ind]:
+                    if config.EI.agriculture[Site_ind] == sites[Site_ind]:
+                        # Triangle is full, not even burning makes more space for agriculture.
                         #print("Triangle ", Site_ind," is full: ",config.EI.agriculture[Site_ind])
                         potential_sites_inds = np.delete(potential_sites_inds, chosenCell)
                         if len(potential_sites_inds)==0:
                             break
-                agriculture_fill = len(ag.AgricSites)/ag.AgriNeed
+                agriculture_fill =  np.sum(config.EI.agric_yield[ag.AgricSites]) / ag.AgriNeed
                     #           burn the area required on the cell with the min of trees too much
                     #           store that we had a fire, store new site (and remove from list) and agent happy
 
@@ -209,7 +224,7 @@ def update_single_agent(ag,t):
 
     tree_fill = (total_tree_number_inRad/int(ag.tree_need)).clip(0.,1.)
 
-    if tree_fill==1 and agriculture_fill==1:
+    if tree_fill>=1 and agriculture_fill>=1:
         ag.happy=1.0
         #ag.happyPeriod+=1
 
@@ -217,12 +232,14 @@ def update_single_agent(ag,t):
         ###   CHECK PENALTY    ####
         ###########################
         # ag.mv_inds exists
-        config.EI.agriculture[np.array(ag.AgricSites)] -=1
+        config.EI.agriculture[ag.AgricSites] -=1
+        config.FisherAgents-=1
 
         WhichTrianglesToCalc_inds = [ag.triangle_ind]
         total_penalties,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
 
-        config.EI.agriculture[np.array(ag.AgricSites)] +=1
+        config.EI.agriculture[ag.AgricSites] +=1
+        config.FisherAgents+=1
 
         # total_penalties, maske, penalties, masken
         if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
@@ -232,29 +249,30 @@ def update_single_agent(ag,t):
 
 
     else:
-        if tree_fill<1:
-            ag.treePref = (ag.treePref- config.treePref_change_per_BadYear)# * config.dStage) # half stage down
-        if agriculture_fill<1:
-            ag.treePref = (ag.treePref + config.treePref_change_per_BadYear)
-            #ag.change_tree_pref(config.treePref_change_per_BadYear)# * config.dStage)
-        ag.treePref = ag.treePref.clip(config.MinTreeNeed, config.init_TreePreference)
+        #if tree_fill<1:
+        #    ag.treePref = (ag.treePref- config.treePref_change_per_BadYear)# * config.dStage) # half stage down
+        #if agriculture_fill<1:
+        #    ag.treePref = (ag.treePref + config.treePref_change_per_BadYear)
+        #    #ag.change_tree_pref(config.treePref_change_per_BadYear)# * config.dStage)
+        #ag.treePref = ag.treePref.clip(config.MinTreeNeed, config.init_TreePreference)
 
         # ag.happy from last time!!
         # CASE 1: Agent was happy before --> no one should die
         # CASE 2: Agent was happy before --> now 0 trees / agric --> mean? or no one
         # CASE 3: Agent was slightly unhappy before, moved, still slightly unhappy: --> current unhappy should die (or mean?)
         # CASe 4: Previously 0, now 0.9 happy: only 10% should die this time.
-        ag.happy= max(ag.happy, np.mean([tree_fill, agriculture_fill]))
+        ag.happy= max(ag.happy, np.mean([tree_fill, agriculture_fill]))   # Max of last happy or mean of this year's harvest
         survived =  ag.pop_shock() # survived
         if survived:
             ag.move_water_agric(t)
-            ag.happy =  np.mean([tree_fill, agriculture_fill])
+            ag.happy =  np.mean([tree_fill, agriculture_fill])  
 
 
     ### 2. Perhaps Reproduce
     if ag.happy==1.0:
         ag.Reproduce(t)
     
+    ag.calc_new_tree_pref()
     ag.calc_tree_need()
     ag.calc_agri_need()
 
