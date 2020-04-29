@@ -55,7 +55,7 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 config.N_agents = 5
 config.N_trees = 12e6
 config.init_pop=int(15)
-config.init_TreePreference = 0.9
+config.init_TreePreference = 0.8
 config.index_count=0
 
 ### RUN

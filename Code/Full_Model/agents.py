@@ -85,16 +85,17 @@ class agent:
     #    self.calc_agri_need()
     #    return 
 
-    def calc_new_tree_pref(self):
+    def calc_new_tree_pref_linear(self):
         self.treePref = np.clip( config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum(), config.MinTreeNeed, config.init_TreePreference)
         
         # FOR FISHER MAKE AGRICULTURE NEED HIGH!
         #if self.fisher:
         #    self.treePref = config.MinTreeNeed
-        
-        #self.calc_tree_need()
-        #self.calc_agri_need()
+        return 
 
+    def calc_new_tree_pref(self):
+        self.treePref = 0.5*np.tanh(5*(config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum() - 0.5))+ 0.5
+        #logistic_g = 1-config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum()
         return 
 
 

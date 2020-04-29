@@ -64,6 +64,8 @@ def update_single_agent(ag,t):
     
     #ag.change_tree_pref(-config.treePref_decrease_per_year)
     ag.calc_new_tree_pref()
+    ag.calc_tree_need()
+    ag.calc_agri_need()
 
 
     ##########################
