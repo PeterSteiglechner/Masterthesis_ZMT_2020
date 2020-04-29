@@ -26,16 +26,28 @@ def regrow_update(g0):
     return 
 
 def agric_update():
-    notreecells = np.where(config.EI.tree_density==0)[0]
-    config.EI.treeless_years[notreecells]+=1
+    notreecells = np.where(config.EI.tree_density==0)[0].astype(int)
+    #config.EI.treeless_years[notreecells]+=1
     # For all cells with 20 years without trees, decrease soil quality to Eroded Soil yield or even lower
-    config.EI.agric_yield[notreecells] =  np.array([np.min(config.EI.agric_yield[i], config.ErodedSoilYield) if config.EI.treeless_years[i]>config.YearsBeforeErosionDegradation else config.EI.agric_yield[i] for i in notreecells])
+    #if config.EI.treeless_years[i]>config.YearsBeforeErosionDegradation else config.EI.agric_yield[i] 
+    config.EI.agric_yield[notreecells] =  np.array([np.minimum(config.EI.agric_yield[i], config.ErodedSoilYield) for i in notreecells])
     #for n,triang in enumerate(config.EI.EI_triangles):
     #    if 
     return 
 
-def popuptrees():
-    # SET treeless_years to 0
+def popuptrees(t):
+    if t>config.StartTime+config.tree_pop_timespan+1:
+        #no_agric = np.where(config.EI.agriculture==0)
+        no_agric = np.where(config.Array_agriculture[:,-config.tree_pop_timespan:].sum(axis=1) == 0)[0].astype(int)
+
+        to_pop_up = np.where(config.EI.tree_density==0)[0].astype(int)
+        tree_growth_poss = np.where(config.EI.carrying_cap>0)[0].astype(int)
+        
+        inds, counts = np.unique(np.concatenate([no_agric, to_pop_up,tree_growth_poss]), return_counts=True)
+        
+        where_to_pop = inds[counts>2]
+
+        config.EI.tree_density[where_to_pop] = config.tree_pop_percentage * config.EI.carrying_cap[where_to_pop]
     return 
 
 

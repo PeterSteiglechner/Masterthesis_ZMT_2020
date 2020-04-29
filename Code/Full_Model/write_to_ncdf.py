@@ -60,7 +60,8 @@ def final_saving():
         #'MaxSettlementElev': config.MaxSettlementElev,
         #'MinSettlementElev': config.MinSettlementElev,
         'SweetPointSettlementElev':config.SweetPointSettlementElev,
-        'max_pop_per_household': config.max_pop_per_household,
+        'max_pop_per_household_mean': config.max_pop_per_household_mean,
+        'max_pop_per_household_std': config.max_pop_per_household_std,
         'MaxPopulationDensity': config.MaxPopulationDensity,
         #'MaxAgricPenalty': config.MaxAgricPenalty,
         'tree_need_per_capita': config.tree_need_per_capita,
@@ -72,7 +73,8 @@ def final_saving():
         #'treePref_decrease_per_year': config.treePref_decrease_per_year, 
         #'treePref_change_per_BadYear': config.treePref_change_per_BadYear,
         #'HowManyDieInPopulationShock': config.HowManyDieInPopulationShock,
-        'FractionDeathsInPopShock':config.FractionDeathsInPopShock,
+        #'FractionDeathsInPopShock':config.FractionDeathsInPopShock,
+        "LowerLimit_PopInHousehold":config.LowerLimit_PopInHousehold,
         'tree_search_radius': config.params['tree_search_radius'], 
         'agriculture_radius': config.params['agriculture_radius'], 
         'moving_radius': config.params['moving_radius'], 
@@ -116,7 +118,9 @@ def final_saving():
     'tree_regrowth_rate': config.tree_regrowth_rate,
     "UpperLandSoilQuality":config.UpperLandSoilQuality,
     "ErodedSoilYield":config.ErodedSoilYield,
-    "YearsBeforeErosionDegradation":config.YearsBeforeErosionDegradation,
+    #"YearsBeforeErosionDegradation":config.YearsBeforeErosionDegradation,
+    "tree_pop_percentage":config.tree_pop_percentage,
+    "tree_pop_timespan":config.tree_pop_timespan,
     }
     for key in params_map.keys():
         ds.attrs[key]=params_map[key]

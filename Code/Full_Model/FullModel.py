@@ -39,7 +39,7 @@ from observefunc import observe, observe_density, plot_movingProb
 from agents import agent, init_agents#, init_agents_EI
 #from agents import Tree
 from update import update_single_agent, update_time_step
-from LogisticRegrowth import regrow_update, agric_update  # EasterIslands/Code/TreeRegrowth_spatExt/")
+from LogisticRegrowth import regrow_update, agric_update, popuptrees  # EasterIslands/Code/TreeRegrowth_spatExt/")
 
 from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 #from analyse_ncdf import plot_statistics
@@ -60,10 +60,10 @@ config.index_count=0
 
 ### RUN
 config.updatewithreplacement = False
-config.StartTime = 1200
-config.EndTime=1500
+config.StartTime = 800
+config.EndTime=1850
 config.N_timesteps = config.EndTime-config.StartTime
-config.seed= 8
+config.seed= 12
 #config.folder= LATER
 
 ### HOUSEHOLD PARAMS
@@ -72,7 +72,12 @@ config.MaxSettlementSlope=6
 #config.MinSettlementElev=10
 config.SweetPointSettlementElev = 0
 
-config.max_pop_per_household = 50
+config.max_pop_per_household_mean = 3.5*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
+config.max_pop_per_household_std = 0.5*12 
+
+
+
+LowerLimit_PopInHousehold = 10
 
 config.MaxPopulationDensity=173*3  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
@@ -80,13 +85,18 @@ config.MaxPopulationDensity=173*3  #500 # DIamond says 90-450 ppl/mile^2  i.e. 3
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
 config.MinTreeNeed=0.3      #Fraction
 
-config.BestTreeNr_forNewSpot = 10*config.max_pop_per_household*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
+config.BestTreeNr_forNewSpot = 10*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
+
+
 
 #config.Nr_AgricStages = 10
 #config.dStage = ((1-config.MinTreeNeed)/config.Nr_AgricStages)
 
 #config.agricSites_need_per_Capita = 2./6.  # Flenley Bahn
 config.agricYield_need_per_Capita = 0.5  # Puleston High N  in ACRE!
+
+config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.agricYield_need_per_Capita)
+
 
 #YearsOfDecreasingTreePref = 1400-config.StartTime #400
 #config.treePref_decrease_per_year = (config.init_TreePreference - config.MinTreeNeed)/YearsOfDecreasingTreePref #0.002
@@ -99,7 +109,7 @@ config.agricYield_need_per_Capita = 0.5  # Puleston High N  in ACRE!
 config.params={'tree_search_radius': 1.6, 
         'agriculture_radius':0.8,
         'moving_radius': 8,
-        'reproduction_rate': 0.02,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
+        'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
 
 # DEFAULT RUN
@@ -128,9 +138,12 @@ config.TreeDensityConditionParams = {
     'maxElev': 430,'maxSlope':8.5,
     "factorBetweenHighandLowTreeDensity":2}
 
+config.tree_pop_percentage = 0.01
+config.tree_pop_timespan  = 5
+
 config.UpperLandSoilQuality=0.2
 config.ErodedSoilYield=0.7
-config.YearsBeforeErosionDegradation=20
+#config.YearsBeforeErosionDegradation=20
 # need to make sure that 80% (RULL) are covered
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
@@ -147,7 +160,7 @@ config.tree_regrowth_rate=0.05 # every 20 years all trees are back?  # Brandt Me
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=False
+NewMap=True
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -181,7 +194,7 @@ print("################   DONE: MAP ###############")
 ########   Folder and Run Prepa   ###############
 #################################################
 
-config.folder = "Figs/Test/"
+config.folder = "Figs/"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard/"#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
@@ -214,7 +227,10 @@ def run():
 
         update_time_step(t)  
         regrow_update(config.tree_regrowth_rate)
+        agric_update()
+        popuptrees(t)
         #observe(t+1)
+
         if len(config.agents)>0:
 
             ag = config.agents[0]

@@ -94,8 +94,9 @@ class agent:
         return 
 
     def calc_new_tree_pref(self):
-        self.treePref = 0.5*np.tanh(5*(config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum() - 0.5))+ 0.5
+        treePref_g = 0.5*np.tanh(5*(config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum() - 0.5))+ 0.5
         #logistic_g = 1-config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum()
+        self.treePref = config.MinTreeNeed + (config.init_TreePreference-config.MinTreeNeed) * treePref_g
         return 
 
 
@@ -116,7 +117,7 @@ class agent:
         config.EI.populationOccupancy[self.triangle_ind]-= dead_pop
 
         # CHECK IF AGENT IS STILL LARGE ENOUGH OR DIES
-        if self.pop < config.init_pop:
+        if self.pop < config.LowerLimit_PopInHousehold:
             config.deaths+= self.pop
             config.EI.agentOccupancy -=1
             config.EI.populationOccupancy[self.triangle_ind] -= dead_pop
@@ -226,9 +227,7 @@ class agent:
         # OPTION 2 updated: Including low quality and eroded soil
         AvailAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
         
-        
-        maxNeededAgric = np.ceil(config.max_pop_per_household*config.agricYield_need_per_Capita)
-        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (maxNeededAgric - AvailAgrisYield_aroundSites.clip(min=0, max=maxNeededAgric))/maxNeededAgric
+        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (config.maxNeededAgric - AvailAgrisYield_aroundSites.clip(min=0, max=config.maxNeededAgric))/config.maxNeededAgric
 
         survivalCond_agric =  AvailAgrisYield_aroundSites>self.AgriNeed
 
@@ -385,7 +384,7 @@ class agent:
         config.EI.populationOccupancy[self.triangle_ind] +=newborns
 
         # IF Population TOO LARGE; SPlit AGENT
-        if self.pop>config.max_pop_per_household:
+        if self.pop> np.random.normal(config.max_pop_per_household_mean, config.max_pop_per_household_std):
             child = copy(self)
             child.index = config.index_count
             config.index_count+=1

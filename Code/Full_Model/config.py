@@ -55,7 +55,9 @@ MaxSettlementSlope=0
 SweetPointSettlementElev = 0
 
 
-max_pop_per_household = 0
+max_pop_per_household_mean = 0
+max_pop_per_household_std = 0
+LowerLimit_PopInHousehold = 0
 
 MaxPopulationDensity=0
 MaxAgricPenalty = 0
@@ -69,6 +71,8 @@ BestTreeNr_forNewSpot = 0
 #dStage = ((1-MinTreeNeed)/Nr_AgricStages)
 
 agricYield_need_per_Capita = 0
+
+maxNeededAgric=0
 
 #treePref_decrease_per_year = 0.0
 #treePref_change_per_BadYear = 0.0
@@ -115,9 +119,11 @@ N_timesteps = 0
 
 ###  MAP  ###
 TreeDensityConditionParams = {'minElev':0, 'maxElev':0,'maxSlope':0}
+tree_pop_percentage = 0.0
+tree_pop_timespan  = 0
 UpperLandSoilQuality = 0
 ErodedSoilYield = 0 # Max
-YearsBeforeErosionDegradation=0
+#YearsBeforeErosionDegradation=0
 #AgriConds={'minElev':0,'maxElev_highQu':0,
 #    'maxSlope_highQu':0,'maxElev_lowQu':0,'maxSlope_lowQu':0,
 #    'MaxWaterPenalty':0,}
