@@ -66,7 +66,8 @@ config.updatewithreplacement = False
 config.StartTime = 800
 config.EndTime=1900
 config.N_timesteps = config.EndTime-config.StartTime
-config.seed= 22
+config.seed= int(sys.argv[1])
+print("Seed: ", config.seed)
 #config.folder= LATER
 
 ### HOUSEHOLD PARAMS
@@ -111,7 +112,7 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_po
 # Each agent can (in the future) have these parameters different
 config.params={'tree_search_radius': 1.6, 
         'agriculture_radius':0.8,
-        'moving_radius': 10,
+        'moving_radius': 12,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
 
@@ -204,7 +205,8 @@ print("################   DONE: MAP ###############")
 #################################################
 
 config.folder = "Figs_WithDrought/"
-config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard/"#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
+config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard_seed"+str(config.seed)+"/"
+#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
 #for bla in string: print(bla)
