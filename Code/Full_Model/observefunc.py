@@ -257,3 +257,80 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
         ax.add_artist(tree_circle)
         ax.add_artist(agric_cirle)
     return ax
+
+
+
+
+
+
+#####################################
+
+def plot_statistics(data, folder):
+    fig = plt.figure(figsize=(20,6))
+    rcParams = {'font.size':20}
+    plt.rcParams.update(rcParams)
+    #ax1.spines["right"].set_position(('axes',1.0))
+
+    colors=["blue", "k", "green", "red", "gray"]
+
+
+    ax = []
+    ax.append(fig.add_subplot(111))
+    for i in range(4):
+        ax.append(ax[0].twinx())
+
+
+    (1e-3 * data.total_population).plot(ax=ax[0],lw=3, color=colors[0])
+    ax[0].set_ylabel("Total Population in 1000s")
+
+    mortality = data.total_deaths/data.total_population
+    N=50
+    mortality_smoothed = np.convolve(mortality, np.ones((N,))/N, mode='valid')
+    time_smoothed = np.convolve(data.time, np.ones((N,))/N, mode='valid')
+    ax[1].plot(time_smoothed, mortality_smoothed*100, color=colors[1], lw=3)
+    ax[1].set_ylabel("Smoothed (Excess-)Mortality [%]")
+
+    (data.total_trees*1e-6).plot(ax=ax[2],color=colors[2], lw=3)
+    ax[2].set_ylabel("Nr of Trees (in mio)")
+
+    fireSize = np.zeros(len(data.time))
+    fireSize[data.firesTime- data.isel(time=0).time.values] += data.firesSize
+    t0=data.isel(time=0).time.values
+    BINwidth=20
+    bins = np.arange(t0, data.isel(time=-1).time+1, step=BINwidth )
+    binned_fireSize = [1e-3 * np.sum( fireSize[( bins[k]-t0)  :  (bins[k+1]-t0 )]) for k in range(len(bins)-1)]
+    ax[3].bar(bins[:-1], binned_fireSize,color=colors[3], width=BINwidth)#, bins=np.arange(data.time[0],data.time[-1]+1, step=20), alpha=1, color=colors[3])
+    ax[3].set_ylabel("Fires [1000 Trees /"+str(BINwidth)+" yrs]")
+
+    data.happyFraction.plot(ax=ax[4],color=colors[4], alpha=0.7)
+    plt.fill_between(data.time, data.Penalty_Mean-data.Penalty_Std, data.Penalty_Mean+data.Penalty_Std, color=colors[4], alpha=0.3)
+    data.Penalty_Mean.plot(ax=ax[4], color=colors[4], alpha=1)
+    ax[4].set_ylabel("Penalty and happy fraction")
+
+
+
+    for i,a in enumerate(ax):
+        #a.spines["right"].set_position(('axes',1.0))
+        a.tick_params(axis="y", colors=colors[i])
+        a.spines["right"].set_position(("axes", 1+(i)*0.17))
+        #a.set_ylabel(["R", "L", "E", "V"][i])
+        a.yaxis.label.set_color(colors[i])
+        a.set_ylim(0,)
+        a.yaxis.set_label_position("right")
+        a.yaxis.tick_right()
+
+    ax[3].set_ylim(0,10)
+
+    ax[3].set_zorder(ax[0].get_zorder()) 
+    ax[4].set_zorder(ax[3].get_zorder()+1)
+    ax[4].patch.set_visible(False)
+    ax[1].set_zorder(ax[4].get_zorder()+1)
+    ax[1].patch.set_visible(False)
+    ax[2].set_zorder(ax[1].get_zorder()+1)
+    ax[2].patch.set_visible(False)
+    ax[0].set_zorder(ax[2].get_zorder()+1)
+    ax[0].patch.set_visible(False)
+    fig.tight_layout()
+    plt.savefig(folder+"Statistics_timeseries.svg")
+    plt.close()
+    return 

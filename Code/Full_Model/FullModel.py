@@ -27,7 +27,7 @@ import shutil  # for copying files into a folder
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import pickle
-
+import xarray as xr
 
 
 ################################
@@ -35,7 +35,7 @@ import pickle
 ################################
 #from CreateMap_class import Map   #EasterIslands/Code/Triangulation/")
 from CreateEI_ExtWaterExtAgricPaper import Map
-from observefunc import observe, observe_density, plot_movingProb
+from observefunc import observe, observe_density, plot_movingProb, plot_statistics
 from agents import agent, init_agents#, init_agents_EI
 #from agents import Tree
 from update import update_single_agent, update_time_step
@@ -64,7 +64,7 @@ config.index_count=0
 ### RUN
 config.updatewithreplacement = False
 config.StartTime = 800
-config.EndTime=1850
+config.EndTime=1900
 config.N_timesteps = config.EndTime-config.StartTime
 config.seed= 22
 #config.folder= LATER
@@ -148,13 +148,13 @@ config.tree_pop_percentage = 0.02
 config.tree_pop_timespan  = 5
 
 config.UpperLandSoilQuality=0.1
-config.ErodedSoilYield=0.5
+config.ErodedSoilYield=0.75
 #config.YearsBeforeErosionDegradation=20
 # need to make sure that 80% (RULL) are covered
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=50
+config.gridpoints_y=100
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -169,7 +169,7 @@ config.drought_RanoRaraku_1=[config.StartTime, 1100]
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=False
+NewMap=True
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -268,4 +268,6 @@ if __name__ == "__main__":
     final_saving()
     #plot_statistics(config.folder)
 
+    data = xr.open_dataset(config.folder+"Statistics.ncdf")
+    plot_statistics(data, config.folder)
 
