@@ -15,13 +15,15 @@ def regrow_update(g0):
         else:
             return (g0 * (1 - ( config.EI.tree_density[n]/config.EI.carrying_cap[n])))
     #d = (config.EI.carrying_cap - config.EI.tree_density)
-    g = np.array([ logistic(n) if config.EI.agriculture[n]==False else 0 for n in range(config.EI.N_els)])
+    g = np.array([ logistic(n) if config.EI.agriculture[n]==0 else 0 for n in range(config.EI.N_els)])
     #print("g: ", np.max(g), np.min(g), np.mean(g), np.nonzero(g))
     grow = np.random.random(config.EI.N_els) < g
     #print("Trees regrowing are ", np.nonzero(grow))
-    inds = [ i  for i in range(0,config.EI.N_els) if (not (grow[i]==0))]
-    for i in inds:
-        config.EI.tree_density[i]= min(config.EI.carrying_cap[i], config.EI.tree_density[i]+np.round(g[i], 0))
+    #inds = np.array([ i  for i in range(0,config.EI.N_els) if (not (grow[i]==0))], dtype=int)
+    inds = np.where(grow)[0].astype(int)
+    #for i in inds:
+    #    config.EI.tree_density[i]= min(config.EI.carrying_cap[i], config.EI.tree_density[i]+np.round(g[i],0)).astype(int)
+    config.EI.tree_density[inds]= np.minimum(config.EI.carrying_cap[inds], config.EI.tree_density[inds]+np.round(g[inds]*config.EI.tree_density[inds],0)).astype(int)
     #print("#new nr of trees: ", np.sum(config.EI.tree_density))
     return 
 
@@ -33,6 +35,7 @@ def agric_update():
     config.EI.agric_yield[notreecells] =  np.array([np.minimum(config.EI.agric_yield[i], config.ErodedSoilYield) for i in notreecells])
     #for n,triang in enumerate(config.EI.EI_triangles):
     #    if 
+    
     return 
 
 def popuptrees(t):

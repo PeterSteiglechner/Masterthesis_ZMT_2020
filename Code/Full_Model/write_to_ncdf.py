@@ -40,7 +40,9 @@ def final_saving():
             "PosAgents":(('index', '2d', "time"), PosAgents),
             "Penalty_Mean":(('time'), config.Penalty_mean),
             "Penalty_Std":(('time'), config.Penalty_std),
-            "FishersPop":(("time"), config.NrFisherAgents)
+            "FishersPop":(("time"), config.NrFisherAgents),
+            "GardenFraction":(("time"), config.GardenFraction),
+            "Fraction_eroded":(("time"), config.Fraction_eroded),
             #"agents":(("ag_ind", "properties", "time"), t1)
         },
         {
@@ -59,7 +61,7 @@ def final_saving():
         'MaxSettlementSlope': config.MaxSettlementSlope,
         #'MaxSettlementElev': config.MaxSettlementElev,
         #'MinSettlementElev': config.MinSettlementElev,
-        'SweetPointSettlementElev':config.SweetPointSettlementElev,
+        'Penalty50_SettlementElev':config.Penalty50_SettlementElev,
         'max_pop_per_household_mean': config.max_pop_per_household_mean,
         'max_pop_per_household_std': config.max_pop_per_household_std,
         'MaxPopulationDensity': config.MaxPopulationDensity,
@@ -79,6 +81,7 @@ def final_saving():
         'agriculture_radius': config.params['agriculture_radius'], 
         'moving_radius': config.params['moving_radius'], 
         'reproduction_rate': config.params['reproduction_rate'], 
+        "childrenPop":config.childrenPop, # FOR CHILDREN
         'alpha_w':config.alpha_w,
         'alpha_t':config.alpha_t,
         'alpha_p':config.alpha_p,
@@ -95,7 +98,8 @@ def final_saving():
     params_init={
         'N_agents': config.N_agents,
         'N_trees': config.N_trees,
-        'init_pop': config.init_pop,
+        'firstSettlers_init_pop': config.firstSettlers_init_pop,
+        "firstSettlers_moving_raidus":config.firstSettlers_moving_raidus,
         'init_TreePreference': config.init_TreePreference,
         #'blabla': config.index_count=0
     }
@@ -121,6 +125,8 @@ def final_saving():
     #"YearsBeforeErosionDegradation":config.YearsBeforeErosionDegradation,
     "tree_pop_percentage":config.tree_pop_percentage,
     "tree_pop_timespan":config.tree_pop_timespan,
+    "drought_RanoRaraku_1_start":config.drought_RanoRaraku_1[0],
+    "drought_RanoRaraku_1_end":config.drought_RanoRaraku_1[1],
     }
     for key in params_map.keys():
         ds.attrs[key]=params_map[key]

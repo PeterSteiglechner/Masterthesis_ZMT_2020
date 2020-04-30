@@ -135,8 +135,9 @@ def plot_movingProb(t,ag, newpos):
     ax.add_artist(tree_circle)
     ax.add_artist(agric_circle)
 
-    ax.set_xlim(ag.x-ag.moving_radius*1.1, ag.x+ag.moving_radius*1.1)
-    ax.set_ylim(config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1, config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1)
+    ax.set_xlim(max(ag.x-ag.moving_radius*1.1, 0), min(ag.x+ag.moving_radius*1.1, config.EI.corners["upper_right"][0]))
+    ax.set_ylim(max(config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1,0), min(config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1, config.EI.corners["upper_right"][1]))
+       
     ax.set_aspect(1)
     ax.plot(newpos[0], config.EI.corners['upper_left'][1] - newpos[1], "o", markersize = 8,color='magenta')
     #divider = make_axes_locatable(plt.gca())
@@ -158,8 +159,8 @@ def plot_movingProb(t,ag, newpos):
         #ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
         #        config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="binary", alpha=1)
 
-        ax2.set_xlim(ag.x-ag.moving_radius*1.1, ag.x+ag.moving_radius*1.1)
-        ax2.set_ylim(config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1, config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1)
+        ax2.set_xlim(max(ag.x-ag.moving_radius*1.1, 0), min(ag.x+ag.moving_radius*1.1, config.EI.corners["upper_right"][0]))
+        ax2.set_ylim(max(0,config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1), min(config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1, config.EI.corners["upper_right"][1]))
         ax2.set_aspect(1)
         ax2.set_xticklabels([])
         ax2.set_yticklabels([])
@@ -202,12 +203,13 @@ def plot_movingProb(t,ag, newpos):
                 vmax=1
             plot  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
                 config.EI.EI_triangles, facecolors=prob,vmin=0,vmax=vmax, cmap=cmap, alpha=1)
-
+    
 
         if not all(config.AG0_mv_inds==ag.mv_inds):
             print("Error in Plot Penalties")
         ax2.plot(newpos[0], config.EI.corners['upper_left'][1]-newpos[1], "o", markersize = 8,color='magenta', fillstyle="none")
 
+    
         
         ax2.set_title(key)
         #print(np.min(prob),np.max(prob))
@@ -243,9 +245,11 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
     else:
         agent_points_np = data.PosAgents.sel(time=t).to_series().dropna()
         agent_size = data.SizeAgents.set(time=t).to_series().dropna()
+    
+    color = [((1-ag.treePref), 0, 1,1) for ag in config.agents]
 
     if len(config.agents)>0:
-        ax.scatter(agent_points_np[:,0], config.EI.corners['upper_left'][1] - agent_points_np[:,1], s=agent_size, color='purple')
+        ax.scatter(agent_points_np[:,0], config.EI.corners['upper_left'][1] - agent_points_np[:,1], s=agent_size, color=color)#'purple')
         if specific_ag_to_follow==None:
             specific_ag_to_follow = config.agents[0]
         move_circle, tree_circle, agric_cirle = follow_ag0(specific_ag_to_follow)

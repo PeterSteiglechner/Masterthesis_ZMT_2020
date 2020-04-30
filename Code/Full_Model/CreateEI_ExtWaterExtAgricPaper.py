@@ -148,7 +148,7 @@ class Map:
         self.water_triangle_inds = []
         self.water_midpoints = []
         self.water_penalties = []
-        self.waterpoints()
+        self.waterpoints(triObject, Lakes=["Raraku", "Kau", "Aroi"])
         ########
 
         ###########
@@ -401,67 +401,115 @@ class Map:
     #####    WATER    ##################
     ####################################
         
-    def waterpoints(self):
+    def waterpoints(self, triObject, Lakes=["Raraku", "Kau", "Aroi"]):
         ''' get those triangles that contain water, i.e. within the three craters'''
         # from google earth:        
         Raraku = {"midpoint": [-27.121944, -109.2886111], "Radius": 170e-3} # Radius in km
         Kau = {"midpoint": [-27.186111, -109.4352778], "Radius":506e-3} # Radius in km
         Aroi = {"midpoint": [-27.09361111, -109.373888], "Radius":75e-3} # Radius in km
-        lake_mid_points = []
-        # this defines the three midpoints (in m) of the three craters.
-        for i,m in enumerate([Raraku['midpoint'], Kau['midpoint'], Aroi['midpoint']]):
-            lake_midp_kmcoord = self.transform(self.fromcoordinate_topixelcoordinate(m))
-            lake_mid_points.append(lake_midp_kmcoord)
-        
-        # This looks for the distances of the triangles to each of these midpoints
-        water_dist_of_triangle = [] # shape: N_triangles, 3 (water sources)
-        for i,m in enumerate(self.EI_midpoints):
-            dist_to_water = [np.linalg.norm(np.array(m_water)-np.array(m)) for m_water in lake_mid_points]
-            water_dist_of_triangle.append(dist_to_water)
-        water_dist_of_triangle  = np.array(water_dist_of_triangle)
-        
-        # Then check, which of the triangles have midpoints in the radius around those Lake_midpoints
-        #separated_waters = [[],[],[]]
+        AllLakeMidpoints = {"Raraku":Raraku['midpoint'], "Kau":Kau['midpoint'], "Aroi":Aroi['midpoint']}
+        lake_mid_points = [self.transform(self.fromcoordinate_topixelcoordinate(AllLakeMidpoints[name])) for name in Lakes]
+        AllLakeRadius = {"Raraku":Raraku['Radius'], "Kau":Kau['Radius'], "Aroi":Aroi['Radius']}
+        lake_radius = [AllLakeRadius[name] for name in Lakes]
+        #lake_mid_points = []
+        ## this defines the three midpoints (in m) of the three craters.
+        #for i,m in enumerate(LakeMidpoints):
+        #    lake_midp_kmcoord = self.transform(self.fromcoordinate_topixelcoordinate(m))
+        #    lake_mid_points.append(lake_midp_kmcoord)
         self.water_midpoints = []
-        whichwater=[]
-        water_areas=[]
-        for j, r in enumerate([Raraku['Radius'], Kau['Radius'], Aroi['Radius']]):
-            inds = np.where([(water_dist_of_triangle[n,j] < r and self.EI_midpoints_slope[n]<3) for n in range(self.N_els)])
-            if len(inds[0])==0:
-                # None of the midpoints are on the actual lake, anyway, just choose ONE nearest single triangle
-                min_ind = np.where(water_dist_of_triangle[:,j] == min(water_dist_of_triangle[:,j]))[0][0]
-                self.water_midpoints.append(self.EI_midpoints[min_ind])
-                self.water_triangle_inds.append(min_ind)
-                whichwater.append(j)
-                #separated_waters[j].append(min_ind)
-            else:
-                # Add all the triangles with midpoints within the radius and add them to the specific lake (j)
-                for i in inds[0]:#whichwater = water_dist_of_triangle.index(min(water_dist_of_triangle))
-                    self.water_midpoints.append(self.EI_midpoints[i])
-                    self.water_triangle_inds.append(i)
-                    whichwater.append(j)
-                    #separated_waters[j].append(i)
-            # add all water of this lake (j) together
-            #water_areas.append(np.sum([self.EI_triangles_areas[b] for n,b in enumerate(self.water_triangle_inds) if whichwater[n]==j]))
-            water_areas.append(np.pi * r**2)
-        print("There are Nr of Water Triangles", len(self.water_midpoints))
+        self.water_triangle_inds = []
+        water_areas = []
+        for m,r in zip(lake_mid_points, lake_radius):
+            t = self.get_triangle_of_point(m, triObject)[0]
+            self.water_midpoints.append(self.EI_midpoints[t])
+            inds_within_lake = np.where((self.distMatrix[:,t]<r) * (self.EI_midpoints_slope<5))[0]
+            if len(inds_within_lake)==0:
+                inds_within_lake=[t]
+            self.water_triangle_inds.extend(inds_within_lake)
+            water_areas.extend([r**2*np.pi for _ in inds_within_lake])
+        print("Nr of water triangles: ", len(self.water_triangle_inds))
+        print("Sizes of Lakes are [km**2]: ", np.unique(water_areas))
+        print("Water Midpoints are at locations (x,y): ", lake_mid_points )
+
+        self.water_penalties=[]
+        distance_to_water = self.distMatrix[self.water_triangle_inds,:]  # shape: water_triangels * N_els
+        weighted_squ_distance_to_water = distance_to_water**2/np.array(water_areas)[:,None]  # NOte: Casting to divide each row seperately
+        penalties = np.min(weighted_squ_distance_to_water, axis=0)
+        if len(Lakes)==3: self.max_water_penalty_without_drought = np.max(penalties)
+        self.water_penalties= (penalties/self.max_water_penalty_without_drought ).clip(max=1)
+        print("Water Penalties Mean: ", "%.4f"  % (np.mean(self.water_penalties)))
+        return 
+
+        # # This looks for the distances of the triangles to each of these midpoints
+        # water_dist_of_triangle = [] # shape: N_triangles, 3 (water sources)
+        # for i,m in enumerate(self.EI_midpoints):
+        #     dist_to_water = [np.linalg.norm(np.array(m_water)-np.array(m)) for m_water in lake_mid_points]
+        #     water_dist_of_triangle.append(dist_to_water)
+        # water_dist_of_triangle  = np.array(water_dist_of_triangle)
+        
+        # # Then check, which of the triangleand t<=doru:s have midpoints in the radius around those Lake_midpoints
+        # #separated_waters = [[],[],[]]
+        # self.water_midpoints = []
+        # #whichwater=[]
+        # water_areas=[]
+        # for j, r in enumerate(lake_radius):
+        #     inds = np.where([(water_dist_of_triangle[n,j] < r and self.EI_midpoints_slope[n]<5) for n in range(self.N_els)])
+        #     if len(inds[0])==0:
+        #         # None of the midpoints are on the actual lake, anyway, just choose ONE nearest single triangle
+        #         min_ind = np.where(water_dist_of_triangle[:,j] == min(water_dist_of_triangle[:,j]))[0][0]
+        #         self.water_midpoints.append(self.EI_midpoints[min_ind])
+        #         self.water_triangle_inds.append(min_ind)
+        #         #whichwater.append(j)
+        #         water_areas.append(np.pi * r**2)
+
+        #         #separated_waters[j].append(min_ind)
+        #     else:
+        #         # Add all the triangles with midpoints within the radius and add them to the specific lake (j)
+        #         for i in inds[0]:#whichwater = water_dist_of_triangle.index(min(water_dist_of_triangle))
+        #             self.water_midpoints.append(self.EI_midpoints[i])
+        #             self.water_triangle_inds.append(i)
+        #             #whichwater.append(j)
+        #             water_areas.append(np.pi * r**2)
+
+        #             #separated_waters[j].append(i)
+        #     # add all water of this lake (j) together
+        #     #water_areas.append(np.sum([self.EI_triangles_areas[b] for n,b in enumerate(self.water_triangle_inds) if whichwater[n]==j]))
+        #     #water_areas.append(np.pi * r**2)
+        # print("There are Nr of Water Triangles", len(self.water_midpoints))
         #water_areas=[]
         #for j in range(3):
         #    water_areas.append(np.sum([self.EI_triangles_areas[i] for i in separated_waters[j]]))
         
-        print("Water areas: ", water_areas)
+        # print("Water areas: ", water_areas)
         
-        # Check again the water distance of each triangle with now all water points not only midpoints.
-        # assign penalty 
-        for i,m in enumerate(self.EI_midpoints):
-            water_dist_of_triangle = []
-            weighted_water_dist_of_triangle = []
-            for j,m_water in zip(whichwater, self.water_midpoints):
-                water_dist_of_triangle.append(np.linalg.norm(np.array(m_water)-np.array(m)))
-                weight = (1/water_areas[j])#**0.5
-                weighted_water_dist_of_triangle.append(water_dist_of_triangle[-1]**2 * weight)
-            self.water_penalties.append(min(weighted_water_dist_of_triangle))
-        self.water_penalties= np.array(self.water_penalties)/np.max(self.water_penalties)
+        # # Check again the water distance of each triangle with now all water points not only midpoints.
+        # # assign penalty 
+        # distances_to_water = self.distMatrix[self.water_triangle_inds,:]
+
+        # for i,m in enumerate(self.EI_midpoints):
+        #     water_dist_of_triangle = []
+        #     weighted_water_dist_of_triangle = []
+        #     for j,m_water in zip(whichwater, self.water_midpoints):
+        #         water_dist_of_triangle.append(np.linalg.norm(np.array(m_water)-np.array(m)))
+        #         weight = (1/water_areas[j])#**0.5
+        #         weighted_water_dist_of_triangle.append(water_dist_of_triangle[-1]**2 * weight)
+        #     self.water_penalties= np.append(min(weighted_water_dist_of_triangle))
+        # if len(Lakes)==3: self.max_water_penalty_without_drought = np.max(self.water_penalties)
+        # self.water_penalties= (np.array(self.water_penalties)/self.max_water_penalty_without_drought ).clip(max=1)
+
+    def check_drought(self,t, drought_RanoRaraku_1, triObject):
+        #drought_RanoRaraku_1 = [config.Starttime, 1100]
+        if t==drought_RanoRaraku_1[0]:
+            print("beginning drought in Raraku, t=",t)
+            self.waterpoints(triObject, Lakes=["Kau", "Aroi"])
+        if t==drought_RanoRaraku_1[1]:
+            # end drought:
+            self.waterpoints(triObject, Lakes=["Raraku","Kau", "Aroi"])
+            print("ending drought in Raraku, t=",t)
+        return 
+
+
+
 
 
     #################################################
@@ -511,7 +559,7 @@ class Map:
         #self.d_km_lon = 111.320 * abs(np.cos((latmax+latmin)*0.5*2*np.pi/360)) * d_gradlon_per_pixel  #[m/pixel]]
         #111.320 * abs(np.cos(anakena_lat)*2*np.pi/360) 
 
-        AnakenaBeach_m =self.transform([520,self.pixel_dim[0]-480]) # This is roughly the coast anakena where they landed.
+        AnakenaBeach_m =self.transform([525,self.pixel_dim[0]-490]) # This is roughly the coast anakena where they landed.
         self.AnakenaBeach_ind, _, _ = self.get_triangle_of_point(AnakenaBeach_m, triObject)
 
         if self.AnakenaBeach_ind ==-1:            
@@ -618,8 +666,9 @@ class Map:
         plot = ax.tripcolor(self.points_EI_km[:,0], self.corners['upper_left'][1] - self.points_EI_km[:,1], 
         self.EI_triangles, facecolors=self.tree_density, vmin = 0, vmax = np.max(self.carrying_cap), cmap="Greens", alpha=1)
         
-        for i in self.water_midpoints:
-            ax.plot([i[0]], [self.corners['upper_left'][1]- i[1]], 'o',markersize=1, color="blue")
+        for i in self.water_triangle_inds:
+            ax.plot([self.EI_midpoints[i][0]], [self.corners['upper_left'][1]- self.EI_midpoints[i][1]], 'o',markersize=1, color=(3/255,169/255,244/255 ,1 ))
+
         
         ax.set_aspect('equal')
         divider = make_axes_locatable(plt.gca())
@@ -648,8 +697,12 @@ class Map:
             inds = np.where(self.agriculture>0)
             ax.plot(self.EI_midpoints[inds,0], self.corners['upper_left'][1]- self.EI_midpoints[inds,1], 'x',markersize=3, color="red")
         
-        for i in self.water_midpoints:
-            ax.plot([i[0]], [self.corners['upper_left'][1]- i[1]], 'x',markersize=3, color=(3/255,169/255,244/255 ,1 ))
+        ax.plot(self.EI_midpoints[self.AnakenaBeach_ind][0],self.corners['upper_left'][1]-self.EI_midpoints[self.AnakenaBeach_ind][1],"x",markersize=5, color="gold" )
+
+        for i in self.water_triangle_inds:
+            ax.plot([self.EI_midpoints[i][0]], [self.corners['upper_left'][1]- self.EI_midpoints[i][1]], 'o',markersize=1,color=(3/255,169/255,244/255 ,1 ))
+        ax.plot(self.EI_midpoints[self.AnakenaBeach_ind][0],self.corners['upper_left'][1]-self.EI_midpoints[self.AnakenaBeach_ind][1],"x",markersize=5, color="gold" )
+
 
         if save:
             plt.savefig(folder+"Map_AgricDensity_grid"+str(self.gridpoints_y)+".svg")
@@ -668,9 +721,8 @@ class Map:
         divider = make_axes_locatable(plt.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         plt.colorbar(plot, cax =cax) 
-        for i in self.water_midpoints:
-            ax.plot([i[0]], [self.corners['upper_left'][1]- i[1]], 'o',markersize=1, color="red")
-        #plt.show()
+        for i in self.water_triangle_inds:
+            ax.plot([self.EI_midpoints[i][0]], [self.corners['upper_left'][1]- self.EI_midpoints[i][1]], 'o',markersize=1,color="k")
         #plt.savefig(folder+"Map_waterPenalty_grid"+str(self.gridpoints_y)+".svg")
         plt.savefig("Map/Map_waterPenalty_grid"+str(self.gridpoints_y)+".svg")
         plt.close()
@@ -693,10 +745,13 @@ class Map:
             plot = ax.tripcolor(self.points_EI_km[:,0], self.corners['upper_left'][1] - self.points_EI_km[:,1], 
         self.EI_triangles, facecolors=1*(self.nr_lowqualitysites>0)+2*(self.nr_highqualitysites>0), vmin = 0, vmax = 2#np.max(self.nr_lowqualitysites+self.nr_highqualitysites)
             , cmap="Reds", alpha=0.8)
+
+        ax.plot(self.EI_midpoints[self.AnakenaBeach_ind][0],self.corners['upper_left'][1]-self.EI_midpoints[self.AnakenaBeach_ind][1],"x",markersize=5, color="gold" )
+
     
-        for i in self.water_midpoints:
-            plt.plot([i[0]], [self.corners['upper_left'][1]- i[1]], 'o',markersize=1, color="black")
-            
+        for i in self.water_triangle_inds:
+            ax.plot([self.EI_midpoints[i][0]], [self.corners['upper_left'][1]- self.EI_midpoints[i][1]], 'o',markersize=1,color=(3/255,169/255,244/255 ,1 ))
+    
         #cbaxes = fig.add_axes([0.9, 0.0, 0.03, 1.0]) 
         if save:
             divider = make_axes_locatable(plt.gca())

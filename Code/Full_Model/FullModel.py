@@ -52,40 +52,43 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 #config.init_option = "anakena"
 
 ###  INIT
-config.N_agents = 5
+config.N_agents = 3
 config.N_trees = 12e6
-config.init_pop=int(15)
+config.firstSettlers_init_pop=int(25)
+config.childrenPop=int(15)
+config.firstSettlers_moving_raidus = 0.6
 config.init_TreePreference = 0.8
 config.index_count=0
+
 
 ### RUN
 config.updatewithreplacement = False
 config.StartTime = 800
 config.EndTime=1850
 config.N_timesteps = config.EndTime-config.StartTime
-config.seed= 12
+config.seed= 22
 #config.folder= LATER
 
 ### HOUSEHOLD PARAMS
-config.MaxSettlementSlope=6
+config.MaxSettlementSlope=9
 #config.MaxSettlementElev=300
 #config.MinSettlementElev=10
-config.SweetPointSettlementElev = 0
+config.Penalty50_SettlementElev = 75
 
-config.max_pop_per_household_mean = 3.5*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
-config.max_pop_per_household_std = 0.5*12 
+config.max_pop_per_household_mean = 3*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
+config.max_pop_per_household_std = 3
 
 
 
-LowerLimit_PopInHousehold = 10
+config.LowerLimit_PopInHousehold = 10
 
-config.MaxPopulationDensity=173*3  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
+config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
 config.MinTreeNeed=0.3      #Fraction
 
-config.BestTreeNr_forNewSpot = 10*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
+config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 
 
 
@@ -108,9 +111,12 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_po
 # Each agent can (in the future) have these parameters different
 config.params={'tree_search_radius': 1.6, 
         'agriculture_radius':0.8,
-        'moving_radius': 8,
+        'moving_radius': 10,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
+
+config.MaxFisherAgents = 10
+
 
 # DEFAULT RUN
 #config.alpha_w= 0.3
@@ -124,7 +130,7 @@ config.alpha_p = 0.2
 config.alpha_a = 0.2
 config.alpha_m = 0.2
 
-config.PenalToProb_Prefactor = 10
+config.PenalToProb_Prefactor = 20   
 
 #NrOfEquivalentBestSitesToMove= 10
 
@@ -138,17 +144,17 @@ config.TreeDensityConditionParams = {
     'maxElev': 430,'maxSlope':8.5,
     "factorBetweenHighandLowTreeDensity":2}
 
-config.tree_pop_percentage = 0.01
+config.tree_pop_percentage = 0.02
 config.tree_pop_timespan  = 5
 
-config.UpperLandSoilQuality=0.2
-config.ErodedSoilYield=0.7
+config.UpperLandSoilQuality=0.1
+config.ErodedSoilYield=0.5
 #config.YearsBeforeErosionDegradation=20
 # need to make sure that 80% (RULL) are covered
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=100
+config.gridpoints_y=50
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -156,11 +162,14 @@ config.AngleThreshold = 30
 config.tree_regrowth_rate=0.05 # every 20 years all trees are back?  # Brandt Merico 2015# Brander Taylor 0.04 % Logisitc Growth rate.
 
 
+# DROUGHTS
+config.drought_RanoRaraku_1=[config.StartTime, 1100]
+
 ##############################################
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=True
+NewMap=False
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -194,7 +203,7 @@ print("################   DONE: MAP ###############")
 ########   Folder and Run Prepa   ###############
 #################################################
 
-config.folder = "Figs/"
+config.folder = "Figs_WithDrought/"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard/"#"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
@@ -220,23 +229,26 @@ def run():
     config.Array_tree_density = np.array([[] for _ in range(config.EI.N_els)]).reshape((config.EI.N_els,0))
     config.Array_agriculture = np.array([[] for _ in range(config.EI.N_els)]).reshape((config.EI.N_els,0))
     # RUN
+    config.EI.check_drought(0, config.drought_RanoRaraku_1, config.EI_triObject)
     init_agents()
+    observe(config.StartTime)
+
     #observe(config.StartTime)
     for t in np.arange(config.StartTime,config.EndTime+1):#, num=config.N_timesteps):
 
-
         update_time_step(t)  
-        regrow_update(config.tree_regrowth_rate)
+        #regrow_update(config.tree_regrowth_rate)
         agric_update()
-        popuptrees(t)
+        #popuptrees(t)
+        config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
 
         if len(config.agents)>0:
 
             ag = config.agents[0]
-            print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
+            print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
         
-            if (t+1)%10==0:
+            if (t+1)%50==0:
                 observe(t+1)
             if (t+1)%50==0:
                 plt.cla()

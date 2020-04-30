@@ -52,12 +52,14 @@ class EI_empty:
 MaxSettlementSlope=0
 #MaxSettlementElev=0
 #MinSettlementElev=0
-SweetPointSettlementElev = 0
+Penalty50_SettlementElev = 0
 
 
 max_pop_per_household_mean = 0
 max_pop_per_household_std = 0
 LowerLimit_PopInHousehold = 0
+childrenPop = 0
+
 
 MaxPopulationDensity=0
 MaxAgricPenalty = 0
@@ -103,7 +105,8 @@ MaxFisherAgents = 0
 ###  INIT
 N_agents = 0
 N_trees = 0
-init_pop = 0
+firstSettlers_moving_raidus = 0
+firstSettlers_init_pop=0
 init_TreePreference = 1.
 index_count=0  # Index of agent (index is unique regardless of dead households)
 
@@ -133,6 +136,8 @@ gridpoints_y= 0
 AngleThreshold = 0
 
 tree_regrowth_rate = 0
+
+drought_RanoRaraku_1=[]
 
 EI_triObject = 0
 EI=EI_empty()
@@ -170,6 +175,7 @@ Penalty_std = np.array([])
 Penalty_mean = np.array([])
 FisherAgents = 0
 NrFisherAgents = np.array([])
-
+Fraction_eroded=np.array([])
+GardenFraction = np.array([])
 
 

@@ -35,7 +35,7 @@ class agent:
 
         self.reprod_rate = params["reproduction_rate"]
         
-        self.pop = config.init_pop
+        self.pop = config.firstSettlers_init_pop
 
 
         # Tree and Agriculture Harves
@@ -52,6 +52,7 @@ class agent:
 
 
         self.AgricSites = np.array([]).astype(int)
+        self.MyAgricYields = np.array([])
 
 
         self.happy=1.0# TRUE 
@@ -68,7 +69,7 @@ class agent:
         return 
     
     def calc_tree_need(self):
-        self.tree_need = np.round((config.tree_need_per_capita*self.pop * self.treePref)).astype(int)         #
+        self.tree_need = np.ceil((config.tree_need_per_capita*self.pop * self.treePref)).astype(int)         #
         # self.tree_need = int(config.tree_need_per_capita*self.pop* (1-config.dStage * self.stage))
         return 
     def calc_agri_need(self):
@@ -94,9 +95,11 @@ class agent:
         return 
 
     def calc_new_tree_pref(self):
-        treePref_g = 0.5*np.tanh(5*(config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum() - 0.5))+ 0.5
+        shifted_tanh = lambda x: 0.5*np.tanh(2*(x - 0.5))+ 0.5
+        treePref_g = shifted_tanh(config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum())
         #logistic_g = 1-config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum()
-        self.treePref = config.MinTreeNeed + (config.init_TreePreference-config.MinTreeNeed) * treePref_g
+        scaled_tree_pref_g = 1/(shifted_tanh(1)-shifted_tanh(0)) * (treePref_g-shifted_tanh(0))
+        self.treePref = config.MinTreeNeed + (config.init_TreePreference-config.MinTreeNeed) * scaled_tree_pref_g
         return 
 
 
@@ -111,7 +114,7 @@ class agent:
         
         fraction = 1-self.happy
         #fraction = config.FractionDeathsInPopShock
-        dead_pop = np.floor(fraction * self.pop).astype(int) 
+        dead_pop = np.round(fraction * self.pop).astype(int) 
         config.deaths += dead_pop
         self.pop -= dead_pop
         config.EI.populationOccupancy[self.triangle_ind]-= dead_pop
@@ -136,12 +139,21 @@ class agent:
         #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
         #    config.EI.agriculture[self.AgricSites[site]]-=1
         #    self.AgricSites = np.delete(self.AgricSites, site).astype(int)
-        reduceAgric = (np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-        while reduceAgric>0:
-            site = np.argmin(config.EI.agric_yield[self.AgricSites])
-            if reduceAgric - config.EI.agric_yield[self.AgricSites[site]] > 0:
-                config.EI.agriculture[self.AgricSites[site]]-=1
-                self.AgricSites = np.delete(self.AgricSites, site)
+        reduceAgric = (np.sum(self.MyAgricYields) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+        if reduceAgric>0:
+            sites = self.AgricSites[np.argsort(self.MyAgricYields)]
+            for site in sites:
+                if reduceAgric>0:
+                    reduceAgric -= config.EI.agric_yield[site]
+                    if reduceAgric>=0:
+                        config.EI.agriculture[site]-=1
+                        self.MyAgricYields = np.delete(self.MyAgricYields, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+                        self.AgricSites = np.delete(self.AgricSites, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+                    else:
+                        break
+                else:
+                    break
+
         return True # i.e. survived
 
 
@@ -225,27 +237,43 @@ class agent:
         #nrAvailAgrisSites_aroundSites = np.dot(config.EI.nr_highqualitysites-config.EI.agriculture, mvTris_inds_arr_agric)  
 
         # OPTION 2 updated: Including low quality and eroded soil
-        AvailAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        AvailTotalAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        AvailHighAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
         
-        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (config.maxNeededAgric - AvailAgrisYield_aroundSites.clip(min=0, max=config.maxNeededAgric))/config.maxNeededAgric
+        # Idea: take high if it is >AgriNeed
+        survivalHighQu_cond = AvailHighAgrisYield_aroundSites>self.AgriNeed
+        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (config.maxNeededAgric - AvailTotalAgrisYield_aroundSites.clip(min=0, max=config.maxNeededAgric))/config.maxNeededAgric
 
-        survivalCond_agric =  AvailAgrisYield_aroundSites>self.AgriNeed
+        Inds_onlygoodwithlowQu = np.where(survivalHighQu_cond==False)[0]
+        agriculture_penalty[Inds_onlygoodwithlowQu] = agriculture_penalty[Inds_onlygoodwithlowQu] *0.5+0.5
+
+        survivalCond_agric =  AvailTotalAgrisYield_aroundSites>self.AgriNeed
 
         if config.FisherAgents < config.MaxFisherAgents: # still place for Fishers
             fishpossibility = np.dot(np.eye(1,config.EI.N_els, config.EI.AnakenaBeach_ind, dtype=np.uint8), mvTris_inds_arr_agric)
-            agriculture_penalty[np.where(fishpossibility[0,:])] = 0
+            agriculture_penalty[np.where(fishpossibility[0,:])] = -self.treePref
             survivalCond_agric[np.where(fishpossibility[0,:])] = 1
                 
         ################################
         #####     MAP PENALTY   ########
         ################################
 
-        map_penalty_elev =  abs(1./ (max(config.EI.EI_midpoints_elev)-config.SweetPointSettlementElev) * (config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds] - config.SweetPointSettlementElev))
-        map_penalty_slope = (config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] * (1/config.MaxSettlementSlope)).clip(max=1)
-        map_penalty = np.maximum(map_penalty_elev, map_penalty_slope)
+        #map_penalty_elev =  abs(1./ (max(config.EI.EI_midpoints_elev)-config.SweetPointSettlementElev) * (config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds] - config.SweetPointSettlementElev))
+        #map_penalty_slope = (config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] * (1/config.MaxSettlementSlope)).clip(max=1)
+        #map_penalty = np.maximum(map_penalty_elev, map_penalty_slope)
         # Why max of slope or elev? At top of mountain, slope=0, but elev high. At coast: slope=large, but elev good. In the middle if they are similar then, max and mean would be the same anyway.)
 
+        # https://stats.stackexchange.com/questions/52571/asymmetric-s-shaped-function-mapping-interval-0-1-to-interval-0-1
+        # Perhaps better to take sth like logit-normal Distribution CDF.
+        shifted_tanh = lambda x,mu: 0.5*np.tanh(5*(x-mu))+0.5
         
+        MapPenalty50 = config.Penalty50_SettlementElev/max(config.EI.EI_midpoints_elev)
+        map_penalty_elev = shifted_tanh(config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds]/max(config.EI.EI_midpoints_elev), MapPenalty50)
+        map_penalty_elev_scaled = 1/(shifted_tanh(1,MapPenalty50)-shifted_tanh(0,MapPenalty50)) * (map_penalty_elev-shifted_tanh(0,MapPenalty50))
+        map_penalty_slope = shifted_tanh(config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds]/(config.MaxSettlementSlope), 0.5)
+        map_penalty_slope_scaled = 1/(shifted_tanh(1,0.5)-shifted_tanh(0,0.5)) * (map_penalty_slope-shifted_tanh(0,0.5))
+        map_penalty = np.maximum(map_penalty_elev_scaled, map_penalty_slope_scaled)
+
         ################################
         ## Allowed Settlements! #####
         ################################
@@ -271,11 +299,11 @@ class agent:
         #     self.alpha_m * map_penalty,
         #     maske)
 
-        total_penalties = ( self.alpha_w * water_penalty +  self.alpha_t* tree_penalty + self.alpha_p * pop_density_penalty + self.alpha_a * agriculture_penalty + self.alpha_m * map_penalty) 
+        total_penalties = ( self.alpha_w * water_penalty +  self.alpha_t* tree_penalty + self.alpha_p * pop_density_penalty + self.alpha_a * agriculture_penalty + self.alpha_m * map_penalty).clip(0,1)
         
         return total_penalties, maske, [water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty], [slopes_cond, population_cond, survivalCond_agric, survivalCond_tree]
 
-    def move_water_agric(self, t):
+    def move_water_agric(self, t, FirstSettlementAnakenaTriangles=[False, np.array([])]):
        
         # CLEAR YOUR OLD SPACE!
         config.EI.agentOccupancy[self.triangle_ind] -=1
@@ -283,6 +311,7 @@ class agent:
         for site in self.AgricSites:
             config.EI.agriculture[site] -=1
         self.AgricSites=np.array([]).astype(int)
+        self.MyAgricYields = np.array([])
         if self.fisher: 
             config.FisherAgents-=1
             self.fisher = False
@@ -300,6 +329,8 @@ class agent:
         # mvTris_inds_arr gives for every column (triangles within mv radius) a 1 in the column if the corresponding triangle (row) is within the radius.
 
         WhichTrianglesToCalc_inds = self.mv_inds
+        if FirstSettlementAnakenaTriangles[0]:
+            WhichTrianglesToCalc_inds = FirstSettlementAnakenaTriangles[1]
         total_penalties, maske, penalties, masken = self.calc_penalty(WhichTrianglesToCalc_inds,t)
         
 
@@ -318,10 +349,10 @@ class agent:
             # OPtion 2 choose according to p.
             # self.triangle_ind = self.mv_inds[np.random.choice(np.argpartition(probabilities, -config.NrOfEquivalentBestSitesToMove)[-config.NrOfEquivalentBestSitesToMove:])]
             #self.triangle_ind = self.mv_inds[np.argmax(probabilities)]
-            self.triangle_ind = np.random.choice(self.mv_inds, p= probabilities)
+            self.triangle_ind = np.random.choice(WhichTrianglesToCalc_inds, p= probabilities)
         else:
             #print("Agent", self.index, " can't find allowed space. All probs ==0.")
-            self.triangle_ind = np.random.choice(self.mv_inds)
+            self.triangle_ind = np.random.choice(WhichTrianglesToCalc_inds)
 
         self.triangle_midpoint = config.EI.EI_midpoints[self.triangle_ind]
 
@@ -329,7 +360,7 @@ class agent:
         ###########################################
         ####   PLOT PENALTIES FOR A FEW AGENTS   ##
         ###########################################
-        if config.analysisOn==True and (self.index<=25 and self.index>20):
+        if config.analysisOn==True and (self.index<=50 and self.index%10 == 0) and (not FirstSettlementAnakenaTriangles[0]):
             water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty = penalties
             slopes_cond, population_cond, survivalCond_agric, survivalCond_tree = masken
             allowed_colors = np.array([survivalCond_agric,survivalCond_tree, np.array(population_cond),np.array(slopes_cond)],dtype=np.uint8)
@@ -369,7 +400,7 @@ class agent:
 
         if not self.triangle_ind == config.EI.get_triangle_of_point([self.x, self.y], config.EI_triObject)[0]:
             print("ERRROR, triangle ind is not correct", self.index)
-        self.penalty = total_penalties[np.where(self.triangle_ind==self.mv_inds)[0]]
+        self.penalty = total_penalties[np.where(self.triangle_ind==WhichTrianglesToCalc_inds)[0]]
 
         self.mv_inds = np.where(config.EI.distMatrix[:,self.triangle_ind]<self.moving_radius)[0]
             #[n for n,m in enumerate(config.EI.EI_midpoints) 
@@ -384,28 +415,43 @@ class agent:
         config.EI.populationOccupancy[self.triangle_ind] +=newborns
 
         # IF Population TOO LARGE; SPlit AGENT
-        if self.pop> np.random.normal(config.max_pop_per_household_mean, config.max_pop_per_household_std):
+        mu, sig = (config.max_pop_per_household_mean-2*config.childrenPop, config.max_pop_per_household_std)
+        k = mu**2/sig**2
+        theta = sig**2 / mu
+        if self.pop> np.random.gamma(k,theta) + 2*config.childrenPop:
+        #np.random.normal(config.max_pop_per_household_mean, config.max_pop_per_household_std):
             child = copy(self)
             child.index = config.index_count
             config.index_count+=1
             config.EI.agentOccupancy[child.triangle_ind]+=1
-            child.pop = int(config.init_pop)
+            child.pop = int(config.childrenPop)
+            child.fisher=False
             child.calc_agri_need()
             child.calc_tree_need()
-            child.AgricSites=np.array([]) # Note, if child doesn't have any garden, we also do not clear space when moving
+            child.AgricSites=np.array([]).astype(int) # Note, if child doesn't have any garden, we also do not clear space when moving
+            child.MyAgricYields= np.array([])
             child.move_water_agric(t)
 
             # Adjust parent agent and reduce its agriculture.
-            self.pop -= int(config.init_pop)
+            self.pop -= int(config.childrenPop)
             self.calc_tree_need()
             self.calc_agri_need()
             config.agents.append(child)
-            reduceAgric = (np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-            while reduceAgric>0:
-                site = np.argmin(config.EI.agric_yield[self.AgricSites])
-                if reduceAgric - config.EI.agric_yield[self.AgricSites[site]] > 0:
-                    config.EI.agriculture[self.AgricSites[site]]-=1
-                    self.AgricSites = np.delete(self.AgricSites, site)
+    
+            reduceAgric = (np.sum(self.MyAgricYields) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+            sites = self.AgricSites[np.argsort(self.MyAgricYields)]
+            for site in sites:
+                if reduceAgric>0:
+                    reduceAgric -= config.EI.agric_yield[site]
+                    if reduceAgric>=0:
+                        config.EI.agriculture[site]-=1
+                        self.MyAgricYields = np.delete(self.MyAgricYields, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+                        self.AgricSites = np.delete(self.AgricSites, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+                    else:
+                        break
+                else:
+                    break
+
             #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
             #    config.EI.agriculture[self.AgricSites[site]]-=1
             #    self.AgricSites.remove(self.AgricSites[site])
@@ -415,25 +461,37 @@ class agent:
 def init_agents():#N_agents, init_option, agent_type, map_type):
     config.agents=[]
     for _ in range(config.N_agents):
-        counter = 0
-        searching_for_new_spot=True
-        while searching_for_new_spot:        
-            # init_option = "anakena"
-            midp = config.EI.transform([520,config.EI.pixel_dim[0]-480]) # This is roughly the coast anakena where they landed.
-            w = 1 # Random number (in km)
-            x = np.random.random()*w - w/2 + midp[0]
-            y = np.random.random()*w - w/2 + midp[1] 
-            ind, _, m_meter = config.EI.get_triangle_of_point([x,y], config.EI_triObject)
-            if not ind==-1:
-                searching_for_new_spot = False
-            if counter>100:
-                print("COUNTERBREAK!")
-                break
+        #counter = 0
+        #searching_for_new_spot=True
+        #while searching_for_new_spot:        
+        #    # init_option = "anakena"
+        #    midp = config.EI.transform([520,config.EI.pixel_dim[0]-480]) # This is roughly the coast anakena where they landed.
+        #    w = 1.0 # Random number (in km)
+        #    
+        #    # Note: At resoultion 100 and w = 0.3: roughly half of the slopes are below 6, the other half above
+        #    # Note: For res 100, w=1: rougly 2/3 is below 7 degree.
+        #    x = np.random.random()*w - w/2 + midp[0]
+        #    y = np.random.random()*w - w/2 + midp[1] 
+        #    ind, _, m_meter = config.EI.get_triangle_of_point([x,y], config.EI_triObject)
+        #    if not ind==-1:
+        #        searching_for_new_spot = False
+        #    if counter>100:
+        #        print("COUNTERBREAK!")
+        #        break
+        possible_triangles =  np.where(config.EI.distMatrix[:,config.EI.AnakenaBeach_ind] < config.firstSettlers_moving_raidus)[0]
+        x,y = config.EI.EI_midpoints[config.EI.AnakenaBeach_ind]
+
+
         ag = agent(x, y, config.params)#param['resource_search_radius'], param['moving_radius'], param['fertility'] )  # create agent
-        ag.triangle_ind = ind
-        ag.triangle_midpoint = m_meter
-        config.EI.agentOccupancy[ind]+=1
-        config.EI.populationOccupancy[ind] += ag.pop
+        config.EI.agentOccupancy[config.EI.AnakenaBeach_ind]+=1
+        config.EI.populationOccupancy[config.EI.AnakenaBeach_ind]+=ag.pop
+        ag.triangle_ind= config.EI.AnakenaBeach_ind
+
+        ag.move_water_agric(0, FirstSettlementAnakenaTriangles=[True, possible_triangles])
+        #ag.triangle_ind = ind
+        #ag.triangle_midpoint = m_meter
+        #config.EI.agentOccupancy[ind]+=1
+        #config.EI.populationOccupancy[ind] += ag.pop
         ag.calc_tree_need()
         ag.calc_agri_need()
         config.agents.append(ag)  # add agent to list
