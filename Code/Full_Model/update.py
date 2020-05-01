@@ -70,6 +70,7 @@ def update_single_agent(ag,t):
     ag.calc_tree_need()
     ag.calc_agri_need()
 
+    previous_treeNr = np.copy(np.sum(config.EI.tree_density))
 
     ##########################
     ## HARVEST AGRICULTRE   ##
@@ -111,24 +112,42 @@ def update_single_agent(ag,t):
             # TODO   I COULD COMBINE THIS WITH THE TREE BURNING LATER AND JUST TAKE THE ONES WHERE 0 BURNING REQUIRED.
 
             # The indices of the triangles of ALL acres, that are unoccupied, tree-less and have potential agriculture . e.g. [1,1,1,4,4,5,8,6,13,13,13]
-            treeless_sites_inds = [i  for n,i in enumerate(potential_sites_inds) for k in range(int(TreelessSpaceForAgr_int[n])) ]
+            treeless_sites_inds = np.array([i  for n,i in enumerate(potential_sites_inds) for k in range(int(TreelessSpaceForAgr_int[n])) ], dtype=int)
+            treeless_sites_yields = config.EI.agric_yield[treeless_sites_inds]
+            #bestTreelessSitesFirst_inds = treeless_sites_inds[np.argsort(config.EI.agric_yield[treeless_sites_inds]).astype(int)]
+            while len(treeless_sites_inds)>0 and ag.AgriNeed > np.sum(ag.MyAgricYields):
+                s = np.random.choice(np.where(treeless_sites_yields==np.max(treeless_sites_yields))[0]) #bestTreelessSitesFirst_inds[0]
+                ag.AgricSites = np.append(ag.AgricSites, treeless_sites_inds[s]).astype(int)
+                ag.MyAgricYields = np.append(ag.MyAgricYields, treeless_sites_yields[s])
+                config.EI.agriculture[treeless_sites_inds[s]]+=1
+                # For burning later...
+                if config.EI.agriculture[treeless_sites_inds[s]] == sites[treeless_sites_inds[s]]:
+                    potential_sites_inds = np.delete(potential_sites_inds, np.where(potential_sites_inds==treeless_sites_inds[s])[0])
+                treeless_sites_inds = np.delete(treeless_sites_inds,s)
+                treeless_sites_yields = np.delete(treeless_sites_yields,s)
+            
+            if ag.AgriNeed  <= np.sum(ag.MyAgricYields):  
+                agriculture_fill = 1.0
+                break
+ 
+ 
+ 
+            # # Nr of trees that the agent will occupy without burning
+            # Nr_NewSites_NoBurning = np.ceil(min(ag.AgriNeed - np.sum(ag.MyAgricYields), len(treeless_sites_inds))).astype(int)
 
-            # Nr of trees that the agent will occupy without burning
-            Nr_NewSites_NoBurning = np.ceil(min(ag.AgriNeed - np.sum(ag.MyAgricYields), len(treeless_sites_inds))).astype(int)
+            # NewSites_NoBurning = np.random.choice(treeless_sites_inds, size = Nr_NewSites_NoBurning, replace=False)
+            # for s in NewSites_NoBurning:
+            #     ag.AgricSites = np.append(ag.AgricSites, s).astype(int)
+            #     ag.MyAgricYields = np.append(ag.MyAgricYields, config.EI.agric_yield[s])
+            #     #ag.AgricYield += config.EI.agric_yield[s]
+            #     config.EI.agriculture[s] +=1
+            #     treeless_sites_inds.remove(s)
 
-            NewSites_NoBurning = np.random.choice(treeless_sites_inds, size = Nr_NewSites_NoBurning, replace=False)
-            for s in NewSites_NoBurning:
-                ag.AgricSites = np.append(ag.AgricSites, s).astype(int)
-                ag.MyAgricYields = np.append(ag.MyAgricYields, config.EI.agric_yield[s])
-                #ag.AgricYield += config.EI.agric_yield[s]
-                config.EI.agriculture[s] +=1
-                treeless_sites_inds.remove(s)
-
-                if config.EI.agriculture[s] == sites[s]:
-                    potential_sites_inds = np.delete(potential_sites_inds, np.where(potential_sites_inds==s)[0])
-                if ag.AgriNeed  <= np.sum(ag.MyAgricYields):  
-                    agriculture_fill = 1.0
-                    break
+            #     if config.EI.agriculture[s] == sites[s]:
+            #         potential_sites_inds = np.delete(potential_sites_inds, np.where(potential_sites_inds==s)[0])
+            #     if ag.AgriNeed  <= np.sum(ag.MyAgricYields):  
+            #         agriculture_fill = 1.0
+            #         break
 
 
             if ag.AgriNeed  > np.sum(ag.MyAgricYields) and len(potential_sites_inds)>0:  
@@ -172,7 +191,10 @@ def update_single_agent(ag,t):
                     # HowmanyTreesNeedtoburn =  18 - (0+1- 1/area) * 20 =  11.3 --> 12  
                     # or 18- (1+1-1/area)*20 = 
                     # 18 - 20* (1-(0+1)/1.5) = 
-                
+
+                    if any(howmanytreesneedtoburn<0):
+                        print("BURN NEGATIVE TREES!")
+                        quit()
                 
                     #how_many_to_burn = 1 #  , len(howmanytreesneedtoburn))
                     #cells_to_burn = np.argpartition(howmanytreesneedtoburn, how_many_to_burn-1)[:how_many_to_burn]
@@ -304,5 +326,8 @@ def update_single_agent(ag,t):
 
     if not np.sum([len(ag.AgricSites) for ag in config.agents]) == np.sum(config.EI.agriculture):
         print("ERROR: agricultures do not match")
+
+    if previous_treeNr < np.sum(config.EI.tree_density):
+        print("Agent ", ag.index, " added trees: ", ag.tree_need)
     return 
         
