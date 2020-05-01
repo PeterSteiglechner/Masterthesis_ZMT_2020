@@ -97,7 +97,8 @@ class agent:
 
     def calc_new_tree_pref(self):
         shifted_tanh = lambda x: 0.5*np.tanh(2*(x - 0.5))+ 0.5
-        treePref_g = shifted_tanh(config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum())
+        radius = config.EI.TreeNeighbours_of_triangles[self.triangle_ind]
+        treePref_g = shifted_tanh(config.EI.tree_density[radius].sum()/config.EI.carrying_cap[radius].sum())
         #logistic_g = 1-config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum()
         scaled_tree_pref_g = 1/(shifted_tanh(1)-shifted_tanh(0)) * (treePref_g-shifted_tanh(0))
         self.treePref = config.MinTreeNeed + (config.init_TreePreference-config.MinTreeNeed) * scaled_tree_pref_g
