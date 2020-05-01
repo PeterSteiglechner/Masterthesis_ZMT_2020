@@ -66,7 +66,7 @@ config.updatewithreplacement = False
 config.StartTime = 800
 config.EndTime=1900
 config.N_timesteps = config.EndTime-config.StartTime
-config.seed= int(sys.argv[1])
+config.seed= 31#int(sys.argv[1])
 print("Seed: ", config.seed)
 #config.folder= LATER
 
@@ -155,7 +155,7 @@ config.ErodedSoilYield=0.75
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=100
+config.gridpoints_y=50
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -170,7 +170,7 @@ config.drought_RanoRaraku_1=[config.StartTime, 1100]
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=True
+NewMap=False
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -207,7 +207,7 @@ print("################   DONE: MAP ###############")
 config.folder = "Figs_WithDrought/"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
-config.analysisOn=True
+config.analysisOn=False
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
 #for bla in string: print(bla)
 
@@ -245,11 +245,12 @@ def run():
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
 
-        if len(config.agents)>0:
+        if len(config.agents)>10:
 
-            ag = config.agents[0]
+            ag = config.agents[10]
             print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
         
+        if len(config.agents)>0:
             if (t+1)%50==0:
                 observe(t+1)
             if (t+1)%50==0:
