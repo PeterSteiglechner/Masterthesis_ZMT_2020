@@ -81,13 +81,13 @@ config.max_pop_per_household_std = 3
 
 
 
-config.LowerLimit_PopInHousehold = 10
+config.LowerLimit_PopInHousehold = 7
 
 config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
-config.MinTreeNeed=0.3      #Fraction
+config.MinTreeNeed=0.2      #Fraction
 
 config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 
@@ -110,7 +110,7 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_po
 #NOT NEEDED ANYMORE: config.FractionDeathsInPopShock = 0.2
 
 # Each agent can (in the future) have these parameters different
-config.params={'tree_search_radius': 1.6, 
+config.params={'tree_search_radius': 2.4, 
         'agriculture_radius':0.8,
         'moving_radius': 12,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
@@ -131,7 +131,7 @@ config.alpha_p = 0.2
 config.alpha_a = 0.2
 config.alpha_m = 0.2
 
-config.PenalToProb_Prefactor = 20   
+config.PenalToProb_Prefactor = 10  
 
 #NrOfEquivalentBestSitesToMove= 10
 
@@ -155,7 +155,7 @@ config.ErodedSoilYield=0.75
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=50
+config.gridpoints_y=30
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -170,7 +170,7 @@ config.drought_RanoRaraku_1=[config.StartTime, 1100]
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=False
+NewMap=True
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -207,7 +207,7 @@ print("################   DONE: MAP ###############")
 config.folder = "Figs_WithDrought/"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
-config.analysisOn=False
+config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
 #for bla in string: print(bla)
 

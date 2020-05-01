@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import copy
 from time import time
+import scipy.stats
 
 from observefunc import plot_movingProb
 
@@ -112,9 +113,13 @@ class agent:
         # REMOVE SOME POPULATION
         #dead_pop = np.random.randint(0,self.pop/2) # TODO: Make a decision if fraction dies or fixed number! #min(config.HowManyDieInPopulationShock, self.pop)
         
-        fraction = 1-self.happy
+        #fraction = 1-self.happy
+        g = (1-scipy.stats.gamma.cdf(self.happy,3, scale = 0.1))#.astype(int))
+
         #fraction = config.FractionDeathsInPopShock
-        dead_pop = np.round(fraction * self.pop).astype(int) 
+        rands = np.random.random(self.pop)
+        
+        dead_pop = np.sum(rands<g)# np.round(fraction * self.pop).astype(int) 
         config.deaths += dead_pop
         self.pop -= dead_pop
         config.EI.populationOccupancy[self.triangle_ind]-= dead_pop
@@ -360,7 +365,7 @@ class agent:
         ###########################################
         ####   PLOT PENALTIES FOR A FEW AGENTS   ##
         ###########################################
-        if config.analysisOn==True and (self.index<=50 and self.index%10 == 0) and (not FirstSettlementAnakenaTriangles[0]):
+        if config.analysisOn==True and (self.index<=50 and self.index%7 == 0) and (not FirstSettlementAnakenaTriangles[0]):
             water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty = penalties
             slopes_cond, population_cond, survivalCond_agric, survivalCond_tree = masken
             allowed_colors = np.array([survivalCond_agric,survivalCond_tree, np.array(population_cond),np.array(slopes_cond)],dtype=np.uint8)
