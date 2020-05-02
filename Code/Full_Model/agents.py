@@ -67,6 +67,9 @@ class agent:
 
         self.penalty = 0
 
+        self.tree_fill = 1
+        self.agriculture_fill = 1
+
         return 
     
     def calc_tree_need(self):

@@ -66,7 +66,7 @@ config.updatewithreplacement = False
 config.StartTime = 800
 config.EndTime=1900
 config.N_timesteps = config.EndTime-config.StartTime
-config.seed= 31#int(sys.argv[1])
+config.seed= int(sys.argv[1])
 print("Seed: ", config.seed)
 #config.folder= LATER
 
@@ -74,16 +74,16 @@ print("Seed: ", config.seed)
 config.MaxSettlementSlope=9
 #config.MaxSettlementElev=300
 #config.MinSettlementElev=10
-config.Penalty50_SettlementElev = 75
+config.Penalty50_SettlementElev = 40
 
-config.max_pop_per_household_mean = 3*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
+config.max_pop_per_household_mean = 4*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
 config.max_pop_per_household_std = 3
 
 
 
 config.LowerLimit_PopInHousehold = 7
 
-config.MaxPopulationDensity=173*3  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
+config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
@@ -97,7 +97,12 @@ config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_
 #config.dStage = ((1-config.MinTreeNeed)/config.Nr_AgricStages)
 
 #config.agricSites_need_per_Capita = 2./6.  # Flenley Bahn
-config.agricYield_need_per_Capita = 1.7  # Puleston High N  in ACRE!
+HighorLowFix= sys.argv[2]
+if HighorLowFix=="highFix":
+    config.agricYield_need_per_Capita = 0.5 # Puleston High N  in ACRE!
+else:
+    config.agricYield_need_per_Capita = 1.7
+
 
 config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.agricYield_need_per_Capita)
 
@@ -205,7 +210,7 @@ print("################   DONE: MAP ###############")
 #################################################
 
 config.folder = "Figs_WithDrought/"
-config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_lowNfix_seed"+str(config.seed)+"/"
+config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard_"+HighorLowFix+"_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
@@ -246,14 +251,13 @@ def run():
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
 
-        if len(config.agents)>10:
 
-            ag = config.agents[10]
-            print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
-        else:
-            ag = config.agents[0]
         if len(config.agents)>0:
             if (t+1)%50==0:
+                if len(config.agents)>0:
+                    ag = config.agents[0]
+                else:
+                    ag = None
                 observe(t+1, fig=None, ax=None, specific_ag_to_follow=ag, save=True)
                 plt.close()
             if (t+1)%50==0:

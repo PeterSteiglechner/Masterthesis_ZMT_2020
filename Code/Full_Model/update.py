@@ -60,6 +60,7 @@ def update_time_step(t):
     config.nr_deaths[-1], config.nr_pop[-1], "\t Happy: ","%.2f" % config.nr_happyAgents[-1],"\t Fisher:",int(config.FisherAgents),"\t GardenFrac",'%.2f' % (config.GardenFraction[-1]),"\t Time tot: ", '%.2f'  % (time()-start_step))
 
 
+
     return 
 
 def update_single_agent(ag,t):
@@ -265,6 +266,14 @@ def update_single_agent(ag,t):
 
     tree_fill = (total_tree_number_inRad/int(ag.tree_need)).clip(0.,1.)
 
+    ag.tree_fill = tree_fill
+    ag.agriculture_fill = agriculture_fill
+
+
+    if ag == config.agents[0]:
+        print("Agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " previous happy:",ag.happy, "Tree/agricFill", "%.2f" % ag.tree_fill, "/","%.2f" % ag.agrculture_fill )
+
+
     if tree_fill>=1 and agriculture_fill>=1:
         ag.happy=1.0
         #ag.happyPeriod+=1
@@ -284,7 +293,10 @@ def update_single_agent(ag,t):
 
         # total_penalties, maske, penalties, masken
         if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
+            if ag == config.agents[0]:
+                print("First agent moved: ", penalties)
             ag.move_water_agric(t)
+            
         else:
             ag.penalty = total_penalties
 
@@ -305,16 +317,20 @@ def update_single_agent(ag,t):
         
         #ag.happy= max(ag.happy, np.mean([tree_fill, agriculture_fill]))   # Max of last happy or mean of this year's harvest
         
-        ag.happy=np.mean([tree_fill, agriculture_fill])
+        ag.happy=np.mean([np.min([tree_fill, agriculture_fill]), ag.happy])
         survived =  ag.pop_shock() # survived
-        if survived:
+        if survived and ag.happy<0.8:
             ag.move_water_agric(t)
-            ag.happy =  np.mean([tree_fill, agriculture_fill])  
+            ag.happy =  np.min([tree_fill, agriculture_fill])  
 
 
     ### 2. Perhaps Reproduce
     if ag.happy==1.0:
         ag.Reproduce(t)
+
+    if ag == config.agents[0]:
+        print("Agent ",ag.index, ", new pop: ",ag.pop," happy:",ag.happy)
+
     
     ag.calc_new_tree_pref()
     ag.calc_tree_need()
