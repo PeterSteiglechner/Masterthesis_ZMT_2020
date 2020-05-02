@@ -51,7 +51,7 @@ def update_time_step(t):
         config.NrFisherAgents = np.append(config.NrFisherAgents, 0)
         config.GardenFraction =  np.append(config.GardenFraction, 0)
     config.moves = np.append(config.moves, config.move)
-    config.moves=0
+    config.move=0
 
     config.Fraction_eroded = np.append(config.Fraction_eroded, np.sum(config.EI.agric_yield==config.UpperLandSoilQuality) /(np.sum(config.EI.agric_yield==1)+np.sum(config.EI.agric_yield==config.UpperLandSoilQuality)))
     config.Array_tree_density = np.concatenate((config.Array_tree_density, config.EI.tree_density.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
@@ -279,28 +279,28 @@ def update_single_agent(ag,t):
         ag.happy=1.0
         #ag.happyPeriod+=1
 
-        ###########################
-        ###   CHECK PENALTY    ####
-        ###########################
-        # ag.mv_inds exists
-        config.EI.agriculture[ag.AgricSites] -=1
-        if ag.fisher: config.FisherAgents-=1
+        # ###########################
+        # ###   CHECK PENALTY    ####
+        # ###########################
+        # # ag.mv_inds exists
+        # config.EI.agriculture[ag.AgricSites] -=1
+        # if ag.fisher: config.FisherAgents-=1
 
-        WhichTrianglesToCalc_inds = [ag.triangle_ind]
-        total_penalties,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
+        # WhichTrianglesToCalc_inds = [ag.triangle_ind]
+        # total_penalties,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
 
-        config.EI.agriculture[ag.AgricSites] +=1
-        if ag.fisher: config.FisherAgents+=1
+        # config.EI.agriculture[ag.AgricSites] +=1
+        # if ag.fisher: config.FisherAgents+=1
 
-        # total_penalties, maske, penalties, masken
-        if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
-            if ag == config.agents[0]:
-                print("First agent moved: ", penalties)
-            ag.move_water_agric(t)
+        # # total_penalties, maske, penalties, masken
+        # if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
+        #     if ag == config.agents[0]:
+        #         print("First agent moved: ", penalties)
+        #     ag.move_water_agric(t)
             
-        else:
-            ag.penalty = total_penalties
-
+        # else:
+        #     ag.penalty = total_penalties
+        ag.penalty=0
 
     else:
         #if tree_fill<1:

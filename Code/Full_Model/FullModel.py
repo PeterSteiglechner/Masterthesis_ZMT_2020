@@ -209,8 +209,10 @@ print("################   DONE: MAP ###############")
 ########   Folder and Run Prepa   ###############
 #################################################
 
+withTreegrowth = sys.argv[3]  # "withRegrowth"
+
 config.folder = "Figs_WithDrought/"
-config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard_"+HighorLowFix+"_seed"+str(config.seed)+"/"
+config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_"+withTreegrowth+"_"+HighorLowFix+"_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
@@ -245,9 +247,11 @@ def run():
     for t in np.arange(config.StartTime,config.EndTime+1):#, num=config.N_timesteps):
 
         update_time_step(t)  
-        #regrow_update(config.tree_regrowth_rate)
+        if withTreegrowth=="withRegrowth": 
+            regrow_update(config.tree_regrowth_rate)
         agric_update()
-        #popuptrees(t)
+        if withTreegrowth=="withRegrowth": 
+            popuptrees(t)
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
 
