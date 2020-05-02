@@ -119,6 +119,7 @@ updatewithreplacement = True
 StartTime = 0
 EndTime=0
 N_timesteps = 0
+move=0
 #t = 800
 
 ###  MAP  ###
@@ -178,5 +179,5 @@ FisherAgents = 0
 NrFisherAgents = np.array([])
 Fraction_eroded=np.array([])
 GardenFraction = np.array([])
-
+moves = np.array([])
 

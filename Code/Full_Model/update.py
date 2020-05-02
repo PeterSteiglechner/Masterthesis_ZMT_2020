@@ -50,6 +50,8 @@ def update_time_step(t):
         config.Penalty_mean = np.append(config.Penalty_std,0)
         config.NrFisherAgents = np.append(config.NrFisherAgents, 0)
         config.GardenFraction =  np.append(config.GardenFraction, 0)
+    config.moves = np.append(config.moves, config.move)
+    config.moves=0
 
     config.Fraction_eroded = np.append(config.Fraction_eroded, np.sum(config.EI.agric_yield==config.UpperLandSoilQuality) /(np.sum(config.EI.agric_yield==1)+np.sum(config.EI.agric_yield==config.UpperLandSoilQuality)))
     config.Array_tree_density = np.concatenate((config.Array_tree_density, config.EI.tree_density.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1) 
@@ -58,7 +60,6 @@ def update_time_step(t):
 
     print("Run ",t,"  Stats: ",config.nr_agents[-1], int(config.nr_trees[-1]), 
     config.nr_deaths[-1], config.nr_pop[-1], "\t Happy: ","%.2f" % config.nr_happyAgents[-1],"\t Fisher:",int(config.FisherAgents),"\t GardenFrac",'%.2f' % (config.GardenFraction[-1]),"\t Time tot: ", '%.2f'  % (time()-start_step))
-
 
 
     return 
@@ -271,7 +272,7 @@ def update_single_agent(ag,t):
 
 
     if ag == config.agents[0]:
-        print("Agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " previous happy:",ag.happy, "Tree/agricFill", "%.2f" % ag.tree_fill, "/","%.2f" % ag.agrculture_fill )
+        print("Agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " previous happy:",ag.happy, "Tree/agricFill", "%.2f" % ag.tree_fill, "/","%.2f" % ag.agriculture_fill )
 
 
     if tree_fill>=1 and agriculture_fill>=1:

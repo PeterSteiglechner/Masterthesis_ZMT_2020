@@ -316,6 +316,7 @@ class agent:
 
     def move_water_agric(self, t, FirstSettlementAnakenaTriangles=[False, np.array([])]):
        
+        config.move+=1
         # CLEAR YOUR OLD SPACE!
         config.EI.agentOccupancy[self.triangle_ind] -=1
         config.EI.populationOccupancy[self.triangle_ind] -=self.pop
