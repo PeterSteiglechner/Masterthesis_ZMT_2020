@@ -24,6 +24,7 @@ class EI_empty:
         self.AgricNeighbours_of_triangles =[]
         # CONSTANT EXTENSIONS
         self.water_penalties=[]
+        self.water_triangle_inds = []
         self.nr_highqualitysites = []
         self.nr_lowqualitysites = []
         self.agric_yield=np.array([])

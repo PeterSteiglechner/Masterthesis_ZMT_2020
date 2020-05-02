@@ -280,10 +280,12 @@ class agent:
         map_penalty_slope_scaled = 1/(shifted_tanh(1,0.5)-shifted_tanh(0,0.5)) * (map_penalty_slope-shifted_tanh(0,0.5))
         map_penalty = np.maximum(map_penalty_elev_scaled, map_penalty_slope_scaled)
 
+
         ################################
         ## Allowed Settlements! #####
         ################################
         slopes_cond = config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] < config.MaxSettlementSlope
+        slopes_cond[np.where(config.EI.water_penalties[WhichTrianglesToCalc_inds] == 0)] = 0
         # AND POPULATION DENSITY
 
        

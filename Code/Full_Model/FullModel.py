@@ -35,7 +35,7 @@ import xarray as xr
 ################################
 #from CreateMap_class import Map   #EasterIslands/Code/Triangulation/")
 from CreateEI_ExtWaterExtAgricPaper import Map
-from observefunc import observe, observe_density, plot_movingProb, plot_statistics
+from observefunc import observe, plot_TreeMap_only, plot_agricultureSites_onTop, plot_agents_on_top, plot_statistics
 from agents import agent, init_agents#, init_agents_EI
 #from agents import Tree
 from update import update_single_agent, update_time_step
@@ -83,11 +83,11 @@ config.max_pop_per_household_std = 3
 
 config.LowerLimit_PopInHousehold = 7
 
-config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
+config.MaxPopulationDensity=173*3  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
-config.MinTreeNeed=0.2      #Fraction
+config.MinTreeNeed=0.3      #Fraction
 
 config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 
@@ -97,7 +97,7 @@ config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_
 #config.dStage = ((1-config.MinTreeNeed)/config.Nr_AgricStages)
 
 #config.agricSites_need_per_Capita = 2./6.  # Flenley Bahn
-config.agricYield_need_per_Capita = 0.5  # Puleston High N  in ACRE!
+config.agricYield_need_per_Capita = 1.7  # Puleston High N  in ACRE!
 
 config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.agricYield_need_per_Capita)
 
@@ -110,7 +110,7 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_po
 #NOT NEEDED ANYMORE: config.FractionDeathsInPopShock = 0.2
 
 # Each agent can (in the future) have these parameters different
-config.params={'tree_search_radius': 2.4, 
+config.params={'tree_search_radius': 1.6, 
         'agriculture_radius':0.8,
         'moving_radius': 12,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
@@ -155,7 +155,7 @@ config.ErodedSoilYield=0.75
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=30
+config.gridpoints_y=75
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -170,7 +170,7 @@ config.drought_RanoRaraku_1=[config.StartTime, 1100]
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=True
+NewMap=False
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -205,7 +205,7 @@ print("################   DONE: MAP ###############")
 #################################################
 
 config.folder = "Figs_WithDrought/"
-config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_Standard_seed"+str(config.seed)+"/"
+config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_lowNfix_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
 #string = [item+r":   "+str(vars(config)[item]) for item in dir(config) if not item.startswith("__")]
@@ -233,7 +233,8 @@ def run():
     # RUN
     config.EI.check_drought(0, config.drought_RanoRaraku_1, config.EI_triObject)
     init_agents()
-    observe(config.StartTime)
+    observe(config.StartTime, fig=None, ax=None, specific_ag_to_follow=config.agents[0], save=True)
+    plt.close()
 
     #observe(config.StartTime)
     for t in np.arange(config.StartTime,config.EndTime+1):#, num=config.N_timesteps):
@@ -249,10 +250,12 @@ def run():
 
             ag = config.agents[10]
             print("Following agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " happy:",ag.happy)
-        
+        else:
+            ag = config.agents[0]
         if len(config.agents)>0:
             if (t+1)%50==0:
-                observe(t+1)
+                observe(t+1, fig=None, ax=None, specific_ag_to_follow=ag, save=True)
+                plt.close()
             if (t+1)%50==0:
                 plt.cla()
                 _,ax = config.EI.plot_agricultureSites(ax=None, fig=None, save=False, CrossesOrFacecolor="Facecolor")

@@ -18,46 +18,31 @@ plt.rcParams.update(font)
 import matplotlib.colors as colors
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.axes_grid1.colorbar import colorbar
+from matplotlib.colors import LinearSegmentedColormap
+
 
 import sys, os
 
-def observe(t):
-    fig = plt.figure(figsize=(10,6))
-    ax = fig.add_subplot(1,1,1,fc='aquamarine')
+def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True):
+    if fig==None:
+        fig = plt.figure(figsize=(10,6))
+        ax = fig.add_subplot(1,1,1,fc='aquamarine')
 
-    fig,ax = observe_density(t,ax = ax,fig = fig, save=False)
-    fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
+    #fig,ax = observe_density(t,ax = ax,fig = fig, save=False)
+    #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
+
+    fig, ax, divider, _ =   plot_TreeMap_only(fig, ax, t, data=None, ncdf=False)
+    ax, divider, _  = plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False)
+    ax = plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=specific_ag_to_follow, color = 'purple')
 
     ax.set_title("Time "+str(t))
-    fig.tight_layout()
-    plt.savefig(config.folder+"map_time"+str(t)+".png")
-    plt.close()
 
-
-def observe_density(t, fig=None, ax=None, save=True, hist=False, folder=config.folder, specific_ag_to_follow=None):# agents, EI, t, agent_type, folder):
-
-
-    if ax==None:
-        fig = plt.figure(figsize=(10,6))
-        ax = fig.add_subplot(111)        
-
-    fig, ax = config.EI.plot_TreeMap_and_hist(ax=ax, fig=fig, hist=hist,folder=folder)
-    #ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    #    config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="Blues", alpha=1)
-    #
-    #plot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    #  config.EI.EI_triangles, facecolors=config.EI.tree_density, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
-    ##cbaxes = fig.add_axes([0.9, 0.0, 0.03, 1.0]) 
-    #fig.colorbar(plot)#, cax = cbaxes)  
-    ax = plot_agents_on_top(ax, t,ncdf=False, specific_ag_to_follow=specific_ag_to_follow)
-
-    if save:
-        ax.set_title("Time "+str(t))
-        fig.tight_layout()
+    if save==True:
+        #fig.tight_layout()
         plt.savefig(config.folder+"map_time"+str(t)+".png")
         plt.close()
-    return fig,ax
-
+    return fig, ax
 
 
 def follow_ag0(ag):
@@ -125,8 +110,8 @@ def plot_movingProb(t,ag, newpos):
     rcParams={'font.size':10}
     plt.rcParams.update(rcParams)
 
-    fig, ax = observe_density(t, fig=fig, ax=ax, save=False, hist=False, folder="", specific_ag_to_follow=ag)
-    fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
+    fig, ax = observe(t, fig=fig, ax=ax, specific_ag_to_follow=ag, save=False) #(t, fig=fig, ax=ax, save=False, hist=False, folder="", specific_ag_to_follow=ag)
+    #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=10)
     ax.set_title("Agent "+str(ag.index))
@@ -139,7 +124,7 @@ def plot_movingProb(t,ag, newpos):
     ax.set_ylim(max(config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1,0), min(config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1, config.EI.corners["upper_right"][1]))
        
     ax.set_aspect(1)
-    ax.plot(newpos[0], config.EI.corners['upper_left'][1] - newpos[1], "o", markersize = 8,color='magenta')
+    #ax.plot(newpos[0], config.EI.corners['upper_left'][1] - newpos[1], "o", markersize = 8,color='magenta')
     #divider = make_axes_locatable(plt.gca())
     #cax = divider.append_axes("right", "5%", pad="3%")
     #plt.colorbar(plot, cax =cax) 
@@ -221,7 +206,7 @@ def plot_movingProb(t,ag, newpos):
         cax = divider.append_axes("right", "5%", pad="3%")
         plt.colorbar(plot, cax =cax) 
 
-    fig.tight_layout()
+    #fig.tight_layout()
     #fig.colorbar(p)
     plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".png", bbox_inches='tight')
 
@@ -259,6 +244,56 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
     return ax
 
 
+
+
+
+def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False):
+    if ncdf:
+        face_colors = data.agriculture.sel(time=t)* 1/(config.EI.EI_triangles_areas * config.km2_to_acre)  #(config.EI.nr_highqualitysites+config.EI.nr_lowqualitysites).clip(min=0.1)
+    else:
+        face_colors = config.EI.agriculture* 1/(config.EI.EI_triangles_areas * config.km2_to_acre)  #(config.EI.nr_highqualitysites+config.EI.nr_lowqualitysites).clip(min=0.1)
+    if any(face_colors>1):
+        print("Error in plot agricultureSites")
+    colors = [(1,0,0,0), (1,0,0,1)]
+    #n_bin = 1# np.max(config.EI.agriculture)
+    customCmap = LinearSegmentedColormap.from_list("agriccmap",colors,N=100)
+
+    #plot_agricultureSites_onTop(ax=ax, fig=fig)    
+    AgricPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=customCmap, alpha=None, vmax=1, vmin=0)
+
+    cax2 = divider.append_axes("right", "5%", pad="14%")
+    cb2 = colorbar(AgricPlot, cax =cax2)     
+    cb2.set_label_text("Agriculture Fraction of Triangle")
+    return ax, divider, AgricPlot
+
+
+def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False):
+    if ncdf:
+        face_colors =data.tree_density.sel(time=t)
+    else:
+        face_colors = config.EI.tree_density
+    treePlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
+
+    watertriangles = np.zeros([config.EI.N_els])
+    watertriangles[config.EI.water_triangle_inds]=1
+    watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),(127/255,1,212/255 ,1 )],N=2) # AQUAMARINE
+    watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),(3/255,169/255,244/255 ,1 )],N=2) # Indigo blue
+
+    _ = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+    config.EI.EI_triangles, facecolors=watertriangles, vmin = 0, vmax = 1, cmap=watercmap, alpha=None) 
+
+    #for i in config.EI.water_midpoints:
+    #    ax.plot([i[0]], [config.EI.corners['upper_left'][1]- i[1]], 'o',markersize=5, color="blue")
+    
+    ax.set_aspect('equal')
+    divider = make_axes_locatable(plt.gca())
+    cax = divider.append_axes("right", "5%", pad="3%")
+    cb1 = colorbar(treePlot, cax =cax) 
+    cb1.set_label_text("Number of Trees in Triangle")
+    return fig, ax, divider, treePlot
+
+#  
 
 
 
@@ -334,3 +369,40 @@ def plot_statistics(data, folder):
     plt.savefig(folder+"Statistics_timeseries.svg")
     plt.close()
     return 
+
+
+
+
+
+
+
+
+
+    ###########################
+    ####  OLD   ###############
+
+
+
+def observe_density(t, fig=None, ax=None, save=True, hist=False, folder=config.folder, specific_ag_to_follow=None):# agents, EI, t, agent_type, folder):
+
+
+    if ax==None:
+        fig = plt.figure(figsize=(10,6))
+        ax = fig.add_subplot(111)        
+
+    fig, ax = config.EI.plot_TreeMap_and_hist(ax=ax, fig=fig, hist=hist,folder=folder)
+    #ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+    #    config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="Blues", alpha=1)
+    #
+    #plot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+    #  config.EI.EI_triangles, facecolors=config.EI.tree_density, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
+    ##cbaxes = fig.add_axes([0.9, 0.0, 0.03, 1.0]) 
+    #fig.colorbar(plot)#, cax = cbaxes)  
+    ax = plot_agents_on_top(ax, t,ncdf=False, specific_ag_to_follow=specific_ag_to_follow)
+
+    if save:
+        ax.set_title("Time "+str(t))
+        #fig.tight_layout()
+        plt.savefig(config.folder+"map_time"+str(t)+".png")
+        plt.close()
+    return fig,ax
