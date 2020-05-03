@@ -69,6 +69,7 @@ def final_saving():
         #'MaxAgricPenalty': config.MaxAgricPenalty,
         'tree_need_per_capita': config.tree_need_per_capita,
         'MinTreeNeed': config.MinTreeNeed,
+        "TreePref_kappa":config.TreePref_kappa,
         'BestTreeNr_forNewSpot': config.BestTreeNr_forNewSpot,
         #'Nr_AgricStages': config.Nr_AgricStages,
         #'dStage': config.dStage,

@@ -88,6 +88,8 @@ config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 3
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
 config.MinTreeNeed=0.3      #Fraction
+config.TreePref_kappa = 4
+
 
 config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 

@@ -67,6 +67,7 @@ MaxAgricPenalty = 0
 
 tree_need_per_capita = 0
 MinTreeNeed=0. #Fraction
+TreePref_kappa = 0
 
 BestTreeNr_forNewSpot = 0
 
