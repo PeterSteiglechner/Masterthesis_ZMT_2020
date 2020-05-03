@@ -188,3 +188,4 @@ GardenFraction = np.array([])
 moves = []
 TreeRegrowth = []
 TreePopUp=[]
+timeSwitchedMovingRad = np.nan

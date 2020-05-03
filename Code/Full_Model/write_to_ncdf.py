@@ -101,6 +101,7 @@ def final_saving():
     for key in params_households.keys():
         ds.attrs[key]=params_households[key]
     
+    ds.attrs["timeSwitchedMovingRad"] = config.timeSwitchedMovingRad
     params_init={
         'N_agents': config.N_agents,
         'N_trees': config.N_trees,

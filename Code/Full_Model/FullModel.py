@@ -52,7 +52,7 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 #config.init_option = "anakena"
 
 ###  INIT
-config.N_agents = 0
+config.N_agents = 3
 config.N_trees = 12e6
 config.firstSettlers_init_pop=int(25)
 config.childrenPop=int(15)
@@ -77,7 +77,7 @@ config.MaxSettlementSlope=9
 config.Penalty50_SettlementElev = 100
 
 config.max_pop_per_household_mean = 4*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
-config.max_pop_per_household_std = 3
+config.max_pop_per_household_std = 5
 
 
 
@@ -88,7 +88,7 @@ config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 3
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
 config.MinTreeNeed=0.3      #Fraction
-config.TreePref_kappa = 4
+config.TreePref_kappa = 5
 
 
 config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
@@ -117,8 +117,8 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_po
 #NOT NEEDED ANYMORE: config.FractionDeathsInPopShock = 0.2
 
 # Each agent can (in the future) have these parameters different
-config.params={'tree_search_radius': 1.6, 
-        'agriculture_radius':0.8,
+config.params={'tree_search_radius': 2, 
+        'agriculture_radius':1,
         'moving_radius': 15,
         'moving_radius_later':5,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
@@ -181,7 +181,7 @@ config.drought_RanoRaraku_1=[config.StartTime, 1100]
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=False
+NewMap=True
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -260,7 +260,6 @@ def run():
     plt.close()
 
     #observe(config.StartTime)
-    switched_moving_rad = False
     for t in np.arange(config.StartTime,config.EndTime+1):#, num=config.N_timesteps):
 
         update_time_step(t)  
@@ -277,10 +276,10 @@ def run():
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
         
-        if len(config.agents)>0 and config.nr_pop[-1] >= config.PopulationMovingRestriction and switched_moving_rad ==False:
+        if not np.isnan(config.timeSwitchedMovingRad) and len(config.agents)>0 and config.nr_pop[-1] >= config.PopulationMovingRestriction :
             for ag in config.agents:
                 ag.moving_radius=config.params["moving_radius_later"]
-            switched_moving_rad = True
+            config.timeSwitchedMovingRad=t
             print("Agents reduced their Moving Radius")
 
         #observe(t+1, fig=None, ax=None, specific_ag_to_follow=None, save=True)
