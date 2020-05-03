@@ -74,7 +74,7 @@ print("Seed: ", config.seed)
 config.MaxSettlementSlope=9
 #config.MaxSettlementElev=300
 #config.MinSettlementElev=10
-config.Penalty50_SettlementElev = 40
+config.Penalty50_SettlementElev = 100
 
 config.max_pop_per_household_mean = 4*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
 config.max_pop_per_household_std = 3
@@ -119,9 +119,11 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_po
 # Each agent can (in the future) have these parameters different
 config.params={'tree_search_radius': 1.6, 
         'agriculture_radius':0.8,
-        'moving_radius': 12,
+        'moving_radius': 15,
+        'moving_radius_later':5,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
+config.PopulationMovingRestriction = 5000
 
 config.MaxFisherAgents = 10
 
@@ -167,6 +169,8 @@ config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
 
+config.MapPenalty_Kappa = 5
+
 config.tree_regrowth_rate=0.05 # every 20 years all trees are back?  # Brandt Merico 2015# Brander Taylor 0.04 % Logisitc Growth rate.
 
 
@@ -203,6 +207,8 @@ config.EI_triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.
 
 # Plot/Test the resulting Map.
 #print("Test Map: ",config.EI.get_triangle_of_point([1e4, 1e4], config.EI_triObject))
+
+config.EI.get_Map_Penalty()
 
 print("################   DONE: MAP ###############")
 
@@ -246,6 +252,7 @@ def run():
     plt.close()
 
     #observe(config.StartTime)
+    switched_moving_rad = False
     for t in np.arange(config.StartTime,config.EndTime+1):#, num=config.N_timesteps):
 
         update_time_step(t)  
@@ -257,6 +264,11 @@ def run():
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
 
+        if config.nr_pop[-1] >= config.PopulationMovingRestriction and switched_moving_rad ==False:
+            for ag in config.agents:
+                ag.moving_radius=config.params["moving_radius_later"]
+            switched_moving_rad = True
+            print("Agents reduced their Moving Radius")
 
         if len(config.agents)>0:
             if (t+1)%50==0:

@@ -266,30 +266,8 @@ class agent:
         ################################
         #####     MAP PENALTY   ########
         ################################
-
-        #map_penalty_elev =  abs(1./ (max(config.EI.EI_midpoints_elev)-config.SweetPointSettlementElev) * (config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds] - config.SweetPointSettlementElev))
-        #map_penalty_slope = (config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] * (1/config.MaxSettlementSlope)).clip(max=1)
-        #map_penalty = np.maximum(map_penalty_elev, map_penalty_slope)
-        # Why max of slope or elev? At top of mountain, slope=0, but elev high. At coast: slope=large, but elev good. In the middle if they are similar then, max and mean would be the same anyway.)
-
-        # https://stats.stackexchange.com/questions/52571/asymmetric-s-shaped-function-mapping-interval-0-1-to-interval-0-1
-        # Perhaps better to take sth like logit-normal Distribution CDF.
-        shifted_tanh = lambda x,mu: 0.5*np.tanh(5*(x-mu))+0.5
-        
-        MapPenalty50 = config.Penalty50_SettlementElev/max(config.EI.EI_midpoints_elev)
-        map_penalty_elev = shifted_tanh(config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds]/max(config.EI.EI_midpoints_elev), MapPenalty50)
-        map_penalty_elev_scaled = 1/(shifted_tanh(1,MapPenalty50)-shifted_tanh(0,MapPenalty50)) * (map_penalty_elev-shifted_tanh(0,MapPenalty50))
-        map_penalty_slope = shifted_tanh(config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds]/(config.MaxSettlementSlope), 0.5)
-        map_penalty_slope_scaled = 1/(shifted_tanh(1,0.5)-shifted_tanh(0,0.5)) * (map_penalty_slope-shifted_tanh(0,0.5))
-        map_penalty = np.maximum(map_penalty_elev_scaled, map_penalty_slope_scaled)
-
-
-        ################################
-        ## Allowed Settlements! #####
-        ################################
-        slopes_cond = config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] < config.MaxSettlementSlope
-        slopes_cond[np.where(config.EI.water_penalties[WhichTrianglesToCalc_inds] == 0)] = 0
-        # AND POPULATION DENSITY
+        map_penalty = config.EI.map_penalty[WhichTrianglesToCalc_inds]
+        slopes_cond = config.EI.slopes_cond[WhichTrianglesToCalc_inds]
 
        
        ############# ALPHAS #################
@@ -372,7 +350,7 @@ class agent:
         ###########################################
         ####   PLOT PENALTIES FOR A FEW AGENTS   ##
         ###########################################
-        if config.analysisOn==True and (self.index<=50 and self.index%7 == 0) and (not FirstSettlementAnakenaTriangles[0]):
+        if config.analysisOn==True and (self.index<=175 and self.index%15 == 0) and (not FirstSettlementAnakenaTriangles[0]):
             water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty = penalties
             slopes_cond, population_cond, survivalCond_agric, survivalCond_tree = masken
             allowed_colors = np.array([survivalCond_agric,survivalCond_tree, np.array(population_cond),np.array(slopes_cond)],dtype=np.uint8)

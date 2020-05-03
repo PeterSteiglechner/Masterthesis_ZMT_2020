@@ -24,6 +24,8 @@ class EI_empty:
         self.AgricNeighbours_of_triangles =[]
         # CONSTANT EXTENSIONS
         self.water_penalties=[]
+        self.map_penalty = np.array([])
+        self.slopes_cond = np.array([])
         self.water_triangle_inds = []
         self.nr_highqualitysites = []
         self.nr_lowqualitysites = []
@@ -100,6 +102,7 @@ params={'tree_search_radius': 0,
         'moving_radius': 0,
         'reproduction_rate': 0.,
         }
+PopulationMovingRestriction=0
 
 MaxFisherAgents = 0
 
@@ -137,6 +140,7 @@ m2_to_acre = 0.000247105381  # = acre per m^2
 km2_to_acre = m2_to_acre*1e6 # = acre per km^2 --> areas*km2_to_acre 
 gridpoints_y= 0
 AngleThreshold = 0
+MapPenalty_Kappa = 0
 
 tree_regrowth_rate = 0
 

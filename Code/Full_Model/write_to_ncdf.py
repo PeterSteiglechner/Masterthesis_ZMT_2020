@@ -82,6 +82,8 @@ def final_saving():
         'tree_search_radius': config.params['tree_search_radius'], 
         'agriculture_radius': config.params['agriculture_radius'], 
         'moving_radius': config.params['moving_radius'], 
+        "PopulationMovingRestriction":config.PopulationMovingRestriction,
+        'moving_radius_later': config.params['moving_radius_later'], 
         'reproduction_rate': config.params['reproduction_rate'], 
         "childrenPop":config.childrenPop, # FOR CHILDREN
         'alpha_w':config.alpha_w,

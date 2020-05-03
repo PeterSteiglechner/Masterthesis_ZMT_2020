@@ -21,7 +21,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.colorbar import colorbar
 from matplotlib.colors import LinearSegmentedColormap
 
-
 import sys, os
 
 def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True):
@@ -32,8 +31,8 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True):
     #fig,ax = observe_density(t,ax = ax,fig = fig, save=False)
     #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
 
-    fig, ax, divider, _ =   plot_TreeMap_only(fig, ax, t, data=None, ncdf=False)
-    ax, divider, _  = plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False)
+    fig, ax, divider, _ =   plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save = save)
+    ax, divider, _  = plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save =save)
     ax = plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=specific_ag_to_follow, color = 'purple')
 
     ax.set_title("Time "+str(t))
@@ -104,11 +103,13 @@ def follow_ag0(ag):
 
 
 
+
 def plot_movingProb(t,ag, newpos):
-    fig = plt.figure(figsize=(12,12))
+    plt.rcParams.update({"font.size":15})
+    fig = plt.figure(figsize=(10*3,6*3))
     ax = fig.add_subplot(3,3,1,fc='aquamarine')
-    rcParams={'font.size':10}
-    plt.rcParams.update(rcParams)
+    #rcParams={'font.size':10}
+    #plt.rcParams.update(rcParams)
 
     fig, ax = observe(t, fig=fig, ax=ax, specific_ag_to_follow=ag, save=False) #(t, fig=fig, ax=ax, save=False, hist=False, folder="", specific_ag_to_follow=ag)
     #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
@@ -174,34 +175,55 @@ def plot_movingProb(t,ag, newpos):
             plot  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
                 config.EI.EI_triangles, facecolors=colors, vmin = 0, cmap='binary_r',alpha=1)
         else:
-            prob = np.zeros([config.EI.N_els])
+            prob = np.zeros([config.EI.N_els])-np.spacing(0.0)
             prob[config.AG0_mv_inds] = penalty
 
             if k==3:
-                cmap="hot_r"
+                #cmap="hot_r"
+                cmap = plt.get_cmap('magma_r')
+                cmap.set_under('gray') 
+                vmin = 0.0
                 vmax=np.max(prob).clip(min=0.01)
             elif k ==2:
-                cmap="Reds"
+                cmap = plt.get_cmap("Reds")
+                cmap.set_under('gray') 
                 vmax=np.max(prob).clip(min=0.01)
+                vmin= 0.0                
             else:
-                cmap="Reds"
+                cmap = plt.get_cmap("Reds")
+                cmap.set_under('gray') 
+                vmin = 0.0
                 vmax=1
+                if k==6:
+                    vmin = -1.0# np.min(penalty)
+                    prob = np.zeros([config.EI.N_els])-2.0-np.spacing(0.0)
+                    prob[config.AG0_mv_inds] = penalty
+                    vmax = 1
+                    colorsneg = plt.get_cmap("Blues_r")(np.linspace( 0.0,1, 128))
+                    colorspos = plt.get_cmap("Reds")(np.linspace(0, 1.0, 128))
+                    colorsstack = np.vstack((colorsneg, colorspos))
+                    cmap = LinearSegmentedColormap.from_list('my_colormap', colorsstack)
+                    cmap.set_under('gray') 
+
             plot  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-                config.EI.EI_triangles, facecolors=prob,vmin=0,vmax=vmax, cmap=cmap, alpha=1)
-    
+                config.EI.EI_triangles, facecolors=prob,vmin=vmin,vmax=vmax, cmap=cmap, alpha=1)
+
+
+                
 
         if not all(config.AG0_mv_inds==ag.mv_inds):
             print("Error in Plot Penalties")
         ax2.plot(newpos[0], config.EI.corners['upper_left'][1]-newpos[1], "o", markersize = 8,color='magenta', fillstyle="none")
-
+        ax2.plot(ag.x, config.EI.corners['upper_left'][1]-ag.y, "o", markersize = 8,color=((1-ag.treePref), 0, 1,1))
+        
     
         
         ax2.set_title(key)
         #print(np.min(prob),np.max(prob))
-        move_circle, tree_circle, agric_cirle = follow_ag0(ag)
-        ax2.add_artist(move_circle)
-        ax2.add_artist(tree_circle)
-        ax2.add_artist(agric_cirle)
+        #move_circle, tree_circle, agric_cirle = follow_ag0(ag)
+        #ax2.add_artist(move_circle)
+        #ax2.add_artist(tree_circle)
+        #ax2.add_artist(agric_cirle)
         divider = make_axes_locatable(plt.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         plt.colorbar(plot, cax =cax) 
@@ -247,7 +269,7 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
 
 
 
-def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False):
+def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save=True):
     if ncdf:
         face_colors = data.agriculture.sel(time=t)* 1/(config.EI.EI_triangles_areas * config.km2_to_acre)  #(config.EI.nr_highqualitysites+config.EI.nr_lowqualitysites).clip(min=0.1)
     else:
@@ -261,13 +283,14 @@ def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False):
     #plot_agricultureSites_onTop(ax=ax, fig=fig)    
     AgricPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=customCmap, alpha=None, vmax=1, vmin=0)
 
-    cax2 = divider.append_axes("right", "5%", pad="14%")
-    cb2 = colorbar(AgricPlot, cax =cax2)     
-    cb2.set_label_text("Agriculture Fraction of Triangle")
+    if save:
+        cax2 = divider.append_axes("right", "5%", pad="14%")
+        cb2 = colorbar(AgricPlot, cax =cax2)     
+        cb2.set_label_text("Agriculture Fraction of Triangle")
     return ax, divider, AgricPlot
 
 
-def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False):
+def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save=True):
     if ncdf:
         face_colors =data.tree_density.sel(time=t)
     else:
@@ -277,7 +300,7 @@ def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False):
 
     watertriangles = np.zeros([config.EI.N_els])
     watertriangles[config.EI.water_triangle_inds]=1
-    watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),(127/255,1,212/255 ,1 )],N=2) # AQUAMARINE
+    #watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),(127/255,1,212/255 ,1 )],N=2) # AQUAMARINE
     watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),(3/255,169/255,244/255 ,1 )],N=2) # Indigo blue
 
     _ = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
@@ -288,14 +311,18 @@ def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False):
     
     ax.set_aspect('equal')
     divider = make_axes_locatable(plt.gca())
-    cax = divider.append_axes("right", "5%", pad="3%")
-    cb1 = colorbar(treePlot, cax =cax) 
-    cb1.set_label_text("Number of Trees in Triangle")
+    if save:
+        cax = divider.append_axes("right", "5%", pad="3%")
+        cb1 = colorbar(treePlot, cax =cax) 
+        cb1.set_label_text("Number of Trees in Triangle")
     return fig, ax, divider, treePlot
 
 #  
 
 
+
+def plot_single_Penalty():
+    return 
 
 
 #####################################

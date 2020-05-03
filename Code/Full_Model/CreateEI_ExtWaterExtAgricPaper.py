@@ -150,7 +150,8 @@ class Map:
         self.water_penalties = []
         self.waterpoints(triObject, Lakes=["Raraku", "Kau", "Aroi"])
         ########
-
+        self.map_penalty = np.array([])
+        self.slopes_cond = np.array([])
         ###########
         # Trees
         # Tree Probability according to condition set in ### config.py ###
@@ -502,15 +503,44 @@ class Map:
         if t==drought_RanoRaraku_1[0]:
             print("beginning drought in Raraku, t=",t)
             self.waterpoints(triObject, Lakes=["Kau", "Aroi"])
+            self.get_Map_Penalty()
         if t==drought_RanoRaraku_1[1]:
             # end drought:
             self.waterpoints(triObject, Lakes=["Raraku","Kau", "Aroi"])
             print("ending drought in Raraku, t=",t)
+            self.get_Map_Penalty()
         return 
 
 
 
+    ################################
+    #####     MAP PENALTY   ########
+    ################################
+    def get_Map_Penalty(self):
+        #map_penalty_elev =  abs(1./ (max(config.EI.EI_midpoints_elev)-config.SweetPointSettlementElev) * (config.EI.EI_midpoints_elev[WhichTrianglesToCalc_inds] - config.SweetPointSettlementElev))
+        #map_penalty_slope = (config.EI.EI_midpoints_slope[WhichTrianglesToCalc_inds] * (1/config.MaxSettlementSlope)).clip(max=1)
+        #map_penalty = np.maximum(map_penalty_elev, map_penalty_slope)
+        # Why max of slope or elev? At top of mountain, slope=0, but elev high. At coast: slope=large, but elev good. In the middle if they are similar then, max and mean would be the same anyway.)
+        #WhichTrianglesToCalc_inds = self.N_els)
+        # https://stats.stackexchange.com/questions/52571/asymmetric-s-shaped-function-mapping-interval-0-1-to-interval-0-1
+        # Perhaps better to take sth like logit-normal Distribution CDF.
+        shifted_tanh = lambda x,mu:  np.tanh(config.MapPenalty_Kappa*(x-mu))
 
+        MapPenalty50 = config.Penalty50_SettlementElev/max(self.EI_midpoints_elev)
+        map_penalty_elev = shifted_tanh(self.EI_midpoints_elev/max(self.EI_midpoints_elev), MapPenalty50)
+        map_penalty_elev_scaled = 1/(shifted_tanh(1,MapPenalty50)-shifted_tanh(0,MapPenalty50)) * (map_penalty_elev-shifted_tanh(0,MapPenalty50))
+        map_penalty_slope = shifted_tanh(self.EI_midpoints_slope/(config.MaxSettlementSlope), 0.5)
+        map_penalty_slope_scaled = 1/(shifted_tanh(1,0.5)-shifted_tanh(0,0.5)) * (map_penalty_slope-shifted_tanh(0,0.5))
+        self.map_penalty = np.maximum(map_penalty_elev_scaled, map_penalty_slope_scaled)
+
+
+        ################################
+        ## Allowed Settlements! #####
+        ################################
+        self.slopes_cond = self.EI_midpoints_slope < config.MaxSettlementSlope
+        self.slopes_cond[np.where(self.water_penalties == 0)] = 0
+        # AND POPULATION DENSITY
+        return 
 
     #################################################
     ######       AGRICULTURE                 ########
