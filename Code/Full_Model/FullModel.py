@@ -152,8 +152,8 @@ config.TreeDensityConditionParams = {
     'maxElev': 430,'maxSlope':8.5,
     "factorBetweenHighandLowTreeDensity":2}
 
-config.tree_pop_percentage = 0.02
-config.tree_pop_timespan  = 5
+config.tree_pop_percentage = 0.01
+config.tree_pop_timespan  = 10
 
 config.UpperLandSoilQuality=0.1
 config.ErodedSoilYield=0.75
@@ -162,7 +162,7 @@ config.ErodedSoilYield=0.75
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=40
+config.gridpoints_y=75
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
