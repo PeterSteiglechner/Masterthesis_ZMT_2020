@@ -33,7 +33,8 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True):
 
     fig, ax, divider, _ =   plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save = save)
     ax, divider, _  = plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save =save)
-    ax = plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=specific_ag_to_follow, color = 'purple')
+    if len(config.agents)>0:
+        ax = plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=specific_ag_to_follow, color = 'purple')
 
     ax.set_title("Time "+str(t))
 
@@ -183,7 +184,7 @@ def plot_movingProb(t,ag, newpos):
                 cmap = plt.get_cmap('magma_r')
                 cmap.set_under('gray') 
                 vmin = 0.0
-                vmax=np.max(prob).clip(min=0.01)
+                vmax=np.max(prob).clip(max=0.01)
             elif k ==2:
                 cmap = plt.get_cmap("Reds")
                 cmap.set_under('gray') 
@@ -230,7 +231,7 @@ def plot_movingProb(t,ag, newpos):
 
     #fig.tight_layout()
     #fig.colorbar(p)
-    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".png", bbox_inches='tight')
+    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".pdf", bbox_inches='tight')
 
 
 

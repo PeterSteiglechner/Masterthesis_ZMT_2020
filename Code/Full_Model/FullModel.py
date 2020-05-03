@@ -52,7 +52,7 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 #config.init_option = "anakena"
 
 ###  INIT
-config.N_agents = 3
+config.N_agents = 0
 config.N_trees = 12e6
 config.firstSettlers_init_pop=int(25)
 config.childrenPop=int(15)
@@ -204,6 +204,7 @@ else:
     config.EI.plot_water_penalty()
 
 config.EI_triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.EI.points_EI_km[:,1], triangles = config.EI.all_triangles, mask=config.EI.mask)
+config.tree_growth_poss = np.where(config.EI.carrying_cap>0)[0].astype(int)
 
 # Plot/Test the resulting Map.
 #print("Test Map: ",config.EI.get_triangle_of_point([1e4, 1e4], config.EI_triObject))
@@ -219,7 +220,13 @@ print("################   DONE: MAP ###############")
 
 withTreegrowth = sys.argv[3]  # "withRegrowth"
 
+# TEST TREE REGRWOTH
+#config.EI.tree_density = 0.5*config.EI.tree_density
+#config.EI.tree_density-= (np.random.random(config.EI.N_els)* (config.EI.tree_density).astype(float)).astype(int)
+#config.EI.tree_density[np.random.choice(np.arange(0,config.EI.N_els), size=1000, replace =False).astype(int)] = 0
+#config.EI.agriculture[np.random.choice(np.arange(0,config.EI.N_els), size=300, replace =False).astype(int)] = 1
 config.folder = "Figs_WithDrought/"
+#config.folder+="TreeRegrowthTest"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_"+withTreegrowth+"_"+HighorLowFix+"_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
 config.analysisOn=True
@@ -248,7 +255,8 @@ def run():
     # RUN
     config.EI.check_drought(0, config.drought_RanoRaraku_1, config.EI_triObject)
     init_agents()
-    observe(config.StartTime, fig=None, ax=None, specific_ag_to_follow=config.agents[0], save=True)
+    #observe(config.StartTime, fig=None, ax=None, specific_ag_to_follow=config.agents[0], save=True)
+    observe(config.StartTime, fig=None, ax=None, specific_ag_to_follow=None, save=True)
     plt.close()
 
     #observe(config.StartTime)
@@ -258,18 +266,24 @@ def run():
         update_time_step(t)  
         if withTreegrowth=="withRegrowth": 
             regrow_update(config.tree_regrowth_rate)
+        else:
+            config.TreeRegrowth.append(0)
         agric_update()
         if withTreegrowth=="withRegrowth": 
             popuptrees(t)
+        else:
+            config.TreePopUp.append(0)
+
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
-
-        if config.nr_pop[-1] >= config.PopulationMovingRestriction and switched_moving_rad ==False:
+        
+        if len(config.agents)>0 and config.nr_pop[-1] >= config.PopulationMovingRestriction and switched_moving_rad ==False:
             for ag in config.agents:
                 ag.moving_radius=config.params["moving_radius_later"]
             switched_moving_rad = True
             print("Agents reduced their Moving Radius")
 
+        #observe(t+1, fig=None, ax=None, specific_ag_to_follow=None, save=True)
         if len(config.agents)>0:
             if (t+1)%50==0:
                 if len(config.agents)>0:

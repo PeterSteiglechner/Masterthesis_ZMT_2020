@@ -44,7 +44,9 @@ def final_saving():
             "GardenFraction":(("time"), config.GardenFraction),
             "Fraction_eroded":(("time"), config.Fraction_eroded),
             #"agents":(("ag_ind", "properties", "time"), t1)
-            "Nr_Moves":(("time"), config.moves)
+            "Nr_Moves":(("time"), config.moves),
+            "TreeRegrowth":(("time"), config.TreeRegrowth),
+            "TreePopup":(("time"), config.TreePopUp),
         },
         {
             "time": times,

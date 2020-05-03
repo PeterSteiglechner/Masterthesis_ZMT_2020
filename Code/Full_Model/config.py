@@ -147,6 +147,7 @@ tree_regrowth_rate = 0
 drought_RanoRaraku_1=[]
 
 EI_triObject = 0
+tree_growth_poss=np.array([],dtype=int)
 EI=EI_empty()
 
 analysisOn= True
@@ -175,9 +176,9 @@ agents_stages=[]
 agents_pos_size = []
 nr_happyAgents=[]
 nr_agricultureSites=[]
-Array_tree_density = np.array([])
-Array_agriculture = np.array([])
-Array_populationOccupancy = np.array([])
+Array_tree_density = np.array([]).astype(np.int32)
+Array_agriculture = np.array([]).astype(np.int32)
+Array_populationOccupancy = np.array([]).astype(np.int32)
 Penalty_std = np.array([])
 Penalty_mean = np.array([])
 FisherAgents = 0
@@ -185,4 +186,5 @@ NrFisherAgents = np.array([])
 Fraction_eroded=np.array([])
 GardenFraction = np.array([])
 moves = []
-
+TreeRegrowth = []
+TreePopUp=[]
