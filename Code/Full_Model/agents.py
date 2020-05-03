@@ -80,7 +80,7 @@ class agent:
         if self.fisher:
             self.AgriNeed=0
         else:
-            self.AgriNeed = np.round(self.pop * config.agricYield_need_per_Capita *  (1-self.treePref)).astype(int)
+            self.AgriNeed = (self.pop * config.agricYield_need_per_Capita *  (1-self.treePref))
 
     #def change_tree_pref(self, amount):
     #    self.treePref = np.clip(self.treePref + amount, config.MinTreeNeed, 1)  # e.g. -config.treePref_decrease_per_year
@@ -99,7 +99,7 @@ class agent:
         return 
 
     def calc_new_tree_pref(self):
-        shifted_tanh = lambda x: 0.5*np.tanh(2*(x - 0.5))+ 0.5
+        shifted_tanh = lambda x: np.tanh(2*(x - 0.5))
         radius = config.EI.TreeNeighbours_of_triangles[self.triangle_ind]
         treePref_g = shifted_tanh(config.EI.tree_density[radius].sum()/config.EI.carrying_cap[radius].sum())
         #logistic_g = 1-config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum()
