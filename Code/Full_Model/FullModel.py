@@ -164,7 +164,7 @@ config.ErodedSoilYield=0.75
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=75
+config.gridpoints_y=50
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -276,7 +276,7 @@ def run():
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
         #observe(t+1)
         
-        if not np.isnan(config.timeSwitchedMovingRad) and len(config.agents)>0 and config.nr_pop[-1] >= config.PopulationMovingRestriction :
+        if np.isnan(config.timeSwitchedMovingRad) and len(config.agents)>0 and config.nr_pop[-1] >= config.PopulationMovingRestriction :
             for ag in config.agents:
                 ag.moving_radius=config.params["moving_radius_later"]
             config.timeSwitchedMovingRad=t
