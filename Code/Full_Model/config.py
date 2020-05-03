@@ -179,5 +179,5 @@ FisherAgents = 0
 NrFisherAgents = np.array([])
 Fraction_eroded=np.array([])
 GardenFraction = np.array([])
-moves = np.array([])
+moves = []
 
