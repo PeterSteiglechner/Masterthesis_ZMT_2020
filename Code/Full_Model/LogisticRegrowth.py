@@ -33,6 +33,7 @@ def regrow_update(g0):
     return 
 
 def agric_update():
+    config.EI.agric_yield = config.initial_agric_yield
     notreecells = np.where(config.EI.tree_density==0)[0].astype(int)
     #config.EI.treeless_years[notreecells]+=1
     # For all cells with 20 years without trees, decrease soil quality to Eroded Soil yield or even lower

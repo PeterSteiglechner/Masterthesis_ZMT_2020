@@ -162,6 +162,7 @@ AG0_nosettlement_zones = np.array([])
 AG0_MovingProb=np.array([])
 AG0_map_penalty = np.array([])
 
+initial_agric_yield=np.array([])
 
 
 

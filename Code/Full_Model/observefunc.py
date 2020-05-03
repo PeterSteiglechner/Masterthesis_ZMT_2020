@@ -231,7 +231,7 @@ def plot_movingProb(t,ag, newpos):
 
     #fig.tight_layout()
     #fig.colorbar(p)
-    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".pdf", bbox_inches='tight')
+    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".png", bbox_inches='tight')
 
 
 

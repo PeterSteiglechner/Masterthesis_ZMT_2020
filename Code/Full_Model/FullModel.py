@@ -91,7 +91,7 @@ config.MinTreeNeed=0.3      #Fraction
 config.TreePref_kappa = 5
 
 
-config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
+config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 
 
 
@@ -106,7 +106,7 @@ else:
     config.agricYield_need_per_Capita = 1.7
 
 
-config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean+config.max_pop_per_household_std)*config.agricYield_need_per_Capita)
+config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean)*config.agricYield_need_per_Capita)
 
 
 #YearsOfDecreasingTreePref = 1400-config.StartTime #400
@@ -181,7 +181,7 @@ config.drought_RanoRaraku_1=[config.StartTime, 1100]
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=True
+NewMap=False
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
@@ -205,7 +205,7 @@ else:
 
 config.EI_triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.EI.points_EI_km[:,1], triangles = config.EI.all_triangles, mask=config.EI.mask)
 config.tree_growth_poss = np.where(config.EI.carrying_cap>0)[0].astype(int)
-
+config.initial_agric_yield = copy(config.EI.agric_yield)
 # Plot/Test the resulting Map.
 #print("Test Map: ",config.EI.get_triangle_of_point([1e4, 1e4], config.EI_triObject))
 

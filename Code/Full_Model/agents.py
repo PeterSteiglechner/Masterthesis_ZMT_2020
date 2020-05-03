@@ -181,7 +181,7 @@ class agent:
             mvTris_inds_arr_agric[config.EI.AgricNeighbours_of_triangles[ind],i]=1
 
         ############################# 
-        ## TREE PENALTY  ############
+        ##############
         #############################
         # Tree penalty is high if the number of trees within resource search radius is small.
         
@@ -247,20 +247,26 @@ class agent:
 
         # OPTION 2 updated: Including low quality and eroded soil
         AvailTotalAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
-        AvailHighAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
-        
-        # Idea: take high if it is >AgriNeed
-        survivalHighQu_cond = AvailHighAgrisYield_aroundSites>self.AgriNeed
-        agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (config.maxNeededAgric - AvailTotalAgrisYield_aroundSites.clip(min=0, max=config.maxNeededAgric))/config.maxNeededAgric
-
-        Inds_onlygoodwithlowQu = np.where(survivalHighQu_cond==False)[0]
-        agriculture_penalty[Inds_onlygoodwithlowQu] = agriculture_penalty[Inds_onlygoodwithlowQu] *0.5+0.5
+        AvailHighAgrisYield_aroundSites = np.dot((config.EI.agric_yield==1)*(config.EI.nr_highqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        #Nr_sites_needed = np.shape
 
         survivalCond_agric =  AvailTotalAgrisYield_aroundSites>self.AgriNeed
+        agriculture_penalty=(1 - survivalCond_agric).astype(float)
+        agriculture_penalty[np.where(survivalCond_agric)] = (1-self.treePref) * 0.5*(
+            (1- AvailHighAgrisYield_aroundSites[np.where(survivalCond_agric)]/config.maxNeededAgric).clip(min=0) + 
+            (1- AvailTotalAgrisYield_aroundSites[np.where(survivalCond_agric)]/config.maxNeededAgric).clip(min=0)
+            )
+        # Idea: take high if it is >AgriNeed
+        #survivalHighQu_cond = Avail>self.AgriNeed
+        #agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (config.maxNeededAgric - AvailTotalAgrisYield_aroundSites.clip(min=0, max=config.maxNeededAgric))/config.maxNeededAgric
+
+        #Inds_onlygoodwithlowQu = np.where(survivalHighQu_cond==False)[0]
+        #agriculture_penalty[Inds_onlygoodwithlowQu] = agriculture_penalty[Inds_onlygoodwithlowQu] *0.5+0.5
+
 
         if config.FisherAgents < config.MaxFisherAgents: # still place for Fishers
             fishpossibility = np.dot(np.eye(1,config.EI.N_els, config.EI.AnakenaBeach_ind, dtype=np.uint8), mvTris_inds_arr_agric)
-            agriculture_penalty[np.where(fishpossibility[0,:])] = -self.treePref
+            agriculture_penalty[np.where(fishpossibility[0,:])] = - self.treePref
             survivalCond_agric[np.where(fishpossibility[0,:])] = 1
                 
         ################################
