@@ -21,23 +21,28 @@ def final_saving():
     PosAgents[:] = np.nan 
     SizeAgents = np.empty([config.index_count, len(times)])
     SizeAgents[:] = np.nan
+    TreePrefAgents = np.empty([config.index_count, len(times)])
+    TreePrefAgents[:]=np.nan
     for t in range(len(times)):
         if not config.nr_agents[t]==0:
             SizeAgents[config.agents_pos_size[t][:,0].astype(int), t] = config.agents_pos_size[t][:,3]
             PosAgents[config.agents_pos_size[t][:,0].astype(int), :,t] = config.agents_pos_size[t][:,1:3]
-
+            TreePrefAgents[config.agents_pos_size[t][:,0].astype(int),t] = config.agents_pos_size[t][:,4]
     ds = xr.Dataset(
         {
             "total_agents":("time", config.nr_agents),
             "total_population": ("time", config.nr_pop),
-            "total_deaths": ("time", config.nr_deaths),
+            "total_excessdeaths": ("time", config.nr_excessdeaths),
+            "total_excessbirths": ("time", config.nr_excessbirths),
             "total_trees": ("time", config.nr_trees),
             "tree_density":(("triangles","time"), config.Array_tree_density),
             "agriculture":(("triangles","time"), config.Array_agriculture),
             "populationOccupancy":(("triangles","time"), config.Array_populationOccupancy),
-            "happyFraction":(("time",),config.nr_happyAgents),
+            "happyMeans":(("time",),config.happyMeans),
+            "happyStd":(("time",),config.happyStd),
             "SizeAgents":(('index', 'time'),SizeAgents),
             "PosAgents":(('index', '2d', "time"), PosAgents),
+            "TreePrefAgents":(('index', "time"), TreePrefAgents),
             "Penalty_Mean":(('time'), config.Penalty_mean),
             "Penalty_Std":(('time'), config.Penalty_std),
             "FishersPop":(("time"), config.NrFisherAgents),
@@ -59,23 +64,51 @@ def final_saving():
         ds.attrs['firesLoc'] = np.array(config.fire)[:,0]
         ds.attrs['firesSize'] = np.array(config.fire)[:,1]
         ds.attrs['firesTime'] = np.array(config.fire)[:,2]
+    else:
+        ds.attrs['firesLoc'] = np.array([])
+        ds.attrs['firesSize'] = np.array([])
+        ds.attrs['firesTime'] = np.array([])
+
+
+    params_moving={
+        'MaxSettlementSlope': config.MaxSettlementSlope,
+        'Penalty50_SettlementElev':config.Penalty50_SettlementElev,
+        'MaxPopulationDensity': config.MaxPopulationDensity,
+        'moving_radius': config.params['moving_radius'], 
+        "PopulationMovingRestriction":config.PopulationMovingRestriction,
+        'moving_radius_later': config.params['moving_radius_later'], 
+        'alpha_w':config.alpha_w,
+        'alpha_t':config.alpha_t,
+        'alpha_p':config.alpha_p,
+        'alpha_a':config.alpha_a,
+        'alpha_m':config.alpha_m,
+        "P50t":config.P50t,
+        "PkappaT":config.PkappaT,
+        "PkappaP":config.PkappaP,
+        "P50p":config.P50p ,
+        "P50a":config.P50a,
+        "PkappaA":config.PkappaA,
+        "MovingHappyThreshold":config.MovingHappyThreshold,
+        'PenalToProb_Prefactor':config.PenalToProb_Prefactor,
+    }
+
+    for key in params_moving.keys():
+        ds.attrs[key]=params_moving[key]
+
 
     params_households = {
-        'MaxSettlementSlope': config.MaxSettlementSlope,
         #'MaxSettlementElev': config.MaxSettlementElev,
         #'MinSettlementElev': config.MinSettlementElev,
-        'Penalty50_SettlementElev':config.Penalty50_SettlementElev,
         'max_pop_per_household_mean': config.max_pop_per_household_mean,
         'max_pop_per_household_std': config.max_pop_per_household_std,
-        'MaxPopulationDensity': config.MaxPopulationDensity,
         #'MaxAgricPenalty': config.MaxAgricPenalty,
         'tree_need_per_capita': config.tree_need_per_capita,
         'MinTreeNeed': config.MinTreeNeed,
         "TreePref_kappa":config.TreePref_kappa,
-        'BestTreeNr_forNewSpot': config.BestTreeNr_forNewSpot,
+        #'BestTreeNr_forNewSpot': config.BestTreeNr_forNewSpot,
         #'Nr_AgricStages': config.Nr_AgricStages,
         #'dStage': config.dStage,
-        'agricYield': config.agricYield_need_per_Capita,
+        'agricYield_per_capita': config.agricYield_need_per_Capita,
         #'treePref_decrease_per_year': config.treePref_decrease_per_year, 
         #'treePref_change_per_BadYear': config.treePref_change_per_BadYear,
         #'HowManyDieInPopulationShock': config.HowManyDieInPopulationShock,
@@ -83,18 +116,12 @@ def final_saving():
         "LowerLimit_PopInHousehold":config.LowerLimit_PopInHousehold,
         'tree_search_radius': config.params['tree_search_radius'], 
         'agriculture_radius': config.params['agriculture_radius'], 
-        'moving_radius': config.params['moving_radius'], 
-        "PopulationMovingRestriction":config.PopulationMovingRestriction,
-        'moving_radius_later': config.params['moving_radius_later'], 
         'reproduction_rate': config.params['reproduction_rate'], 
         "childrenPop":config.childrenPop, # FOR CHILDREN
-        'alpha_w':config.alpha_w,
-        'alpha_t':config.alpha_t,
-        'alpha_p':config.alpha_p,
-        'alpha_a':config.alpha_a,
-        'alpha_m':config.alpha_m,
-        'PenalToProb_Prefactor':config.PenalToProb_Prefactor,
-        "MaxFisherAgents":config.MaxFisherAgents,
+        "PopulationChange_shape":config.PopulationChange_shape,
+        #"MaxFisherAgents":config.MaxFisherAgents,
+        "MinTreeNeed_fisher": config.MinTreeNeed_fisher,
+        "FishingTabooYear":config.FishingTabooYear,
         #"NrOfEquivalentBestSitesToMove":config.NrOfEquivalentBestSitesToMove,
         }
     
@@ -134,6 +161,8 @@ def final_saving():
     "tree_pop_timespan":config.tree_pop_timespan,
     "drought_RanoRaraku_1_start":config.drought_RanoRaraku_1[0],
     "drought_RanoRaraku_1_end":config.drought_RanoRaraku_1[1],
+    "drought_RanoRaraku_2_start":config.drought_RanoRaraku_2[0],
+    "drought_RanoRaraku_2_end":config.drought_RanoRaraku_2[1],
     }
     for key in params_map.keys():
         ds.attrs[key]=params_map[key]

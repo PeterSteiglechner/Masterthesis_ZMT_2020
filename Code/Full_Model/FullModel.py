@@ -19,6 +19,7 @@ import matplotlib.colors as colors
 import matplotlib as mpl
 from copy import copy
 from time import time
+import scipy.stats
 import sys 
 import os
 from pathlib import Path   # for creating a new directory
@@ -53,10 +54,10 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 
 ###  INIT
 config.N_agents = 3
-config.N_trees = 12e6
+config.N_trees = 16e6
 config.firstSettlers_init_pop=int(25)
 config.childrenPop=int(15)
-config.firstSettlers_moving_raidus = 0.6
+#config.firstSettlers_moving_raidus = 20
 config.init_TreePreference = 0.8
 config.index_count=0
 
@@ -64,34 +65,34 @@ config.index_count=0
 ### RUN
 config.updatewithreplacement = False
 config.StartTime = 800
-config.EndTime=1900
+config.EndTime=1200
 config.N_timesteps = config.EndTime-config.StartTime
 config.seed= int(sys.argv[1])
 print("Seed: ", config.seed)
 #config.folder= LATER
 
 ### HOUSEHOLD PARAMS
-config.MaxSettlementSlope=9
+config.MaxSettlementSlope=10
 #config.MaxSettlementElev=300
 #config.MinSettlementElev=10
-config.Penalty50_SettlementElev = 100
+config.Penalty50_SettlementElev = 150
 
-config.max_pop_per_household_mean = 4*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
-config.max_pop_per_household_std = 5
+config.max_pop_per_household_mean = 3.5*12  # Bahn2017 2-3 houses with each a dozen people. But I assume they also should include children
+config.max_pop_per_household_std = 3
 
 
 
-config.LowerLimit_PopInHousehold = 7
+config.LowerLimit_PopInHousehold = 6
 
 config.MaxPopulationDensity=173*2  #500 # DIamond says 90-450 ppl/mile^2  i.e. 34 to 173ppl/km^2 BUT THIS WILL BE HIGHER IN CENTRES OF COURSE
 #config.MaxAgricPenalty = 100
 
 config.tree_need_per_capita = 5 # Brandt Merico 2015 h_t =5 roughly.
-config.MinTreeNeed=0.3      #Fraction
+config.MinTreeNeed=0.2      #Fraction
 config.TreePref_kappa = 5
 
 
-config.BestTreeNr_forNewSpot = 20*(config.max_pop_per_household_mean)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
+#config.BestTreeNr_forNewSpot = 10*(config.max_pop_per_household_mean)*config.tree_need_per_capita #HowManyTreesAnAgentWantsInARadiusWhenItMoves = 
 
 
 
@@ -106,7 +107,7 @@ else:
     config.agricYield_need_per_Capita = 1.7
 
 
-config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean)*config.agricYield_need_per_Capita)
+#config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean)*config.agricYield_need_per_Capita)
 
 
 #YearsOfDecreasingTreePref = 1400-config.StartTime #400
@@ -119,14 +120,15 @@ config.maxNeededAgric = np.ceil((config.max_pop_per_household_mean)*config.agric
 # Each agent can (in the future) have these parameters different
 config.params={'tree_search_radius': 2, 
         'agriculture_radius':1,
-        'moving_radius': 15,
+        'moving_radius': 100,
         'moving_radius_later':5,
         'reproduction_rate': 0.007,  # logistically Max from BrandtMerico2015 # 0.007 from Bahn Flenley
         }
 config.PopulationMovingRestriction = 5000
 
-config.MaxFisherAgents = 10
-
+config.MaxFisherAgents = 100 # THIS WILL BE CHANGED ANYWAY
+config.FishingTabooYear = 1400
+config.MinTreeNeed_fisher=0.5
 
 # DEFAULT RUN
 #config.alpha_w= 0.3
@@ -140,7 +142,24 @@ config.alpha_p = 0.2
 config.alpha_a = 0.2
 config.alpha_m = 0.2
 
-config.PenalToProb_Prefactor = 10  
+config.P50t = 0.95
+config.PkappaT=5
+
+config.PkappaP=5
+config.P50p = 0.5
+
+config.P50a=0.95
+config.PkappaA=5
+
+config.MovingHappyThreshold = 0.6883
+
+config.PopulationChange_shape = 1.95
+g_unscaled = lambda x: scipy.stats.gamma.cdf(x,config.PopulationChange_shape, scale = 0.1) # Lee 2008 and Puleston 2017
+config.g_of_H = lambda x: (1+config.params['reproduction_rate'])/g_unscaled(1) * g_unscaled(x)
+
+
+
+config.PenalToProb_Prefactor = 20  
 
 #NrOfEquivalentBestSitesToMove= 10
 
@@ -149,22 +168,27 @@ config.PenalToProb_Prefactor = 10
 
 # LEVELS 1 or 2
 #config.TreeDensityConditionParams = {'minElev':10, 'maxElev': 400,'maxSlope': 7}
+#config.TreeDensityConditionParams = {
+#    'minElev':0, 'maxSlopeHighD': 5, "ElevHighD":250, 
+#    'maxElev': 430,'maxSlope':9,
+#    "factorBetweenHighandLowTreeDensity":2}
 config.TreeDensityConditionParams = {
-    'minElev':5, 'maxSlopeHighD': 5, "ElevHighD":250, 
-    'maxElev': 430,'maxSlope':8.5,
-    "factorBetweenHighandLowTreeDensity":2}
+    'minElev':0, 'maxSlopeHighD': 5, "ElevHighD":250, 
+    'maxElev': 450,'maxSlope':10,
+    "factorBetweenHighandLowTreeDensity":1}
 
-config.tree_pop_percentage = 0.01
-config.tree_pop_timespan  = 10
 
-config.UpperLandSoilQuality=0.1
-config.ErodedSoilYield=0.75
+config.tree_pop_percentage = 0.005
+config.tree_pop_timespan  = 20
+
+config.UpperLandSoilQuality=0.2
+config.ErodedSoilYield=0.5
 #config.YearsBeforeErosionDegradation=20
 # need to make sure that 80% (RULL) are covered
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=50
+config.gridpoints_y=80
 config.AngleThreshold = 30
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
@@ -175,28 +199,35 @@ config.tree_regrowth_rate=0.05 # every 20 years all trees are back?  # Brandt Me
 
 
 # DROUGHTS
-config.drought_RanoRaraku_1=[config.StartTime, 1100]
-
+config.drought_RanoRaraku_1=[config.StartTime, 1200]
+config.drought_RanoRaraku_2 = [1570, 1720]
 ##############################################
 #####    Load or Create MAP     ##############
 ##############################################
 print("################   LOAD / CREATE MAP ###############")
-NewMap=False
+NewMap=True
 
 #if NewMap==False and (not config.N_init_trees==12e6 or not config.):
 #   print("Probably you should create a new Map!!")
 
-filename = "Map/EI_grid"+str(config.gridpoints_y)+"_rad"+str(config.params['tree_search_radius'])+"+"+str(config.params['agriculture_radius'])
+filename = "Map/EI_grid"+str(config.gridpoints_y)+"_rad"+str(config.params['tree_search_radius'])+"+"+str(config.params['agriculture_radius'])+"+"+str(config.params['moving_radius_later'])
 if Path(filename).is_file() and NewMap==False:
     with open(filename, "rb") as EIfile:
         config.EI = pickle.load(EIfile)
-    if not config.EI.TreeNeighbourhoodRad == config.params['tree_search_radius'] or not config.EI.AgricNeighbourhoodRad==config.params['agriculture_radius']:
+    if not config.EI.tree_search_radius == config.params['tree_search_radius'] or not config.EI.agriculture_radius==config.params['agriculture_radius'] or not config.EI.moving_radius_late==config.params['moving_radius_later']:
         print("The Map you loaded does not fit to the Params specified in FullModel.py (resource search radius)")
         quit()
 else:
-    config.EI = Map(config.gridpoints_y,N_init_trees = config.N_trees, angleThreshold=config.AngleThreshold)
+    config.EI = Map(config.gridpoints_y,
+            config.params['tree_search_radius'],
+            config.params['agriculture_radius'],
+            config.params['moving_radius_later'],
+            N_init_trees = config.N_trees, 
+            angleThreshold=config.AngleThreshold)
+    print("Finished creating the map, now saving...")
     with open(filename, "wb") as EIfile:
         pickle.dump(config.EI, EIfile)
+    print("... and plotting...")
     config.EI.plot_agriculture(which="high", save=True)
     config.EI.plot_agriculture(which="low", save=True)
     config.EI.plot_agriculture(which="both", save=True)
@@ -213,7 +244,6 @@ config.EI.get_Map_Penalty()
 
 print("################   DONE: MAP ###############")
 
-
 #################################################
 ########   Folder and Run Prepa   ###############
 #################################################
@@ -225,7 +255,7 @@ withTreegrowth = sys.argv[3]  # "withRegrowth"
 #config.EI.tree_density-= (np.random.random(config.EI.N_els)* (config.EI.tree_density).astype(float)).astype(int)
 #config.EI.tree_density[np.random.choice(np.arange(0,config.EI.N_els), size=1000, replace =False).astype(int)] = 0
 #config.EI.agriculture[np.random.choice(np.arange(0,config.EI.N_els), size=300, replace =False).astype(int)] = 1
-config.folder = "Figs_WithDrought/"
+config.folder = "Figs_May11/"
 #config.folder+="TreeRegrowthTest"
 config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_repr"+'%.0e' % (config.params['reproduction_rate'])+"_mv"+"%.0f" % config.params['moving_radius']+"_"+withTreegrowth+"_"+HighorLowFix+"_seed"+str(config.seed)+"/"
 #"FullModel_"+config.agent_type+"_"+config.map_type+"_"+config.init_option+"/"
@@ -234,11 +264,23 @@ config.analysisOn=True
 #for bla in string: print(bla)
 
 
+
+##################################
+###   PREPARE PENALTIES  #########
+##################################
+WhichTrianglesToCalc_inds = np.arange(config.EI.N_els)
+config.MaxReachableTrees = np.max(np.dot(config.EI.tree_density, config.EI.TreeNeighbours_of_triangles[:,WhichTrianglesToCalc_inds]))
+availableAgric = config.EI.agric_yield * (config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture)
+config.MaxYield = np.max(np.dot(availableAgric, config.EI.AgricNeighbours_of_triangles[:, WhichTrianglesToCalc_inds]))
+
+#config.MaxYield = config.maxNeededAgric*2
+#config.MaxReachableTrees = 45* config.tree_need_per_capita*config.max_pop_per_household_mean
 ################################
 ####     Run   Model        ####
 ################################
 np.random.seed(config.seed)
 def run():
+    RUNSTART = time()
     ''' run the model specified in the config file'''
     # Save the current state of the implementation to the Subfolder
     Path(config.folder).mkdir(parents=True, exist_ok=True)
@@ -253,7 +295,9 @@ def run():
     config.Array_tree_density = np.array([[] for _ in range(config.EI.N_els)]).reshape((config.EI.N_els,0))
     config.Array_agriculture = np.array([[] for _ in range(config.EI.N_els)]).reshape((config.EI.N_els,0))
     # RUN
-    config.EI.check_drought(0, config.drought_RanoRaraku_1, config.EI_triObject)
+    config.EI.check_drought(config.StartTime, config.drought_RanoRaraku_1, config.EI_triObject)
+
+
     init_agents()
     #observe(config.StartTime, fig=None, ax=None, specific_ag_to_follow=config.agents[0], save=True)
     observe(config.StartTime, fig=None, ax=None, specific_ag_to_follow=None, save=True)
@@ -261,6 +305,8 @@ def run():
 
     #observe(config.StartTime)
     for t in np.arange(config.StartTime,config.EndTime+1):#, num=config.N_timesteps):
+        if t==config.FishingTabooYear:
+            config.MaxFisherAgents = config.NrFisherAgents[-1]
 
         update_time_step(t)  
         if withTreegrowth=="withRegrowth": 
@@ -274,6 +320,7 @@ def run():
             config.TreePopUp.append(0)
 
         config.EI.check_drought(t, config.drought_RanoRaraku_1, config.EI_triObject)
+        config.EI.check_drought(t,config.drought_RanoRaraku_2, config.EI_triObject)
         #observe(t+1)
         
         if np.isnan(config.timeSwitchedMovingRad) and len(config.agents)>0 and config.nr_pop[-1] >= config.PopulationMovingRestriction :
@@ -297,7 +344,8 @@ def run():
                 ax.set_title("Time "+str(t+1))
                 plt.savefig(config.folder+"AgricDensityMap_t"+str(t+1)+".png")
                 plt.close()
-        
+    RUNEND = time()-RUNSTART
+    print("END TIME- START TIME: ", RUNEND)
     print("Finished running Model in folder: ", config.folder)
 
 

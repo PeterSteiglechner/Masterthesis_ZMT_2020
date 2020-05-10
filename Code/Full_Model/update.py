@@ -27,27 +27,37 @@ def update_time_step(t):
     config.nr_agents.append(len(config.agents))
     config.nr_trees.append(np.sum(config.EI.tree_density))
     config.nr_pop.append(np.sum([ag.pop for ag in config.agents]))
-    config.nr_deaths.append(config.deaths)
-    config.deaths = 0
+    config.nr_excessdeaths.append(config.excess_deaths)
+    config.excess_deaths = 0
+    config.nr_excessbirths.append(config.excess_births)
+    config.excess_births = 0
     # config.fires (updated during update)
     #config.agents_stages.append(np.histogram([ag.stage for ag in config.agents], bins=np.arange(config.Nr_AgricStages+1))[0])
     config.agents_stages.append(np.histogram([ag.treePref for ag in config.agents], bins=np.linspace(config.MinTreeNeed, config.init_TreePreference, num=10))[0])
 
-    posSize = [np.array([int(ag.index), ag.x, ag.y, ag.pop]) for ag in config.agents]
+    posSize = [np.array([int(ag.index), ag.x, ag.y, ag.pop, ag.treePref]) for ag in config.agents]
+    if len(config.agents)==0:
+        posSize = [np.array([np.nan, np.nan, np.nan, np.nan])]
     config.agents_pos_size.append(np.array(posSize))
 
     # ENVIRONMENT:
     config.nr_agricultureSites = np.append(config.nr_agricultureSites, np.sum(config.EI.agriculture))
     if not len(config.agents)==0:
-        config.nr_happyAgents = np.append(config.nr_happyAgents, (np.mean([ag.happy for ag in config.agents])))
+        happys_inclDead = np.zeros(config.index_count)
+        happys_inclDead[0:len(config.agents)] = np.array([ag.happy for ag in config.agents])
+        happyMean= np.mean(happys_inclDead)
+        config.happyMeans = np.append(config.happyMeans, happyMean)
+        config.happyStd = np.append(config.happyStd, np.std(happys_inclDead))
+
         config.Penalty_mean = np.append(config.Penalty_mean, (np.mean([ag.penalty for ag in config.agents])) )
         config.Penalty_std = np.append(config.Penalty_std, (np.std([ag.penalty for ag in config.agents])))
         config.NrFisherAgents = np.append(config.NrFisherAgents, config.FisherAgents)
         config.GardenFraction = np.append(config.GardenFraction, np.mean([np.sum(ag.MyAgricYields==config.UpperLandSoilQuality)/max(len(ag.AgricSites),1) for ag in config.agents]))
     else:
-        config.nr_happyAgents = np.append(config.nr_happyAgents,0)
+        config.happyMeans = np.append(config.happyMeans,0)
+        config.happyStd = np.append(config.happyStd,0)
         config.Penalty_std = np.append(config.Penalty_std,0)
-        config.Penalty_mean = np.append(config.Penalty_std,0)
+        config.Penalty_mean = np.append(config.Penalty_mean,0)
         config.NrFisherAgents = np.append(config.NrFisherAgents, 0)
         config.GardenFraction =  np.append(config.GardenFraction, 0)
     config.moves = np.append(config.moves, config.move)
@@ -59,7 +69,7 @@ def update_time_step(t):
     config.Array_populationOccupancy = np.concatenate((config.Array_populationOccupancy, config.EI.populationOccupancy.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32)
 
     print("Run ",t,"  Stats: ",config.nr_agents[-1], int(config.nr_trees[-1]), 
-    config.nr_deaths[-1], config.nr_pop[-1], "\t Happy: ","%.2f" % config.nr_happyAgents[-1],"\t Fisher:",int(config.FisherAgents),"\t GardenFrac",'%.2f' % (config.GardenFraction[-1]),"\t Time tot: ", '%.2f'  % (time()-start_step))
+    config.nr_excessbirths[-1], "/", config.nr_excessdeaths[-1], config.nr_pop[-1], "\t Happy: ","%.2f" % config.happyMeans[-1],"\t Fisher:",int(config.FisherAgents),"\t GardenFrac",'%.2f' % (config.GardenFraction[-1]),"\t Time tot: ", '%.2f'  % (time()-start_step))
 
 
     return 
@@ -77,9 +87,7 @@ def update_single_agent(ag,t):
     ##########################
     ## HARVEST AGRICULTRE   ##
     ##########################
-
-
-    agric_neighbours_inds = np.array(config.EI.AgricNeighbours_of_triangles[ag.triangle_ind])
+    agric_neighbours_inds = np.where(config.EI.AgricNeighbours_of_triangles[:,ag.triangle_ind])[0]
 
     if not ag.fisher and config.EI.AnakenaBeach_ind in agric_neighbours_inds:
         if config.FisherAgents < config.MaxFisherAgents:
@@ -241,33 +249,40 @@ def update_single_agent(ag,t):
 
     # NOW FOREST HARVEST
 
-    tree_neighbours_inds = np.array(config.EI.TreeNeighbours_of_triangles[ag.triangle_ind])
+    tree_neighbours_inds = np.where(config.EI.TreeNeighbours_of_triangles[:,ag.triangle_ind])[0]
     #Tree_neighbour_01arr = np.zeros(config.EI.N_els).astype(int)
     #Tree_neighbour_01arr[tree_neighbours_inds] =1 # N_els, 1 for triangles within Res_rad, 0 else
 
 
     tree_Nrs = config.EI.tree_density[tree_neighbours_inds]
-
     total_tree_number_inRad = np.sum(tree_Nrs)
-
+    #total_tree_number_inRad = np.dot(config.EI.tree_density, tree_neighbours_inds)
     # OPTION 2
     #tree_arr = [ind for n,ind in enumerate(tree_neighbours_inds) for _ in range(tree_Nrs[n])]
     #cuts = np.random.choice(tree_arr, size=min(int(ag.tree_need),total_tree_number_inRad ), replace=False)
     #config.EI.tree_density[cuts]-=1
     # OPTION 1
-    for _ in range(min(int(ag.tree_need),total_tree_number_inRad )):
+    TreeHarvest = 0
+    for _ in range(int(ag.tree_need)):
+        if total_tree_number_inRad==0:
+            break 
         #Why according to p? Because if there's no trees left there, this would cause an error.
-        cut_tri_ind = np.random.choice(tree_neighbours_inds, p=(tree_Nrs>0)/np.sum((tree_Nrs>0)))
+        nb_tri_ind = np.random.choice(np.where(tree_Nrs>0)[0])#, p=(tree_Nrs>0)/np.sum(tree_Nrs>0))
+        cut_tri_ind = tree_neighbours_inds[nb_tri_ind]
+        TreeHarvest+=1
         config.EI.tree_density[cut_tri_ind] -= 1
-        tree_Nrs[np.where(tree_neighbours_inds == cut_tri_ind)[0][0]] -=1
+        total_tree_number_inRad -=1
+        
+        tree_Nrs[nb_tri_ind] -=1
+        #if tree_Nrs[nb_tri_ind]==0:
+        #    tree_Nrs = np.delete(tree_Nrs,nb_tri_ind)
+        #    tree_neighbours_inds = np.delete(tree_neighbours_inds, nb_tri_ind)
         
     if any(tree_Nrs<0):
         print("ERROR Trees <0")
         quit()
 
-    tree_fill = (total_tree_number_inRad/int(ag.tree_need)).clip(0.,1.)
-
-    ag.tree_fill = tree_fill
+    ag.tree_fill = (TreeHarvest/ag.tree_need).clip(0.,1.)
     ag.agriculture_fill = agriculture_fill
 
 
@@ -275,61 +290,74 @@ def update_single_agent(ag,t):
         print("Agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.treePref,", TreeNeed ", ag.tree_need, ", AgriSite/Need ", np.sum(ag.MyAgricYields),"/",len(ag.AgricSites), "/",ag.AgriNeed, " previous happy:",ag.happy, "Tree/agricFill", "%.2f" % ag.tree_fill, "/","%.2f" % ag.agriculture_fill )
 
 
-    if tree_fill>=1 and agriculture_fill>=1:
-        ag.happy=1.0
-        #ag.happyPeriod+=1
+    # if tree_fill>=1 and agriculture_fill>=1:
+    #     ag.H = a
+    #     ag.happy=1.0
 
-        # ###########################
-        # ###   CHECK PENALTY    ####
-        # ###########################
-        # # ag.mv_inds exists
-        # config.EI.agriculture[ag.AgricSites] -=1
-        # if ag.fisher: config.FisherAgents-=1
+    #     #ag.happyPeriod+=1
 
-        # WhichTrianglesToCalc_inds = [ag.triangle_ind]
-        # total_penalties,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
+    #     # ###########################
+    #     # ###   CHECK PENALTY    ####
+    #     # ###########################
+    #     # # ag.mv_inds exists
+    #     # config.EI.agriculture[ag.AgricSites] -=1
+    #     # if ag.fisher: config.FisherAgents-=1
 
-        # config.EI.agriculture[ag.AgricSites] +=1
-        # if ag.fisher: config.FisherAgents+=1
+    #     # WhichTrianglesToCalc_inds = [ag.triangle_ind]
+    #     # total_penalties,  _, penalties, _= ag.calc_penalty(WhichTrianglesToCalc_inds, t)
 
-        # # total_penalties, maske, penalties, masken
-        # if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
-        #     if ag == config.agents[0]:
-        #         print("First agent moved: ", penalties)
-        #     ag.move_water_agric(t)
+    #     # config.EI.agriculture[ag.AgricSites] +=1
+    #     # if ag.fisher: config.FisherAgents+=1
+
+    #     # # total_penalties, maske, penalties, masken
+    #     # if any([p[0]==1.0 for p in penalties]): #ag.MaxToleratedPenalty:
+    #     #     if ag == config.agents[0]:
+    #     #         print("First agent moved: ", penalties)
+    #     #     ag.move_water_agric(t)
             
-        # else:
-        #     ag.penalty = total_penalties
-        ag.penalty=0
+    #     # else:
+    #     #     ag.penalty = total_penalties
+    #     #ag.penalty=0
 
-    else:
-        #if tree_fill<1:
-        #    ag.treePref = (ag.treePref- config.treePref_change_per_BadYear)# * config.dStage) # half stage down
-        #if agriculture_fill<1:
-        #    ag.treePref = (ag.treePref + config.treePref_change_per_BadYear)
-        #    #ag.change_tree_pref(config.treePref_change_per_BadYear)# * config.dStage)
-        #ag.treePref = ag.treePref.clip(config.MinTreeNeed, config.init_TreePreference)
+    # else:
+    #     #if tree_fill<1:
+    #     #    ag.treePref = (ag.treePref- config.treePref_change_per_BadYear)# * config.dStage) # half stage down
+    #     #if agriculture_fill<1:
+    #     #    ag.treePref = (ag.treePref + config.treePref_change_per_BadYear)
+    #     #    #ag.change_tree_pref(config.treePref_change_per_BadYear)# * config.dStage)
+    #     #ag.treePref = ag.treePref.clip(config.MinTreeNeed, config.init_TreePreference)
 
-        # ag.happy from last time!!
-        # CASE 1: Agent was happy before --> no one should die
-        # CASE 2: Agent was happy before --> now 0 trees / agric --> mean? or no one
-        # CASE 3: Agent was slightly unhappy before, moved, still slightly unhappy: --> current unhappy should die (or mean?)
-        # CASe 4: Previously 0, now 0.9 happy: only 10% should die this time.
+    #     # ag.happy from last time!!
+    #     # CASE 1: Agent was happy before --> no one should die
+    #     # CASE 2: Agent was happy before --> now 0 trees / agric --> mean? or no one
+    #     # CASE 3: Agent was slightly unhappy before, moved, still slightly unhappy: --> current unhappy should die (or mean?)
+    #     # CASe 4: Previously 0, now 0.9 happy: only 10% should die this time.
         
-        #ag.happy= max(ag.happy, np.mean([tree_fill, agriculture_fill]))   # Max of last happy or mean of this year's harvest
+    #     #ag.happy= max(ag.happy, np.mean([tree_fill, agriculture_fill]))   # Max of last happy or mean of this year's harvest
         
-        ag.happy=np.mean([np.min([tree_fill, agriculture_fill]), ag.happy])
-        survived =  ag.pop_shock() # survived
-        if survived and ag.happy<0.8:
+
+    #     ag.H=np.mean([np.min([tree_fill, agriculture_fill]), ag.happy])
+    #     ag.happy =  np.min([tree_fill, agriculture_fill])  
+
+    #     survived =  ag.pop_shock() # survived
+    #     if survived and ag.happy<:
+    #         ag.move_water_agric(t)
+
+    ag.H=np.mean([np.min([ag.tree_fill, ag.agriculture_fill]), ag.happy])
+    ag.happy =  np.min([ag.tree_fill, ag.agriculture_fill])  
+
+    survived = ag.population_change(ag.H,t) # REprod and Pop Shock!
+    if not survived:
+        if ag.H<config.MovingHappyThreshold:
             ag.move_water_agric(t)
-            ag.happy =  np.min([tree_fill, agriculture_fill])  
 
 
-    ### 2. Perhaps Reproduce
-    if ag.happy==1.0:
-        ag.Reproduce(t)
+    ag.penalty, _, _ ,_= ag.calc_penalty(np.array([ag.triangle_ind]), t)
+    # ### 2. Perhaps Reproduce
+    # if ag.happy==1.0:
+    #     ag.Reproduce(t)
 
-    if ag == config.agents[0]:
+    if len(config.agents)>0 and ag == config.agents[0]:
         print("Agent ",ag.index, ", new pop: ",ag.pop," happy:",ag.happy)
 
     

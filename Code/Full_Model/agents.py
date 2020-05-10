@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from copy import copy
 from time import time
 import scipy.stats
+import pickle
 
 from observefunc import plot_movingProb
 
@@ -57,6 +58,7 @@ class agent:
 
 
         self.happy=1.0# TRUE 
+        self.H = 1.0
         #self.happyPeriod=0
 
         self.alpha_w = config.alpha_w#0.3
@@ -105,6 +107,11 @@ class agent:
         #logistic_g = 1-config.EI.tree_density[self.mv_inds].sum()/config.EI.carrying_cap[self.mv_inds].sum()
         scaled_tree_pref_g = 1/(shifted_tanh(1)-shifted_tanh(0)) * (treePref_g-shifted_tanh(0))
         self.treePref = config.MinTreeNeed + (config.init_TreePreference-config.MinTreeNeed) * scaled_tree_pref_g
+        if self.fisher:
+            self.treePref = max(self.treePref, config.MinTreeNeed_fisher)
+        NormFactor = (config.alpha_t + config.alpha_a)/((1-self.treePref)*config.alpha_a + self.treePref*config.alpha_t)
+        self.alpha_a = NormFactor*(1-self.treePref) *config.alpha_a 
+        self.alpha_t = NormFactor*self.treePref*config.alpha_t
         return 
 
 
@@ -113,57 +120,57 @@ class agent:
         return np.linalg.norm(m-np.array([ag.x, ag.y]))
 
 
-    def pop_shock(self):
-        # REMOVE SOME POPULATION
-        #dead_pop = np.random.randint(0,self.pop/2) # TODO: Make a decision if fraction dies or fixed number! #min(config.HowManyDieInPopulationShock, self.pop)
+    # def pop_shock(self):
+    #     # REMOVE SOME POPULATION
+    #     #dead_pop = np.random.randint(0,self.pop/2) # TODO: Make a decision if fraction dies or fixed number! #min(config.HowManyDieInPopulationShock, self.pop)
         
-        #fraction = 1-self.happy
-        g = (1-scipy.stats.gamma.cdf(self.happy,3, scale = 0.1))#.astype(int))
+    #     #fraction = 1-self.happy
+    #     g = (1-scipy.stats.gamma.cdf(self.happy,3, scale = 0.1))#.astype(int))
 
-        #fraction = config.FractionDeathsInPopShock
-        rands = np.random.random(self.pop)
+    #     #fraction = config.FractionDeathsInPopShock
+    #     rands = np.random.random(self.pop)
         
-        dead_pop = np.sum(rands<g)# np.round(fraction * self.pop).astype(int) 
-        config.deaths += dead_pop
-        self.pop -= dead_pop
-        config.EI.populationOccupancy[self.triangle_ind]-= dead_pop
+    #     dead_pop = np.sum(rands<g)# np.round(fraction * self.pop).astype(int) 
+    #     config.deaths += dead_pop
+    #     self.pop -= dead_pop
+    #     config.EI.populationOccupancy[self.triangle_ind]-= dead_pop
 
-        # CHECK IF AGENT IS STILL LARGE ENOUGH OR DIES
-        if self.pop < config.LowerLimit_PopInHousehold:
-            config.deaths+= self.pop
-            config.EI.agentOccupancy -=1
-            config.EI.populationOccupancy[self.triangle_ind] -= dead_pop
-            if self.fisher: config.FisherAgents-=1
-            for i in self.AgricSites:
-                config.EI.agriculture[i]-=1
-            self.AgricSites=[]
-            config.agents.remove(self)
-            print("Agent ",self.index," died.")
-            return False # i.e. not survived
+    #     # CHECK IF AGENT IS STILL LARGE ENOUGH OR DIES
+    #     if self.pop < config.LowerLimit_PopInHousehold:
+    #         config.deaths+= self.pop
+    #         config.EI.agentOccupancy -=1
+    #         config.EI.populationOccupancy[self.triangle_ind] -= dead_pop
+    #         if self.fisher: config.FisherAgents-=1
+    #         for i in self.AgricSites:
+    #             config.EI.agriculture[i]-=1
+    #         self.AgricSites=[]
+    #         config.agents.remove(self)
+    #         print("Agent ",self.index," died.")
+    #         return False # i.e. not survived
         
-        # REDUCE AGRICULTURE SITES
-        self.calc_agri_need()
-        self.calc_tree_need()
-        #reduceAgric = int(np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed)#self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-        #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
-        #    config.EI.agriculture[self.AgricSites[site]]-=1
-        #    self.AgricSites = np.delete(self.AgricSites, site).astype(int)
-        reduceAgric = (np.sum(self.MyAgricYields) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-        if reduceAgric>0:
-            sites = self.AgricSites[np.argsort(self.MyAgricYields)]
-            for site in sites:
-                if reduceAgric>0:
-                    reduceAgric -= config.EI.agric_yield[site]
-                    if reduceAgric>=0:
-                        config.EI.agriculture[site]-=1
-                        self.MyAgricYields = np.delete(self.MyAgricYields, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
-                        self.AgricSites = np.delete(self.AgricSites, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
-                    else:
-                        break
-                else:
-                    break
+    #     # REDUCE AGRICULTURE SITES
+    #     self.calc_agri_need()
+    #     self.calc_tree_need()
+    #     #reduceAgric = int(np.sum(config.EI.agric_yield[self.AgricSites]) - self.AgriNeed)#self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+    #     #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
+    #     #    config.EI.agriculture[self.AgricSites[site]]-=1
+    #     #    self.AgricSites = np.delete(self.AgricSites, site).astype(int)
+    #     reduceAgric = (np.sum(self.MyAgricYields) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+    #     if reduceAgric>0:
+    #         sites = self.AgricSites[np.argsort(self.MyAgricYields)]
+    #         for site in sites:
+    #             if reduceAgric>0:
+    #                 reduceAgric -= config.EI.agric_yield[site]
+    #                 if reduceAgric>=0:
+    #                     config.EI.agriculture[site]-=1
+    #                     self.MyAgricYields = np.delete(self.MyAgricYields, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+    #                     self.AgricSites = np.delete(self.AgricSites, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+    #                 else:
+    #                     break
+    #             else:
+    #                 break
 
-        return True # i.e. survived
+    #     return True # i.e. survived
 
 
 
@@ -174,11 +181,14 @@ class agent:
 
         ''' Calculate the penalty of the current triangle '''
 
-        mvTris_inds_arr_tree = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
-        mvTris_inds_arr_agric = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
-        for i,ind in enumerate(WhichTrianglesToCalc_inds):
-            mvTris_inds_arr_tree[config.EI.TreeNeighbours_of_triangles[ind], i]=1
-            mvTris_inds_arr_agric[config.EI.AgricNeighbours_of_triangles[ind],i]=1
+        #mvTris_inds_arr_tree = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
+        #mvTris_inds_arr_agric = np.zeros([config.EI.N_els, len(WhichTrianglesToCalc_inds)], dtype=np.uint8)
+        #for i,ind in enumerate(WhichTrianglesToCalc_inds):
+        #    mvTris_inds_arr_tree[config.EI.TreeNeighbours_of_triangles[ind], i]=1
+        #    mvTris_inds_arr_agric[config.EI.AgricNeighbours_of_triangles[ind],i]=1
+        mvTris_inds_arr_tree = config.EI.TreeNeighbours_of_triangles[:,WhichTrianglesToCalc_inds]
+        mvTris_inds_arr_agric = config.EI.AgricNeighbours_of_triangles[:,WhichTrianglesToCalc_inds]
+        
 
         ############################# 
         ##############
@@ -187,13 +197,15 @@ class agent:
         
         # use mvTris_inds_arr (0,1 -array) in the dot product with the tree density: sum(tree_densities at triangles within moving radius)
         reachable_trees = np.dot(config.EI.tree_density, mvTris_inds_arr_tree) 
-        
+
         #OLD: tree_penalty = 1 - (self.treePref-config.MinTreeNeed)/config.MinTreeNeed * tree_densities_aroundSites / (config.BestTreeNr_forNewSpot)
         # if tree_densities_around > config.BestTree -->> Penalty =0 
         # if treePref = 1 and tree_densities_aroundSites < config.BEstTree_forNewSpot: Large Penalty : self.treePref * tree_dens_aroundSites<config.Best * (1-treedensAround/Best)
-        tree_penalty = self.treePref * (1-reachable_trees/config.BestTreeNr_forNewSpot).clip(0)
-        survivalCond_tree = (reachable_trees>self.tree_need).astype(int)
-        tree_penalty[np.where(survivalCond_tree==False)[0]]=1
+
+        #tree_penalty = self.treePref * (1-reachable_trees/config.BestTreeNr_forNewSpot).clip(0)
+        tree_penalty = config.scaled_tanh((1-reachable_trees/config.MaxReachableTrees), config.P50t, config.PkappaT)
+        survivalCond_tree = np.array(reachable_trees>self.tree_need, dtype=np.uint8)
+        tree_penalty[np.where(survivalCond_tree==False)]=1
 
         #min_tree_penalty = 0 if maximumDensityTreesNearby
         #max_tree_penalty = 1 # if trees = 0 nearby
@@ -204,13 +216,14 @@ class agent:
         #############################               
         # Pop_density at NearBy = sum(pop_densitie at triangles within moving rad) --> ppl/km^2
         pop_density_atnb=np.dot(config.EI.populationOccupancy, mvTris_inds_arr_agric) / (self.agriculture_radius**2 * np.pi) #* 1e6
-        pop_density_penalty = pop_density_atnb / config.MaxPopulationDensity
+        pop_density_penalty = config.scaled_tanh(pop_density_atnb / config.MaxPopulationDensity, config.P50p, config.PkappaP)
         #if any(pop_density_penalty>1):
         #    print("There's an area with too much population!!")
 
         # Additionally to a penalty. Triangles that already exceed the maximum Population Density are excluded!!
         population_cond = pop_density_penalty < 1  # smalle than Max!
-
+        if len(np.where(population_cond==False))>0:
+           pop_density_penalty[np.where(population_cond==False)]=1
         ############################# 
         ## Water     PENALTY  #######
         #############################
@@ -246,29 +259,42 @@ class agent:
         #nrAvailAgrisSites_aroundSites = np.dot(config.EI.nr_highqualitysites-config.EI.agriculture, mvTris_inds_arr_agric)  
 
         # OPTION 2 updated: Including low quality and eroded soil
-        AvailTotalAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
-        AvailHighAgrisYield_aroundSites = np.dot((config.EI.agric_yield==1)*(config.EI.nr_highqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
-        #Nr_sites_needed = np.shape
-
-        survivalCond_agric =  AvailTotalAgrisYield_aroundSites>self.AgriNeed
-        agriculture_penalty=(1 - survivalCond_agric).astype(float)
-        agriculture_penalty[np.where(survivalCond_agric)] = (1-self.treePref) * 0.5*(
-            (1- AvailHighAgrisYield_aroundSites[np.where(survivalCond_agric)]/config.maxNeededAgric).clip(min=0) + 
-            (1- AvailTotalAgrisYield_aroundSites[np.where(survivalCond_agric)]/config.maxNeededAgric).clip(min=0)
-            )
+        
+        
+        # MAY 10 Update:
+        #AvailTotalAgrisYield_aroundSites = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        #AvailHighAgrisYield_aroundSites = np.dot((config.EI.agric_yield==1)*(config.EI.nr_highqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        ##Nr_sites_needed = np.shape    #
+        #survivalCond_agric =  AvailTotalAgrisYield_aroundSites>self.AgriNeed
+        #agriculture_penalty=(1 - survivalCond_agric).astype(float)
+        #agriculture_penalty[np.where(survivalCond_agric)] = (1-self.treePref) * 0.5*(
+        #    (1- AvailHighAgrisYield_aroundSites[np.where(survivalCond_agric)]/config.maxNeededAgric).clip(min=0) + 
+        #    (1- AvailTotalAgrisYield_aroundSites[np.where(survivalCond_agric)]/config.maxNeededAgric).clip(min=0)
+        #    )
         # Idea: take high if it is >AgriNeed
         #survivalHighQu_cond = Avail>self.AgriNeed
         #agriculture_penalty = (1-self.treePref)/config.MinTreeNeed * (config.maxNeededAgric - AvailTotalAgrisYield_aroundSites.clip(min=0, max=config.maxNeededAgric))/config.maxNeededAgric
 
-        #Inds_onlygoodwithlowQu = np.where(survivalHighQu_cond==False)[0]
-        #agriculture_penalty[Inds_onlygoodwithlowQu] = agriculture_penalty[Inds_onlygoodwithlowQu] *0.5+0.5
-
+        # MAY 10 Update:
+        #reachableSites = np.dot((config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)
+        reachableTotalAgricYield = np.dot(config.EI.agric_yield*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        reachableHighAgricYield = np.dot((config.EI.agric_yield==1)*(config.EI.nr_highqualitysites + config.EI.nr_lowqualitysites - config.EI.agriculture), mvTris_inds_arr_agric)  
+        #land_efficiency = np.zeros(len(reachableTotalAgricYield))
+        #land_efficiency[reachableSites>0]  = reachableTotalAgricYield[reachableSites>0]/ reachableSites[reachableSites>0]
+        #y = (1- land_efficiency * reachableTotalAgricYield/config.MaxYield)
+        y  = 1- np.sqrt(reachableHighAgricYield * reachableTotalAgricYield) / config.MaxYield
+        agriculture_penalty = config.scaled_tanh(y, config.P50a, config.PkappaA)
+        survivalCond_agric = np.array(reachableTotalAgricYield>self.AgriNeed, dtype=np.uint8)
 
         if config.FisherAgents < config.MaxFisherAgents: # still place for Fishers
             fishpossibility = np.dot(np.eye(1,config.EI.N_els, config.EI.AnakenaBeach_ind, dtype=np.uint8), mvTris_inds_arr_agric)
             agriculture_penalty[np.where(fishpossibility[0,:])] = - self.treePref
-            survivalCond_agric[np.where(fishpossibility[0,:])] = 1
-                
+            survivalCond_agric[np.where(fishpossibility[0,:])] = True
+
+        if len(np.where(survivalCond_agric ==False))>0:
+            agriculture_penalty[np.where(survivalCond_agric==False)] = 1
+
+
         ################################
         #####     MAP PENALTY   ########
         ################################
@@ -295,7 +321,7 @@ class agent:
         #     maske)
 
         total_penalties = ( self.alpha_w * water_penalty +  self.alpha_t* tree_penalty + self.alpha_p * pop_density_penalty + self.alpha_a * agriculture_penalty + self.alpha_m * map_penalty).clip(0,1)
-        
+        total_penalties+= ((1-maske)*1).clip(0,1)
         return total_penalties, maske, [water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty], [slopes_cond, population_cond, survivalCond_agric, survivalCond_tree]
 
     def move_water_agric(self, t, FirstSettlementAnakenaTriangles=[False, np.array([])]):
@@ -324,9 +350,13 @@ class agent:
         # Loop through mv_inds and assign tree densitiy within resource search radius 
         # mvTris_inds_arr gives for every column (triangles within mv radius) a 1 in the column if the corresponding triangle (row) is within the radius.
 
-        WhichTrianglesToCalc_inds = self.mv_inds
-        if FirstSettlementAnakenaTriangles[0]:
-            WhichTrianglesToCalc_inds = FirstSettlementAnakenaTriangles[1]
+        #WhichTrianglesToCalc_inds = self.mv_inds
+        if self.moving_radius < 100:
+            WhichTrianglesToCalc_inds = np.where(config.EI.LateMovingNeighbours_of_triangles[:,self.triangle_ind])[0]
+        else:
+            WhichTrianglesToCalc_inds = np.arange(config.EI.N_els)
+        #if FirstSettlementAnakenaTriangles[0]:
+        #    WhichTrianglesToCalc_inds = FirstSettlementAnakenaTriangles[1]
         total_penalties, maske, penalties, masken = self.calc_penalty(WhichTrianglesToCalc_inds,t)
         
 
@@ -338,6 +368,10 @@ class agent:
         ####################
         ##   MOVE   #######
         ####################
+        previous_triangle = copy(self.triangle_ind)
+        previous_x = copy(self.x)
+        previous_y = copy(self.y)
+        
         if any(probabilities>0):
             probabilities=probabilities/np.sum(probabilities)
 
@@ -352,27 +386,6 @@ class agent:
 
         self.triangle_midpoint = config.EI.EI_midpoints[self.triangle_ind]
 
-
-        ###########################################
-        ####   PLOT PENALTIES FOR A FEW AGENTS   ##
-        ###########################################
-        if config.analysisOn==True and (self.index<=175 and self.index%15 == 0) and (not FirstSettlementAnakenaTriangles[0]):
-            water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty = penalties
-            slopes_cond, population_cond, survivalCond_agric, survivalCond_tree = masken
-            allowed_colors = np.array([survivalCond_agric,survivalCond_tree, np.array(population_cond),np.array(slopes_cond)],dtype=np.uint8)
-            print("Saving Agent ", self.index,"'s penalty")
-            config.AG0_mv_inds=np.array(self.mv_inds)
-            config.AG0_total_penalties = total_penalties * maske
-            config.AG0_water_penalties =  water_penalty
-            config.AG0_tree_penalty =  tree_penalty
-            config.AG0_pop_density_penalty =  pop_density_penalty
-            config.AG0_agriculture_penalty =  agriculture_penalty
-            config.AG0_map_penalty = map_penalty
-            config.AG0_nosettlement_zones = allowed_colors
-            config.AG0_MovingProb =probabilities 
-
-            plot_movingProb(t,self,self.triangle_midpoint)
-            plt.close()
 
         ###################################################
         # Within the triangle search for random position! #
@@ -398,23 +411,82 @@ class agent:
             print("ERRROR, triangle ind is not correct", self.index)
         self.penalty = total_penalties[np.where(self.triangle_ind==WhichTrianglesToCalc_inds)[0]]
 
-        self.mv_inds = np.where(config.EI.distMatrix[:,self.triangle_ind]<self.moving_radius)[0]
+
+
+        ###########################################
+        ####   PLOT PENALTIES FOR A FEW AGENTS   ##
+        ###########################################
+        if config.analysisOn==True and self.index in [0,5,10,50,80,100,200,500,800]: #and (not FirstSettlementAnakenaTriangles[0]):
+            water_penalty, tree_penalty, pop_density_penalty, agriculture_penalty, map_penalty = penalties
+            slopes_cond, population_cond, survivalCond_agric, survivalCond_tree = masken
+            allowed_colors = np.array([survivalCond_agric,survivalCond_tree, np.array(population_cond),np.array(slopes_cond)],dtype=np.uint8)
+            print("Saving Agent ", self.index,"'s penalty ...", end="")
+            #config.AG0_mv_inds=np.array(self.mv_inds)
+            #config.AG0_total_penalties = total_penalties * maske
+            #config.AG0_water_penalties =  water_penalty
+            #config.AG0_tree_penalty =  tree_penalty
+            #config.AG0_pop_density_penalty =  pop_density_penalty
+            #config.AG0_agriculture_penalty =  agriculture_penalty
+            #config.AG0_map_penalty = map_penalty
+            #config.AG0_nosettlement_zones = allowed_colors
+            #config.AG0_MovingProb =probabilities 
+            
+            AG_total_penalties = total_penalties * maske
+            AG_water_penalties =  water_penalty
+            AG_tree_penalty =  tree_penalty
+            AG_pop_density_penalty =  pop_density_penalty
+            AG_agriculture_penalty =  agriculture_penalty
+            AG_map_penalty = map_penalty
+            AG_nosettlement_zones = allowed_colors
+            AG_MovingProb =probabilities 
+            AG_Pos = [previous_x, previous_y]
+            AG_InitialTriangle=previous_triangle
+            AG_NewPos = [self.x, self.y]
+            AG_NewPosTriangle = self.triangle_ind
+            AG_MovingRad = self.moving_radius
+            AG_TPref = self.treePref,
+            AG_Pop = self.pop
+            AG_H =  self.H       
+            ToSavePenalties = {
+                "AG_total_penalties":AG_total_penalties,
+                "AG_water_penalties":AG_water_penalties,
+                "AG_tree_penalty":AG_tree_penalty,
+                "AG_pop_density_penalty":AG_pop_density_penalty,
+                "AG_agriculture_penalty":AG_agriculture_penalty,
+                "AG_map_penalty":AG_map_penalty,
+                "AG_nosettlement_zones":AG_nosettlement_zones,
+                "AG_MovingProb":AG_MovingProb,
+                "AG_Pos":AG_Pos,
+                "AG_NewPos":AG_NewPos,
+                "AG_InitialTriangle":AG_InitialTriangle,
+                "AG_NewPosTriangle":AG_NewPosTriangle,
+                "AG_MovingRadius":AG_MovingRad,
+                "AG_TPref":AG_TPref,
+                "AG_pop":AG_Pop,
+                "AG_H":AG_H,
+                "t":t,
+                "AG_index":self.index,
+            }
+            filename = config.folder+"Penalties_AG"+str(self.index)+"_t="+str(t)
+            with open(filename, "wb") as AGSavefile:
+                pickle.dump(ToSavePenalties, AGSavefile)
+            #print("Plotting...", end="")
+            #plot_movingProb(ToSavePenalties)
+            #plt.close()
+            print("DONE")
+        #self.mv_inds = np.where(config.EI.distMatrix[:,self.triangle_ind]<self.moving_radius)[0]
             #[n for n,m in enumerate(config.EI.EI_midpoints) 
             #    if self.euclid_distance_1vec1ag(m, self)<self.moving_radius]
         return 
 
-    def Reproduce(self, t):
-        # EACH PERSON HAS A reprod_rate Probability of copying themselves.
-        randnrs = np.random.random(int(self.pop))
-        newborns = np.sum(randnrs<self.reprod_rate)
-        self.pop+=newborns
-        config.EI.populationOccupancy[self.triangle_ind] +=newborns
+    def split_household(self, t):
 
         # IF Population TOO LARGE; SPlit AGENT
         mu, sig = (config.max_pop_per_household_mean-2*config.childrenPop, config.max_pop_per_household_std)
         k = mu**2/sig**2
         theta = sig**2 / mu
-        if self.pop> np.random.gamma(k,theta) + 2*config.childrenPop:
+        # 2* config.children pop = 30 is the minimum people to split!! Otherwise I could have too many splits
+        if self.pop > np.random.gamma(k,theta) + 2*config.childrenPop:
         #np.random.normal(config.max_pop_per_household_mean, config.max_pop_per_household_std):
             child = copy(self)
             child.index = config.index_count
@@ -433,24 +505,74 @@ class agent:
             self.calc_tree_need()
             self.calc_agri_need()
             config.agents.append(child)
-    
-            reduceAgric = (np.sum(self.MyAgricYields) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
-            sites = self.AgricSites[np.argsort(self.MyAgricYields)]
-            for site in sites:
-                if reduceAgric>0:
-                    reduceAgric -= config.EI.agric_yield[site]
-                    if reduceAgric>=0:
-                        config.EI.agriculture[site]-=1
-                        self.MyAgricYields = np.delete(self.MyAgricYields, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
-                        self.AgricSites = np.delete(self.AgricSites, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
-                    else:
-                        break
-                else:
-                    break
+
 
             #for site in np.arange(reduceAgric)[::-1]: # need the [::-1] s.t. i remove large indices at first. E.g. [0,1,2] remove 3 elements: remove 2, 1 then 0 works, but remove 0 then 1, then 2 does not work.
             #    config.EI.agriculture[self.AgricSites[site]]-=1
             #    self.AgricSites.remove(self.AgricSites[site])
+
+
+
+    def remove_unncessary_agric(self):
+        reduceAgric = (np.sum(self.MyAgricYields) - self.AgriNeed) #self.AgriNeed*(self.pop-config.init_pop)/self.pop)
+        sites = self.AgricSites[np.argsort(self.MyAgricYields)]
+        for site in sites:
+            if reduceAgric>0:
+                reduceAgric -= config.EI.agric_yield[site]
+                if reduceAgric>=0:
+                    config.EI.agriculture[site]-=1
+                    self.MyAgricYields = np.delete(self.MyAgricYields, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+                    self.AgricSites = np.delete(self.AgricSites, np.where(self.AgricSites==site)[0][0]) # only delete first occurence
+                else:
+                    break
+            else:
+                break
+        return 
+
+    def remove_agent(self):
+        # CHECK IF AGENT IS STILL LARGE ENOUGH OR DIES
+        #config.deaths+= self.pop
+        config.EI.agentOccupancy -=1
+        config.EI.populationOccupancy[self.triangle_ind] -= self.pop
+        if self.fisher: config.FisherAgents-=1
+        for i in self.AgricSites:
+            config.EI.agriculture[i]-=1
+        self.AgricSites=[]
+        self.MyAgricYields=[]
+        config.agents.remove(self)
+        print("Agent ",self.index," died.")
+        
+        # REfugess
+        potential_hhs = [ag for ag in config.agents if np.linalg.norm(np.array([ag.x-self.x, ag.y-self.y]))<self.moving_radius]
+        if len(potential_hhs)>0:
+            acceptors = np.random.choice(potential_hhs, size=self.pop, replace =True) 
+            for a in acceptors:
+                a.pop +=1
+                config.EI.populationOccupancy[a.triangle_ind]+=1
+        else:
+            config.excess_deaths += self.pop
+        return False # i.e. not survived
+        
+    def population_change(self, H,t):
+        g = config.g_of_H(H)
+        rands = np.random.random(self.pop)
+        if g>1:
+            popchange = np.sum(rands<(g-1))
+            config.excess_births +=abs(popchange)
+        elif g<1:
+            popchange = -np.sum(rands < (1-g))
+            config.excess_deaths+= abs(popchange)
+        self.pop += popchange
+        config.EI.populationOccupancy[self.triangle_ind]+=popchange
+
+        self.split_household(t)
+        if self.pop < config.LowerLimit_PopInHousehold:
+            survived = self.remove_agent()
+        else:
+            survived = True
+            self.remove_unncessary_agric()
+
+        return survived
 
 
 
@@ -474,7 +596,9 @@ def init_agents():#N_agents, init_option, agent_type, map_type):
         #    if counter>100:
         #        print("COUNTERBREAK!")
         #        break
-        possible_triangles =  np.where(config.EI.distMatrix[:,config.EI.AnakenaBeach_ind] < config.firstSettlers_moving_raidus)[0]
+        
+        
+        #possible_triangles = np.where(config.EI.distMatrix[:,config.EI.AnakenaBeach_ind] < config.firstSettlers_moving_raidus)[0]
         x,y = config.EI.EI_midpoints[config.EI.AnakenaBeach_ind]
 
 
@@ -483,7 +607,7 @@ def init_agents():#N_agents, init_option, agent_type, map_type):
         config.EI.populationOccupancy[config.EI.AnakenaBeach_ind]+=ag.pop
         ag.triangle_ind= config.EI.AnakenaBeach_ind
 
-        ag.move_water_agric(0, FirstSettlementAnakenaTriangles=[True, possible_triangles])
+        ag.move_water_agric(0, FirstSettlementAnakenaTriangles=[True, np.arange(config.EI.N_els)])
         #ag.triangle_ind = ind
         #ag.triangle_midpoint = m_meter
         #config.EI.agentOccupancy[ind]+=1

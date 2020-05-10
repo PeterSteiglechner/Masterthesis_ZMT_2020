@@ -81,7 +81,7 @@ class Map:
         "Map/slope_EI.tif" 
     on my Computer: in "/home/peter/EasterIslands/Code/Triangulation/elevation_EI.tif"
     '''
-    def __init__(self, gridpoints_y, angleThreshold =10, N_init_trees = 12e6, verbose = True):
+    def __init__(self, gridpoints_y, tree_search_radius, agriculture_radius, moving_radius_late, angleThreshold =10, N_init_trees = 12e6, verbose = True):
         '''
         Creates a Map
         Input Parameters, 
@@ -91,6 +91,10 @@ class Map:
             verbose=True, if False. Don't print all the statements     
         '''
         if not verbose: blockPrint()
+
+        self.moving_radius_late = moving_radius_late
+        self.tree_search_radius = tree_search_radius
+        self.agriculture_radius = agriculture_radius
 
         EI_elevation = plt.imread("Map/elevation_EI.tif")
         print("Elevation: ", np.min(EI_elevation), np.max(EI_elevation), EI_elevation.shape)
@@ -121,7 +125,7 @@ class Map:
         self.EI_midpoints = np.array([self.transform(m) for m in midpoints_EI_int])
 
         # Matrix that calculates all the different points
-        self.distMatrix = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(self.EI_midpoints)).astype(np.float32)
+        distMatrix = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(self.EI_midpoints)).astype(np.float32)
 
 
         elev = np.array([EI_elevation[int(m[1]), int(m[0])] for m in midpoints_EI_int])
@@ -133,6 +137,7 @@ class Map:
         print("Area of discretised Map is [km2] ", '%.4f' % (np.sum(self.EI_triangles_areas)))
         print("Average triangle area [km2] is ", (np.mean(self.EI_triangles_areas))," +- ", (np.var(self.EI_triangles_areas)**0.5))
         print("  i.e. a triangle edge is on average long: ", (2*(np.mean(self.EI_triangles_areas)))**0.5)# for plotting
+        print("Average triangle area [acres] is ", (np.mean(self.EI_triangles_areas * config.km2_to_acre))," +- ", (np.var(self.EI_triangles_areas* config.km2_to_acre)**0.5))
         self.corners = {'upper_left':self.transform([0,self.pixel_dim[0]]),
                         'upper_right':self.transform([self.pixel_dim[1],self.pixel_dim[0]]),
                         'lower_left':self.transform([0,0]),
@@ -145,10 +150,23 @@ class Map:
 
         ###########
         # Water
+
         self.water_triangle_inds = []
         self.water_midpoints = []
         self.water_penalties = []
-        self.waterpoints(triObject, Lakes=["Raraku", "Kau", "Aroi"])
+        self.waterpoints(triObject, distMatrix, Lakes=["Raraku", "Kau", "Aroi"])
+        self.water_penalties_NoDrought = copy.deepcopy(self.water_penalties)
+        self.water_triangle_inds_NoDrought= copy.deepcopy(self.water_triangle_inds)
+        self.water_midpoints_NoDrought = copy.deepcopy(self.water_midpoints)
+
+        self.water_triangle_inds = []
+        self.water_midpoints = []
+        self.water_penalties = []
+        self.waterpoints(triObject, distMatrix, Lakes=["Kau", "Aroi"])
+        self.water_penalties_RarakuDrought = copy.deepcopy(self.water_penalties)
+        self.water_triangle_inds_RarakuDrought= copy.deepcopy(self.water_triangle_inds)
+        self.water_midpoints_RarakuDrought= copy.deepcopy(self.water_midpoints)
+
         ########
         self.map_penalty = np.array([])
         self.slopes_cond = np.array([])
@@ -177,16 +195,21 @@ class Map:
 
 
         print("Calculate the neighbours for Trees ...")#, end="")
-        self.TreeNeighbours_of_triangles = []
-        self.TreeNeighbourhoodRad = config.params['tree_search_radius']
-        self.get_neighbour_triangles_ind(self.TreeNeighbours_of_triangles , self.TreeNeighbourhoodRad)
+        #self.TreeNeighbours_of_triangles = []
+        #self.TreeNeighbourhoodRad = config.params['tree_search_radius']
+        #self.get_neighbour_triangles_ind(self.TreeNeighbours_of_triangles , self.TreeNeighbourhoodRad)
         #self.TreeNeighbours_of_triangles = np.array(self.TreeNeighbours_of_triangles).astype(int)
+        self.TreeNeighbours_of_triangles = np.array(distMatrix<self.tree_search_radius, dtype=bool)
 
         print("Calculate the neighbours for agriculture...")
-        self.AgricNeighbours_of_triangles = []
-        self.AgricNeighbourhoodRad = config.params['agriculture_radius']
-        self.get_neighbour_triangles_ind(self.AgricNeighbours_of_triangles , self.AgricNeighbourhoodRad)
+        #self.AgricNeighbours_of_triangles = []
+        #self.AgricNeighbourhoodRad = config.params['agriculture_radius']
+        #self.get_neighbour_triangles_ind(self.AgricNeighbours_of_triangles , self.AgricNeighbourhoodRad)
         #self.AgricNeighbours_of_triangles = np.array(self.AgricNeighbours_of_triangles).astype(int)
+        self.AgricNeighbours_of_triangles = np.array(distMatrix<self.agriculture_radius, dtype=bool)
+
+        print("Calculate neighbours for moving (late)")
+        self.LateMovingNeighbours_of_triangles = np.array(distMatrix<self.moving_radius_late, dtype=bool)
 
         print("DONE")
         print("Get Agriculture Sites ...")
@@ -331,9 +354,9 @@ class Map:
     ###    NEIGHBOURS     ######
     ############################
 
-    def get_neighbour_triangles_ind(self, array, r):
-        for i in range(self.N_els):
-            array.append(np.where(self.distMatrix[:,i]<r)[0])
+    #def get_neighbour_triangles_ind(self, array, r):
+    #    for i in range(self.N_els):
+    #        array.append(np.where(self.distMatrix[:,i]<r)[0])
 
     # OLD
     #def get_neighbour_triangles_ind(self, array, r):
@@ -402,7 +425,7 @@ class Map:
     #####    WATER    ##################
     ####################################
         
-    def waterpoints(self, triObject, Lakes=["Raraku", "Kau", "Aroi"]):
+    def waterpoints(self, triObject, distMatrix, Lakes=["Raraku", "Kau", "Aroi"]):
         ''' get those triangles that contain water, i.e. within the three craters'''
         # from google earth:        
         Raraku = {"midpoint": [-27.121944, -109.2886111], "Radius": 170e-3} # Radius in km
@@ -423,7 +446,7 @@ class Map:
         for m,r in zip(lake_mid_points, lake_radius):
             t = self.get_triangle_of_point(m, triObject)[0]
             self.water_midpoints.append(self.EI_midpoints[t])
-            inds_within_lake = np.where((self.distMatrix[:,t]<r) * (self.EI_midpoints_slope<5))[0]
+            inds_within_lake = np.where((distMatrix[:,t]<r) * (self.EI_midpoints_slope<5))[0]
             if len(inds_within_lake)==0:
                 inds_within_lake=[t]
             self.water_triangle_inds.extend(inds_within_lake)
@@ -433,7 +456,7 @@ class Map:
         print("Water Midpoints are at locations (x,y): ", lake_mid_points )
 
         self.water_penalties=[]
-        distance_to_water = self.distMatrix[self.water_triangle_inds,:]  # shape: water_triangels * N_els
+        distance_to_water = distMatrix[self.water_triangle_inds,:]  # shape: water_triangels * N_els
         weighted_squ_distance_to_water = distance_to_water**2/np.array(water_areas)[:,None]  # NOte: Casting to divide each row seperately
         penalties = np.min(weighted_squ_distance_to_water, axis=0)
         if len(Lakes)==3: self.max_water_penalty_without_drought = np.max(penalties)
@@ -498,16 +521,22 @@ class Map:
         # if len(Lakes)==3: self.max_water_penalty_without_drought = np.max(self.water_penalties)
         # self.water_penalties= (np.array(self.water_penalties)/self.max_water_penalty_without_drought ).clip(max=1)
 
-    def check_drought(self,t, drought_RanoRaraku_1, triObject):
+    def check_drought(self,t, drought_RanoRaraku, triObject):
         #drought_RanoRaraku_1 = [config.Starttime, 1100]
-        if t==drought_RanoRaraku_1[0]:
+        if t==drought_RanoRaraku[0]:
             print("beginning drought in Raraku, t=",t)
-            self.waterpoints(triObject, Lakes=["Kau", "Aroi"])
+            #self.waterpoints(triObject, Lakes=["Kau", "Aroi"])
+            self.water_midpoints= self.water_midpoints_RarakuDrought
+            self.water_penalties = self.water_penalties_RarakuDrought
+            self.water_triangle_inds = self.water_triangle_inds_RarakuDrought
             self.get_Map_Penalty()
-        if t==drought_RanoRaraku_1[1]:
+        if t==drought_RanoRaraku[1]:
             # end drought:
-            self.waterpoints(triObject, Lakes=["Raraku","Kau", "Aroi"])
+            #self.waterpoints(triObject, Lakes=["Raraku","Kau", "Aroi"])
             print("ending drought in Raraku, t=",t)
+            self.water_midpoints= self.water_midpoints_NoDrought
+            self.water_penalties = self.water_penalties_NoDrought
+            self.water_triangle_inds = self.water_triangle_inds_NoDrought
             self.get_Map_Penalty()
         return 
 
@@ -581,18 +610,24 @@ class Map:
 
     def get_AnakenaBeach(self, triObject):
         # Pixel Coordinates taken from the elevation.tif (in gimp)
-        # lat lon 27°04'23.8"S 109°19'23.6"W, Chile
+        # lat lon 27°04'23.8"S 109°19'23.6"W, Chile, i.e. (-27.07327778, -109.32305556)
         #d_gradlat_per_pixel = abs(latmax-latmin)/pixel_y  #[degrees lat per pixel]
         #self.d_km_lat = 111.320*d_gradlat_per_pixel # [m/lat_deg * lat_deg/pixel = m/pixel]
         # according to wikipedia 1deg Latitude = 111.32km
         #d_gradlon_per_pixel = abs(lonmax-lonmin)/pixel_x #[degrees lon per pixel]
         #self.d_km_lon = 111.320 * abs(np.cos((latmax+latmin)*0.5*2*np.pi/360)) * d_gradlon_per_pixel  #[m/pixel]]
         #111.320 * abs(np.cos(anakena_lat)*2*np.pi/360) 
-
-        AnakenaBeach_m =self.transform([525,self.pixel_dim[0]-490]) # This is roughly the coast anakena where they landed.
+        AnakenaBeach_pixel = self.fromcoordinate_topixelcoordinate((-27.07327778, -109.32305556))
+        AnakenaBeach_m =self.transform([AnakenaBeach_pixel[0],AnakenaBeach_pixel[1]]) # This is roughly the coast anakena where they landed.
+        
+        # get closest midpoint
+        #dists = scipy.spatial.distance.cdist(self.EI_midpoints, np.array(AnakenaBeach_m).reshape(1,2))
         self.AnakenaBeach_ind, _, _ = self.get_triangle_of_point(AnakenaBeach_m, triObject)
+        #self.EI_midpoints[np.argmin(dists)]
+        #self.AnakenaBeach_ind, _, _ = self.get_triangle_of_point(AnakenaBeach_m, triObject)
 
-        if self.AnakenaBeach_ind ==-1:            
+        print("Anakena Beach is at Point:",AnakenaBeach_m, "(",AnakenaBeach_pixel,")", " triangle ", self.AnakenaBeach_ind)
+        if self.AnakenaBeach_ind ==-1:      
             print("ERROR, Anakena is not on EI")
         return 
 
@@ -829,7 +864,7 @@ if __name__=="__main__":
     }
 
 
-    config.EI = Map(config.gridpoints_y,N_init_trees = config.N_trees, angleThreshold=config.AngleThreshold)
+    config.EI = Map(config.gridpoints_y,2,1,5,N_init_trees = config.N_trees, angleThreshold=config.AngleThreshold)
     filename = "Map/EI_grid"+str(config.gridpoints_y)+"_rad"+str(config.params['tree_search_radius'])+"+"+str(config.params['agriculture_radius'])
 
     with open(filename, "wb") as EIfile:

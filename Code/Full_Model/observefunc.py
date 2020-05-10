@@ -45,14 +45,14 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True):
     return fig, ax
 
 
-def follow_ag0(ag):
+def follow_ag0(x,y,mr, tr, ar):
     ''' plot circle around ag0 with resource and move search radius'''
-    move_circle = plt.Circle([ag.x, config.EI.corners['upper_left'][1]-ag.y], 
-        radius = ag.moving_radius, clip_on=True, color='black', alpha=0.2)
-    tree_circle = plt.Circle([ag.x, config.EI.corners['upper_left'][1]-ag.y], 
-        radius = ag.tree_search_radius, clip_on=True, color='black', alpha=0.35)
-    agric_circle = plt.Circle([ag.x, config.EI.corners['upper_left'][1]-ag.y], 
-        radius = ag.agriculture_radius, clip_on=True, color='black', alpha=0.5)
+    move_circle = plt.Circle([x, config.EI.corners['upper_left'][1]-y], 
+        radius = mr, clip_on=True, color='black', alpha=0.2)
+    tree_circle = plt.Circle([x, config.EI.corners['upper_left'][1]-y], 
+        radius = tr, clip_on=True, color='black', alpha=0.35)
+    agric_circle = plt.Circle([x, config.EI.corners['upper_left'][1]-y], 
+        radius = ar, clip_on=True, color='black', alpha=0.5)
     return move_circle, tree_circle, agric_circle
 
 
@@ -105,25 +105,45 @@ def follow_ag0(ag):
 
 
 
-def plot_movingProb(t,ag, newpos):
+def plot_movingProb(ToSavePenalties):
+    [AG_total_penalties,
+                AG_water_penalties,
+                AG_tree_penalty,
+                AG_pop_density_penalty,
+                AG_agriculture_penalty,
+                AG_map_penalty,
+                AG_nosettlement_zones,
+                AG_MovingProb,
+                AG_Pos,
+                AG_NewPos,
+                AG_InitialTriangle,
+                _,#AG_NewPosTriangle,
+                AG_MovingRad,
+                AG_TPref,
+                AG_Pop,
+                _,#AG_H
+                t,
+                AG_index] = [ToSavePenalties[key] for key in ToSavePenalties.keys()]
     plt.rcParams.update({"font.size":15})
     fig = plt.figure(figsize=(10*3,6*3))
     ax = fig.add_subplot(3,3,1,fc='aquamarine')
     #rcParams={'font.size':10}
     #plt.rcParams.update(rcParams)
 
-    fig, ax = observe(t, fig=fig, ax=ax, specific_ag_to_follow=ag, save=False) #(t, fig=fig, ax=ax, save=False, hist=False, folder="", specific_ag_to_follow=ag)
+    fig, ax = observe(t, fig=fig, ax=ax, specific_ag_to_follow=None, save=False) #(t, fig=fig, ax=ax, save=False, hist=False, folder="", specific_ag_to_follow=ag)
     #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=10)
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=10)
-    ax.set_title("Agent "+str(ag.index))
-    move_circle, tree_circle, agric_circle = follow_ag0(ag)
-    ax.add_artist(move_circle)
+    ax.set_title("Agent "+str(AG_index))
+
+
+    move_circle, tree_circle, agric_circle = follow_ag0(AG_Pos[0], AG_Pos[1], AG_MovingRad, config.EI.tree_search_radius, config.EI.agriculture_radius)
+    if AG_MovingRad <100: ax.add_artist(move_circle)
     ax.add_artist(tree_circle)
     ax.add_artist(agric_circle)
 
-    ax.set_xlim(max(ag.x-ag.moving_radius*1.1, 0), min(ag.x+ag.moving_radius*1.1, config.EI.corners["upper_right"][0]))
-    ax.set_ylim(max(config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1,0), min(config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1, config.EI.corners["upper_right"][1]))
+    ax.set_xlim(max(AG_Pos[0]-AG_MovingRad*1.1, 0), min(AG_Pos[0]+AG_MovingRad*1.1, config.EI.corners["upper_right"][0]))
+    ax.set_ylim(max(config.EI.corners['upper_left'][1]-AG_Pos[1]-AG_MovingRad*1.1,0), min(config.EI.corners['upper_left'][1]-AG_Pos[1]+AG_MovingRad*1.1, config.EI.corners["upper_right"][1]))
        
     ax.set_aspect(1)
     #ax.plot(newpos[0], config.EI.corners['upper_left'][1] - newpos[1], "o", markersize = 8,color='magenta')
@@ -138,16 +158,20 @@ def plot_movingProb(t,ag, newpos):
     #ax_text.text(0.4,0.5, s, horizontalalignment='center', verticalalignment='center', fontsize=10)
     #ax_text.set_xticklabels([])
     #ax_text.set_yticklabels([])
-
-    penalties = [config.AG0_total_penalties, config.AG0_MovingProb, config.AG0_water_penalties, config.AG0_tree_penalty, config.AG0_agriculture_penalty, config.AG0_pop_density_penalty, config.AG0_map_penalty, config.AG0_nosettlement_zones]
+    if AG_MovingRad<100:
+        mv_inds = config.EI.LateMovingNeighbours_of_triangles[AG_InitialTriangle]
+    else:
+        mv_inds = np.arange(config.EI.N_els)
+    #penalties = [config.AG0_total_penalties, config.AG0_MovingProb, config.AG0_water_penalties, config.AG0_tree_penalty, config.AG0_agriculture_penalty, config.AG0_pop_density_penalty, config.AG0_map_penalty, config.AG0_nosettlement_zones]
+    penalties = [AG_total_penalties, AG_MovingProb, AG_water_penalties, AG_tree_penalty, AG_agriculture_penalty, AG_pop_density_penalty, AG_map_penalty, AG_nosettlement_zones]
     penalties_key = ["total_penalties", "MovingProb","water_penalties", "tree_penalty", "agriculture_penalty", "pop_density_penalty", "Map_Penalty","Allowed_settlements"]
     for k, penalty,key in zip([2,3,4,5,6,7,8,9], penalties, penalties_key):
         ax2  = fig.add_subplot(3,3,k, fc="aquamarine")
         #ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
         #        config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="binary", alpha=1)
 
-        ax2.set_xlim(max(ag.x-ag.moving_radius*1.1, 0), min(ag.x+ag.moving_radius*1.1, config.EI.corners["upper_right"][0]))
-        ax2.set_ylim(max(0,config.EI.corners['upper_left'][1]-ag.y-ag.moving_radius*1.1), min(config.EI.corners['upper_left'][1]-ag.y+ag.moving_radius*1.1, config.EI.corners["upper_right"][1]))
+        ax2.set_xlim(max(AG_Pos[0]-AG_MovingRad*1.1, 0), min(AG_Pos[0]+AG_MovingRad*1.1, config.EI.corners["upper_right"][0]))
+        ax2.set_ylim(max(0,config.EI.corners['upper_left'][1]-AG_Pos[1]-AG_MovingRad*1.1), min(config.EI.corners['upper_left'][1]-AG_Pos[1]+AG_MovingRad*1.1, config.EI.corners["upper_right"][1]))
         ax2.set_aspect(1)
         ax2.set_xticklabels([])
         ax2.set_yticklabels([])
@@ -172,12 +196,12 @@ def plot_movingProb(t,ag, newpos):
 
             colors = np.array([0 for i in range(config.EI.N_els)])
             #colors[config.AG0_mv_inds] = [liste[mpl.colors.to_hex(penalty[:,i], keep_alpha=True)] for i in range(penalty.shape[1])]
-            colors[config.AG0_mv_inds] = [1 if np.sum(penalty[:,i])==4 else 0 for i in range(penalty.shape[1])]
+            colors[mv_inds] = [1 if np.sum(penalty[:,i])==4 else 0 for i in range(penalty.shape[1])]
             plot  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
                 config.EI.EI_triangles, facecolors=colors, vmin = 0, cmap='binary_r',alpha=1)
         else:
             prob = np.zeros([config.EI.N_els])-np.spacing(0.0)
-            prob[config.AG0_mv_inds] = penalty
+            prob[mv_inds] = penalty
 
             if k==3:
                 #cmap="hot_r"
@@ -198,7 +222,7 @@ def plot_movingProb(t,ag, newpos):
                 if k==6:
                     vmin = -1.0# np.min(penalty)
                     prob = np.zeros([config.EI.N_els])-2.0-np.spacing(0.0)
-                    prob[config.AG0_mv_inds] = penalty
+                    prob[mv_inds] = penalty
                     vmax = 1
                     colorsneg = plt.get_cmap("Blues_r")(np.linspace( 0.0,1, 128))
                     colorspos = plt.get_cmap("Reds")(np.linspace(0, 1.0, 128))
@@ -212,10 +236,10 @@ def plot_movingProb(t,ag, newpos):
 
                 
 
-        if not all(config.AG0_mv_inds==ag.mv_inds):
+        if not all(config.AG0_mv_inds==AG_MovingRad):
             print("Error in Plot Penalties")
-        ax2.plot(newpos[0], config.EI.corners['upper_left'][1]-newpos[1], "o", markersize = 8,color='magenta', fillstyle="none")
-        ax2.plot(ag.x, config.EI.corners['upper_left'][1]-ag.y, "o", markersize = 8,color=((1-ag.treePref), 0, 1,1))
+        ax2.plot(AG_NewPos[0], config.EI.corners['upper_left'][1]-AG_NewPos[1], "o", markersize = int(AG_Pop/3),color=((1-AG_TPref[0]), 0, 1,1), fillstyle="none")
+        ax2.plot(AG_Pos[0], config.EI.corners['upper_left'][1]-AG_Pos[1], "o", markersize = int(AG_Pop/3) ,color=((1-AG_TPref[0]), 0, 1,1))
         
     
         
@@ -231,7 +255,7 @@ def plot_movingProb(t,ag, newpos):
 
     #fig.tight_layout()
     #fig.colorbar(p)
-    plt.savefig(config.folder+"Penalties_AG"+str(ag.index)+"_t="+str(t)+".png", bbox_inches='tight')
+    plt.savefig(config.folder+"Penalties_AG"+str(AG_index)+"_t="+str(t)+".png", bbox_inches='tight')
 
 
 
@@ -252,18 +276,25 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
         agent_size = agent_points_np[:,2]
     else:
         agent_points_np = data.PosAgents.sel(time=t).to_series().dropna()
-        agent_size = data.SizeAgents.set(time=t).to_series().dropna()
+        agent_size = data.SizeAgents.sel(time=t).to_series().dropna()
+        agent_points_np = np.array([agent_points_np[::2], agent_points_np[1::2]]).T
     
-    color = [((1-ag.treePref), 0, 1,1) for ag in config.agents]
+    if ncdf == False:
+        color = [((1-ag.treePref), 0, 1,1) for ag in config.agents]
+    else:
+        color = color
 
-    if len(config.agents)>0:
+    if len(agent_points_np)>0:
         ax.scatter(agent_points_np[:,0], config.EI.corners['upper_left'][1] - agent_points_np[:,1], s=agent_size, color=color)#'purple')
-        if specific_ag_to_follow==None:
-            specific_ag_to_follow = config.agents[0]
-        move_circle, tree_circle, agric_cirle = follow_ag0(specific_ag_to_follow)
-        ax.add_artist(move_circle)
-        ax.add_artist(tree_circle)
-        ax.add_artist(agric_cirle)
+
+        if ncdf==False:
+            if not specific_ag_to_follow==None:
+                #specific_ag_to_follow = config.agents[0]
+                a = specific_ag_to_follow
+                move_circle, tree_circle, agric_cirle = follow_ag0(a.x, a.y, a.moving_radius, a.tree_search_radius, a.agriculture_radius)
+                if not a.moving_radius==100: ax.add_artist(move_circle)
+                ax.add_artist(tree_circle)
+                ax.add_artist(agric_cirle)
     return ax
 
 
@@ -297,7 +328,7 @@ def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save=True):
     else:
         face_colors = config.EI.tree_density
     treePlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
+    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax = np.max(config.EI.carrying_cap)*2, cmap="Greens", alpha=1)
 
     watertriangles = np.zeros([config.EI.N_els])
     watertriangles[config.EI.water_triangle_inds]=1
@@ -334,7 +365,7 @@ def plot_statistics(data, folder):
     plt.rcParams.update(rcParams)
     #ax1.spines["right"].set_position(('axes',1.0))
 
-    colors=["blue", "k", "green", "red", "gray"]
+    colors=["blue", "k", "green", "red", "orange"]
 
 
     ax = []
@@ -346,29 +377,40 @@ def plot_statistics(data, folder):
     (1e-3 * data.total_population).plot(ax=ax[0],lw=3, color=colors[0])
     ax[0].set_ylabel("Total Population in 1000s")
 
-    mortality = data.total_deaths/data.total_population
+    excess_mortality = data.total_excessdeaths/data.total_population
+    excess_births = data.total_excessbirths/data.total_population
+
     N=50
-    mortality_smoothed = np.convolve(mortality, np.ones((N,))/N, mode='valid')
+    mortality_smoothed = np.convolve(excess_mortality, np.ones((N,))/N, mode='valid')
     time_smoothed = np.convolve(data.time, np.ones((N,))/N, mode='valid')
-    ax[1].plot(time_smoothed, mortality_smoothed*100, color=colors[1], lw=3)
+    ax[1].plot(time_smoothed, mortality_smoothed*100, ":", color=colors[1], lw=3)
     ax[1].set_ylabel("Smoothed (Excess-)Mortality [%]")
+
+    births_smoothed = np.convolve(excess_births, np.ones((N,))/N, mode='valid')
+    time_smoothed = np.convolve(data.time, np.ones((N,))/N, mode='valid')
+    ax[1].plot(time_smoothed, births_smoothed*100, "--", color=colors[1], lw=3)
+    ax[1].set_ylabel("ExcessBirths/Mortality [%]")
+
 
     (data.total_trees*1e-6).plot(ax=ax[2],color=colors[2], lw=3)
     ax[2].set_ylabel("Nr of Trees (in mio)")
 
-    fireSize = np.zeros(len(data.time))
-    fireSize[data.firesTime- data.isel(time=0).time.values] += data.firesSize
-    t0=data.isel(time=0).time.values
-    BINwidth=20
-    bins = np.arange(t0, data.isel(time=-1).time+1, step=BINwidth )
-    binned_fireSize = [1e-3 * np.sum( fireSize[( bins[k]-t0)  :  (bins[k+1]-t0 )]) for k in range(len(bins)-1)]
-    ax[3].bar(bins[:-1], binned_fireSize,color=colors[3], width=BINwidth)#, bins=np.arange(data.time[0],data.time[-1]+1, step=20), alpha=1, color=colors[3])
-    ax[3].set_ylabel("Fires [1000 Trees /"+str(BINwidth)+" yrs]")
+    if len(data.firesTime)>0:
+        fireSize = np.zeros(len(data.time))
+        fireSize[data.firesTime- data.isel(time=0).time.values] += data.firesSize
+        t0=data.isel(time=0).time.values
+        BINwidth=20
+        bins = np.arange(t0, data.isel(time=-1).time+1, step=BINwidth )
+        binned_fireSize = [1e-3 * np.sum( fireSize[( bins[k]-t0)  :  (bins[k+1]-t0 )]) for k in range(len(bins)-1)]
+        ax[3].bar(bins[:-1], binned_fireSize,color=colors[3], width=BINwidth)#, bins=np.arange(data.time[0],data.time[-1]+1, step=20), alpha=1, color=colors[3])
+        ax[3].set_ylabel("Fires [1000 Trees /"+str(BINwidth)+" yrs]")
 
-    data.happyFraction.plot(ax=ax[4],color=colors[4], alpha=0.7)
+    
+    plt.fill_between(data.time, data.happyMeans-data.happyStd, data.happyMeans+data.happyStd, color=colors[4], alpha=0.3)
+    data.happyMeans.plot(ax=ax[4],color=colors[4], alpha=1)
     plt.fill_between(data.time, data.Penalty_Mean-data.Penalty_Std, data.Penalty_Mean+data.Penalty_Std, color=colors[4], alpha=0.3)
     data.Penalty_Mean.plot(ax=ax[4], color=colors[4], alpha=1)
-    ax[4].set_ylabel("Penalty and happy fraction")
+    ax[4].set_ylabel("Mean Penalty and happiness")
 
 
 
@@ -411,26 +453,26 @@ def plot_statistics(data, folder):
 
 
 
-def observe_density(t, fig=None, ax=None, save=True, hist=False, folder=config.folder, specific_ag_to_follow=None):# agents, EI, t, agent_type, folder):
+# def observe_density(t, fig=None, ax=None, save=True, hist=False, folder=config.folder, specific_ag_to_follow=None):# agents, EI, t, agent_type, folder):
 
 
-    if ax==None:
-        fig = plt.figure(figsize=(10,6))
-        ax = fig.add_subplot(111)        
+#     if ax==None:
+#         fig = plt.figure(figsize=(10,6))
+#         ax = fig.add_subplot(111)        
 
-    fig, ax = config.EI.plot_TreeMap_and_hist(ax=ax, fig=fig, hist=hist,folder=folder)
-    #ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    #    config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="Blues", alpha=1)
-    #
-    #plot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    #  config.EI.EI_triangles, facecolors=config.EI.tree_density, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
-    ##cbaxes = fig.add_axes([0.9, 0.0, 0.03, 1.0]) 
-    #fig.colorbar(plot)#, cax = cbaxes)  
-    ax = plot_agents_on_top(ax, t,ncdf=False, specific_ag_to_follow=specific_ag_to_follow)
+#     fig, ax = config.EI.plot_TreeMap_and_hist(ax=ax, fig=fig, hist=hist,folder=folder)
+#     #ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+#     #    config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="Blues", alpha=1)
+#     #
+#     #plot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+#     #  config.EI.EI_triangles, facecolors=config.EI.tree_density, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap="Greens", alpha=1)
+#     ##cbaxes = fig.add_axes([0.9, 0.0, 0.03, 1.0]) 
+#     #fig.colorbar(plot)#, cax = cbaxes)  
+#     ax = plot_agents_on_top(ax, t,ncdf=False, specific_ag_to_follow=specific_ag_to_follow)
 
-    if save:
-        ax.set_title("Time "+str(t))
-        #fig.tight_layout()
-        plt.savefig(config.folder+"map_time"+str(t)+".png")
-        plt.close()
-    return fig,ax
+#     if save:
+#         ax.set_title("Time "+str(t))
+#         #fig.tight_layout()
+#         plt.savefig(config.folder+"map_time"+str(t)+".png")
+#         plt.close()
+#     return fig,ax

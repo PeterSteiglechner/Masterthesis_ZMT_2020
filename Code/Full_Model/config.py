@@ -11,7 +11,7 @@ class EI_empty:
         self.EI_midpoints=[]
         self.pixel_dim=[]
         self.points_EI_km=np.array([[0,0],[0,0]])
-        self.distMatrix=np.zeros([self.N_els, self.N_els])
+        #self.distMatrix=np.zeros([self.N_els, self.N_els])
         self.all_triangles = []
         self.mask = []
         self.EI_triangles=[]
@@ -19,9 +19,13 @@ class EI_empty:
         self.EI_triangles_areas=[]
         self.EI_midpoints_elev=[]
         self.EI_midpoints_slope=[]
-        self.NeighbourhoodRad = 0# = config.params['resource_search_radius']
-        self.TreeNeighbours_of_triangles =[]
-        self.AgricNeighbours_of_triangles =[]
+        #self.NeighbourhoodRad = 0# = config.params['resource_search_radius']
+        self.TreeNeighbours_of_triangles =np.array([])
+        self.AgricNeighbours_of_triangles =np.array([])
+        self.LateMovingNeighbours_of_triangles = np.array([])
+        self.tree_search_radius = 0
+        self.agriculture_radius = 0
+        self.moving_radius_late = 0
         # CONSTANT EXTENSIONS
         self.water_penalties=[]
         self.map_penalty = np.array([])
@@ -85,6 +89,10 @@ maxNeededAgric=0
 
 #HowManyDieInPopulationShock = 0
 FractionDeathsInPopShock=0.0
+g_of_H = lambda x: 0
+PopulationChange_shape = 0
+
+MovingHappyThreshold = 0.0
 
 alpha_w=0
 alpha_t=0
@@ -105,8 +113,25 @@ params={'tree_search_radius': 0,
 PopulationMovingRestriction=0
 
 MaxFisherAgents = 0
+FishingTabooYear = 0
+MinTreeNeed_fisher = 0
 
 
+MaxReachableTrees = 0
+MaxYield = 0
+
+P50t = 0
+PkappaT=0
+
+PkappaP=0
+P50p = 0
+
+P50a=0
+PkappaA=0
+
+def scaled_tanh(x,mu,kappa):
+    return 1/(np.tanh(kappa*(1-mu))-np.tanh(kappa*(0-mu))) * (np.tanh(kappa*(x-mu))-np.tanh(kappa*(0-mu)))
+        
 ###  INIT
 N_agents = 0
 N_trees = 0
@@ -142,9 +167,11 @@ gridpoints_y= 0
 AngleThreshold = 0
 MapPenalty_Kappa = 0
 
+
 tree_regrowth_rate = 0
 
 drought_RanoRaraku_1=[]
+drought_RanoRaraku_2=[]
 
 EI_triObject = 0
 tree_growth_poss=np.array([],dtype=int)
@@ -170,12 +197,14 @@ initial_agric_yield=np.array([])
 ###  RESULT ARRAYS  ###
 #######################
 agents=[]
-nr_agents, nr_trees, nr_deaths, nr_pop = [[], [], [], []] #[nr_agents, nr_trees, nr_deaths, population]
-deaths = 0
+nr_agents, nr_trees, nr_excessdeaths, nr_excessbirths, nr_pop = [[], [], [], [], []] #[nr_agents, nr_trees, nr_deaths, population]
+excess_births = 0
+excess_deaths = 0
 fire=[]
 agents_stages=[]
 agents_pos_size = []
-nr_happyAgents=[]
+happyMeans=np.array([])
+happyStd=np.array([])
 nr_agricultureSites=[]
 Array_tree_density = np.array([]).astype(np.int32)
 Array_agriculture = np.array([]).astype(np.int32)
