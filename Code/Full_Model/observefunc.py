@@ -41,8 +41,8 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = 
     if save==True:
         ax.set_xlabel("[km]")
         ax.set_xlabel("[km]")
-        ax.xaxis.set_label_coords(1.05, -0.025)
-        ax.yaxis.set_label_coords(-0.025, 1.05)
+        ax.xaxis.set_label_coords(0.9, -0.01)
+        ax.yaxis.set_label_coords( -0.05, 1.0)
         #fig.tight_layout()
         
         plt.savefig(folder+"map_time"+str(t)+".svg")
@@ -318,8 +318,8 @@ def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save=True
         print("Error in plot agricultureSites")
     #colors = [(1,0,0,0), (1,0,0,1)]
     #customCmap = LinearSegmentedColormap.from_list("agriccmap",colors,N=256)
-    oranges = plt.get_cmap("Oranges")(np.linspace(0, 1, int(256*1.5)))
-    oranges[:256,3] = np.linspace(0,0.5,256)
+    oranges = plt.get_cmap("Oranges")(np.linspace(0, 1, int(256*1)))
+    oranges[:256,3] = np.linspace(0.0,0.5,256)
     cmap = LinearSegmentedColormap.from_list("orangeshalf",oranges[:256])
 
     #plot_agricultureSites_onTop(ax=ax, fig=fig)    
