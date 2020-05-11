@@ -65,7 +65,7 @@ config.index_count=0
 ### RUN
 config.updatewithreplacement = False
 config.StartTime = 800
-config.EndTime=1900
+config.EndTime=1000
 config.N_timesteps = config.EndTime-config.StartTime
 config.seed= int(sys.argv[1])
 print("Seed: ", config.seed)

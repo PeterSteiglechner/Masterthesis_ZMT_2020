@@ -49,7 +49,7 @@ def update_time_step(t):
         config.happyMeans = np.append(config.happyMeans, happyMean)
         config.happyStd = np.append(config.happyStd, np.std(happys_inclDead))
         config.treeFills = np.append(config.treeFills, np.sum([ag.tree_fill<1 for ag in config.agents]))
-        config.agricFills = np.append(config.treeFills, np.sum([ag.agriculture_fill<1 for ag in config.agents]))
+        config.agricFills = np.append(config.agricFills, np.sum([ag.agriculture_fill<1 for ag in config.agents]))
         config.Penalty_mean = np.append(config.Penalty_mean, (np.mean([ag.penalty for ag in config.agents])) )
         config.Penalty_std = np.append(config.Penalty_std, (np.std([ag.penalty for ag in config.agents])))
         config.NrFisherAgents = np.append(config.NrFisherAgents, config.FisherAgents)

@@ -43,7 +43,7 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = 
         ax.set_xlabel("[km]")
         ax.xaxis.set_label_coords(1.05, -0.025)
         ax.yaxis.set_label_coords(-0.025, 1.05)
-        fig.tight_layout()
+        #fig.tight_layout()
         
         plt.savefig(folder+"map_time"+str(t)+".svg")
         plt.close()
