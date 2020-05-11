@@ -26,7 +26,7 @@ import sys, os
 def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = None, ncdf=False, folder=None):
     if fig==None:
         fig = plt.figure(figsize=(10,6))
-        ax = fig.add_subplot(1,1,1,fc='lightgray')
+        ax = fig.add_subplot(1,1,1,fc='gainsboro')
     if folder==None:
         folder=config.folder
     #fig,ax = observe_density(t,ax = ax,fig = fig, save=False)
@@ -38,9 +38,13 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = 
         ax = plot_agents_on_top(ax, t, ncdf=ncdf, data=data, specific_ag_to_follow=specific_ag_to_follow)
 
     ax.set_title("Time "+str(t))
-    fig.tight_layout()
     if save==True:
-        #fig.tight_layout()
+        ax.set_xlabel("[km]")
+        ax.set_xlabel("[km]")
+        ax.xaxis.set_label_coords(1.05, -0.025)
+        ax.yaxis.set_label_coords(-0.025, 1.05)
+        fig.tight_layout()
+        
         plt.savefig(folder+"map_time"+str(t)+".svg")
         plt.close()
     return fig, ax
@@ -128,7 +132,7 @@ def plot_movingProb(ToSavePenalties):
                 AG_index] = [ToSavePenalties[key] for key in ToSavePenalties.keys()]
     plt.rcParams.update({"font.size":15})
     fig = plt.figure(figsize=(10*3,6*3))
-    ax = fig.add_subplot(3,3,1,fc='aquamarine')
+    ax = fig.add_subplot(3,3,1,fc='gainsboro')
     #rcParams={'font.size':10}
     #plt.rcParams.update(rcParams)
 
@@ -257,7 +261,7 @@ def plot_movingProb(ToSavePenalties):
 
     #fig.tight_layout()
     #fig.colorbar(p)
-    plt.savefig(config.folder+"Penalties_AG"+str(AG_index)+"_t="+str(t)+".png", bbox_inches='tight')
+    plt.savefig(config.folder+"Penalties_AG"+str(AG_index)+"_t="+str(t)+".svg", bbox_inches='tight')
 
 
 

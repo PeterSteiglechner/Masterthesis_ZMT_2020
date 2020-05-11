@@ -58,7 +58,7 @@ def update_time_step(t):
         config.happyMeans = np.append(config.happyMeans,0)
         config.happyStd = np.append(config.happyStd,0)
         config.treeFills = np.append(config.treeFills, 0)
-        config.agricFills = np.append(config.treeFills, 0)
+        config.agricFills = np.append(config.agricFills, 0)
         config.Penalty_std = np.append(config.Penalty_std,0)
         config.Penalty_mean = np.append(config.Penalty_mean,0)
         config.NrFisherAgents = np.append(config.NrFisherAgents, 0)
@@ -353,6 +353,8 @@ def update_single_agent(ag,t):
     if not survived:
         if ag.H<config.MovingHappyThreshold:
             ag.move_water_agric(t)
+            config.move+=1
+
 
 
     ag.penalty, _, _ ,_= ag.calc_penalty(np.array([ag.triangle_ind]), t)
