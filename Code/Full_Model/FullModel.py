@@ -339,12 +339,12 @@ def run():
                     ag = None
                 observe(t+1, fig=None, ax=None, specific_ag_to_follow=ag, save=True)
                 plt.close()
-            if (t+1)%50==0:
-                plt.cla()
-                _,ax = config.EI.plot_agricultureSites(ax=None, fig=None, save=False, CrossesOrFacecolor="Facecolor")
-                ax.set_title("Time "+str(t+1))
-                plt.savefig(config.folder+"AgricDensityMap_t"+str(t+1)+".png")
-                plt.close()
+            #if (t+1)%50==0:
+            #    plt.cla()
+            #    _,ax = config.EI.plot_agricultureSites(ax=None, fig=None, save=False, CrossesOrFacecolor="Facecolor")
+            #    ax.set_title("Time "+str(t+1))
+            #    plt.savefig(config.folder+"AgricDensityMap_t"+str(t+1)+".png")
+            #    plt.close()
     RUNEND = time()-RUNSTART
     print("END TIME- START TIME: ", RUNEND)
     print("Finished running Model in folder: ", config.folder)

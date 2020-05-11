@@ -40,6 +40,8 @@ def final_saving():
             "populationOccupancy":(("triangles","time"), config.Array_populationOccupancy),
             "happyMeans":(("time",),config.happyMeans),
             "happyStd":(("time",),config.happyStd),
+            "treeFills":(("time",),config.treeFills),
+            "agricFills":(("time",),config.agricFills),
             "SizeAgents":(('index', 'time'),SizeAgents),
             "PosAgents":(('index', '2d', "time"), PosAgents),
             "TreePrefAgents":(('index', "time"), TreePrefAgents),

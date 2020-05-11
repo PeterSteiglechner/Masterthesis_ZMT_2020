@@ -48,7 +48,8 @@ def update_time_step(t):
         happyMean= np.mean(happys_inclDead)
         config.happyMeans = np.append(config.happyMeans, happyMean)
         config.happyStd = np.append(config.happyStd, np.std(happys_inclDead))
-
+        config.treeFills = np.append(config.treeFills, np.sum([ag.tree_fill<1 for ag in config.agents]))
+        config.agricFills = np.append(config.treeFills, np.sum([ag.agriculture_fill<1 for ag in config.agents]))
         config.Penalty_mean = np.append(config.Penalty_mean, (np.mean([ag.penalty for ag in config.agents])) )
         config.Penalty_std = np.append(config.Penalty_std, (np.std([ag.penalty for ag in config.agents])))
         config.NrFisherAgents = np.append(config.NrFisherAgents, config.FisherAgents)
@@ -56,6 +57,8 @@ def update_time_step(t):
     else:
         config.happyMeans = np.append(config.happyMeans,0)
         config.happyStd = np.append(config.happyStd,0)
+        config.treeFills = np.append(config.treeFills, 0)
+        config.agricFills = np.append(config.treeFills, 0)
         config.Penalty_std = np.append(config.Penalty_std,0)
         config.Penalty_mean = np.append(config.Penalty_mean,0)
         config.NrFisherAgents = np.append(config.NrFisherAgents, 0)
@@ -63,7 +66,7 @@ def update_time_step(t):
     config.moves = np.append(config.moves, config.move)
     config.move=0
 
-    config.Fraction_eroded = np.append(config.Fraction_eroded, np.sum(config.EI.agric_yield==config.ErodedSoilYield) /config.EI.nr_highqualitysites)
+    config.Fraction_eroded = np.append(config.Fraction_eroded, np.sum(config.EI.agric_yield==config.ErodedSoilYield) /np.sum(config.initial_agric_yield==1))
     config.Array_tree_density = np.concatenate((config.Array_tree_density, config.EI.tree_density.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32) 
     config.Array_agriculture = np.concatenate((config.Array_agriculture, config.EI.agriculture.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32)
     config.Array_populationOccupancy = np.concatenate((config.Array_populationOccupancy, config.EI.populationOccupancy.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32)
