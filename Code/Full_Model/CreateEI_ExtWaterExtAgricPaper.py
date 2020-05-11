@@ -219,7 +219,6 @@ class Map:
         self.treeless_years = np.zeros(self.N_els).astype(np.uint8)
         self.get_agriculture_sites()
 
-
         self.get_AnakenaBeach(triObject)
 
         #self.plot_agriculture(which="high", save=True)
@@ -711,6 +710,19 @@ class Map:
     ##############################################
     ##########     PLOTTING    ###################
     ##############################################
+
+    def plotArea(self):
+        fig = plt.figure(figsize=(10,6))
+        ax = fig.add_subplot(1,1,1,fc='aquamarine')
+        plot = ax.tripcolor(self.points_EI_km[:,0], self.corners['upper_left'][1] - self.points_EI_km[:,1], 
+        self.EI_triangles, facecolors=self.EI_triangles_areas, vmin = 0, vmax = np.max(self.EI_triangles_areas), cmap="Reds", alpha=1)
+        ax.set_aspect('equal')
+        divider = make_axes_locatable(plt.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        plt.colorbar(plot, cax =cax) 
+        plt.savefig("Map/Areas"+str(config.gridpoints_y)+".svg")
+        plt.close()
+        return 
 
     def plot_TreeMap_and_hist(self , ax=None, fig=None, name_append = "", hist=False, save=False, histsavename="", folder="Map/"):
         if hist:

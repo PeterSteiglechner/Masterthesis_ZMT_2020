@@ -63,7 +63,7 @@ def update_time_step(t):
     config.moves = np.append(config.moves, config.move)
     config.move=0
 
-    config.Fraction_eroded = np.append(config.Fraction_eroded, np.sum(config.EI.agric_yield==config.UpperLandSoilQuality) /(np.sum(config.EI.agric_yield==1)+np.sum(config.EI.agric_yield==config.UpperLandSoilQuality)))
+    config.Fraction_eroded = np.append(config.Fraction_eroded, np.sum(config.EI.agric_yield==config.ErodedSoilYield) /config.EI.nr_highqualitysites)
     config.Array_tree_density = np.concatenate((config.Array_tree_density, config.EI.tree_density.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32) 
     config.Array_agriculture = np.concatenate((config.Array_agriculture, config.EI.agriculture.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32)
     config.Array_populationOccupancy = np.concatenate((config.Array_populationOccupancy, config.EI.populationOccupancy.reshape((config.EI.N_els,1)).astype(np.int32)), axis=1).astype(np.int32)

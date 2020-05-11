@@ -65,7 +65,7 @@ config.index_count=0
 ### RUN
 config.updatewithreplacement = False
 config.StartTime = 800
-config.EndTime=1200
+config.EndTime=1900
 config.N_timesteps = config.EndTime-config.StartTime
 config.seed= int(sys.argv[1])
 print("Seed: ", config.seed)
@@ -188,8 +188,8 @@ config.ErodedSoilYield=0.5
 #config.AgriConds={'minElev':20,'maxElev_highQu':250,
 #    'maxSlope_highQu':3.5,'maxElev_lowQu':380,'maxSlope_lowQu':6,
 #    'MaxWaterPenalty':300,}
-config.gridpoints_y=80
-config.AngleThreshold = 30
+config.gridpoints_y=50
+config.AngleThreshold = 35
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
 
@@ -231,8 +231,9 @@ else:
     config.EI.plot_agriculture(which="high", save=True)
     config.EI.plot_agriculture(which="low", save=True)
     config.EI.plot_agriculture(which="both", save=True)
-    config.EI.plot_TreeMap_and_hist(name_append="T12e6", hist=True, save=True)
+    config.EI.plot_TreeMap_and_hist(name_append="T16e6", hist=True, save=True)
     config.EI.plot_water_penalty()
+    config.EI.plotArea()
 
 config.EI_triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.EI.points_EI_km[:,1], triangles = config.EI.all_triangles, mask=config.EI.mask)
 config.tree_growth_poss = np.where(config.EI.carrying_cap>0)[0].astype(int)

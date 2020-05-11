@@ -5,7 +5,7 @@
 ''' This File contains the 
  - observe function where treees are agents (for HopVes_i Base and _HHet)
  - observe_density function where trees are just a number associated with a triangle on Easter Island (HopVes_i_spatExt, +_hh_ext)
- - follow_ag0
+ - follow_ag
  '''
 
 import config
@@ -23,36 +23,38 @@ from matplotlib.colors import LinearSegmentedColormap
 
 import sys, os
 
-def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True):
+def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = None, ncdf=False, folder=None):
     if fig==None:
         fig = plt.figure(figsize=(10,6))
-        ax = fig.add_subplot(1,1,1,fc='aquamarine')
-
+        ax = fig.add_subplot(1,1,1,fc='lightgray')
+    if folder==None:
+        folder=config.folder
     #fig,ax = observe_density(t,ax = ax,fig = fig, save=False)
     #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
 
-    fig, ax, divider, _ =   plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save = save)
-    ax, divider, _  = plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save =save)
-    if len(config.agents)>0:
-        ax = plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=specific_ag_to_follow, color = 'purple')
+    fig, ax, divider, _ =   plot_TreeMap_only(fig, ax, t, data=data, ncdf=ncdf, save = save)
+    ax, divider, _  = plot_agricultureSites_onTop(ax, divider, t, data=data, ncdf=ncdf, save =save)
+    if len(config.agents)>0 or (ncdf==True):
+        ax = plot_agents_on_top(ax, t, ncdf=ncdf, data=data, specific_ag_to_follow=specific_ag_to_follow)
 
     ax.set_title("Time "+str(t))
 
     if save==True:
         #fig.tight_layout()
-        plt.savefig(config.folder+"map_time"+str(t)+".png")
+        plt.savefig(folder+"map_time"+str(t)+".png")
         plt.close()
     return fig, ax
 
 
-def follow_ag0(x,y,mr, tr, ar):
+
+def follow_ag(x,y,mr, tr, ar):
     ''' plot circle around ag0 with resource and move search radius'''
     move_circle = plt.Circle([x, config.EI.corners['upper_left'][1]-y], 
-        radius = mr, clip_on=True, color='black', alpha=0.2)
+        radius = mr, clip_on=True, color='black', alpha=0.1)
     tree_circle = plt.Circle([x, config.EI.corners['upper_left'][1]-y], 
-        radius = tr, clip_on=True, color='black', alpha=0.35)
+        radius = tr, clip_on=True, color='black', alpha=0.2)
     agric_circle = plt.Circle([x, config.EI.corners['upper_left'][1]-y], 
-        radius = ar, clip_on=True, color='black', alpha=0.5)
+        radius = ar, clip_on=True, color='black', alpha=0.3)
     return move_circle, tree_circle, agric_circle
 
 
@@ -137,7 +139,7 @@ def plot_movingProb(ToSavePenalties):
     ax.set_title("Agent "+str(AG_index))
 
 
-    move_circle, tree_circle, agric_circle = follow_ag0(AG_Pos[0], AG_Pos[1], AG_MovingRad, config.EI.tree_search_radius, config.EI.agriculture_radius)
+    move_circle, tree_circle, agric_circle = follow_ag(AG_Pos[0], AG_Pos[1], AG_MovingRad, config.EI.tree_search_radius, config.EI.agriculture_radius)
     if AG_MovingRad <100: ax.add_artist(move_circle)
     ax.add_artist(tree_circle)
     ax.add_artist(agric_circle)
@@ -245,7 +247,7 @@ def plot_movingProb(ToSavePenalties):
         
         ax2.set_title(key)
         #print(np.min(prob),np.max(prob))
-        #move_circle, tree_circle, agric_cirle = follow_ag0(ag)
+        #move_circle, tree_circle, agric_cirle = follow_ag(ag)
         #ax2.add_artist(move_circle)
         #ax2.add_artist(tree_circle)
         #ax2.add_artist(agric_cirle)
@@ -270,7 +272,7 @@ def plot_movingProb(ToSavePenalties):
 ######################################################################
 ###########        PLOT FUNCTIONS LATER                 ##############
 ######################################################################
-def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None, color = 'purple'):
+def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None):
     if ncdf==False:
         agent_points_np = np.array([[ag.x, ag.y, ag.pop] for ag in config.agents])# subtracting ag.y from the upper left corner gives a turned picture (note matrix [0][0] is upper left)
         agent_size = agent_points_np[:,2]
@@ -278,20 +280,22 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
         agent_points_np = data.PosAgents.sel(time=t).to_series().dropna()
         agent_size = data.SizeAgents.sel(time=t).to_series().dropna()
         agent_points_np = np.array([agent_points_np[::2], agent_points_np[1::2]]).T
-    
+        agent_treePref = data.TreePrefAgents.sel(time=t).to_series().dropna()
+
+    #print(agent_treePref.shape)
     if ncdf == False:
         color = [((1-ag.treePref), 0, 1,1) for ag in config.agents]
     else:
-        color = color
+        color = [((1-agent_treePref[k]), 0, 1,1) for k in agent_treePref.index]
 
     if len(agent_points_np)>0:
-        ax.scatter(agent_points_np[:,0], config.EI.corners['upper_left'][1] - agent_points_np[:,1], s=agent_size, color=color)#'purple')
+        ax.scatter(agent_points_np[:,0], config.EI.corners['upper_left'][1] - agent_points_np[:,1], s=agent_size*0.5, color=color)#'purple')
 
         if ncdf==False:
             if not specific_ag_to_follow==None:
                 #specific_ag_to_follow = config.agents[0]
                 a = specific_ag_to_follow
-                move_circle, tree_circle, agric_cirle = follow_ag0(a.x, a.y, a.moving_radius, a.tree_search_radius, a.agriculture_radius)
+                move_circle, tree_circle, agric_cirle = follow_ag(a.x, a.y, a.moving_radius, a.tree_search_radius, a.agriculture_radius)
                 if not a.moving_radius==100: ax.add_artist(move_circle)
                 ax.add_artist(tree_circle)
                 ax.add_artist(agric_cirle)
@@ -299,7 +303,7 @@ def plot_agents_on_top(ax, t, ncdf=False, data=None, specific_ag_to_follow=None,
 
 
 
-
+   
 
 def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save=True):
     if ncdf:
@@ -308,12 +312,14 @@ def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save=True
         face_colors = config.EI.agriculture* 1/(config.EI.EI_triangles_areas * config.km2_to_acre)  #(config.EI.nr_highqualitysites+config.EI.nr_lowqualitysites).clip(min=0.1)
     if any(face_colors>1):
         print("Error in plot agricultureSites")
-    colors = [(1,0,0,0), (1,0,0,1)]
-    #n_bin = 1# np.max(config.EI.agriculture)
-    customCmap = LinearSegmentedColormap.from_list("agriccmap",colors,N=100)
+    #colors = [(1,0,0,0), (1,0,0,1)]
+    #customCmap = LinearSegmentedColormap.from_list("agriccmap",colors,N=256)
+    oranges = plt.get_cmap("Oranges")(np.linspace(0, 1, 256*2))
+    oranges[:256,3] = np.linspace(0,1,256)
+    cmap = LinearSegmentedColormap.from_list("orangeshalf",oranges[:256])
 
     #plot_agricultureSites_onTop(ax=ax, fig=fig)    
-    AgricPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=customCmap, alpha=None, vmax=1, vmin=0)
+    AgricPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=cmap, alpha=None, vmax=1, vmin=0)
 
     if save:
         cax2 = divider.append_axes("right", "5%", pad="14%")
@@ -325,10 +331,16 @@ def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save=True
 def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save=True):
     if ncdf:
         face_colors =data.tree_density.sel(time=t)
+        face_colors[(data.tree_density.sel(time=800)>0)*(face_colors==0)] = -np.spacing(0.0)
     else:
         face_colors = config.EI.tree_density
+        face_colors[(config.EI.carrying_cap>0)*(face_colors==0)] = -np.spacing(0.0)
+
+    green = plt.get_cmap("Greens")(np.linspace(0, 1, 256*2))
+    cmap = LinearSegmentedColormap.from_list("greenhalf",green[:256])
+    cmap.set_under("brown")
     treePlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax = np.max(config.EI.carrying_cap)*2, cmap="Greens", alpha=1)
+    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax = np.max(config.EI.carrying_cap), cmap=cmap, alpha=1)
 
     watertriangles = np.zeros([config.EI.N_els])
     watertriangles[config.EI.water_triangle_inds]=1
