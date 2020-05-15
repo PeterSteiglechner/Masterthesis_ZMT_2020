@@ -1,23 +1,45 @@
-\documentclass{article}
+\documentclass{kththesis}
 
-\input{/home/peter/Organisatorisches/Latex_dinge/packages}
-\title{Development of a spatially explicit Agent-Based Model of human-resource interaction on Easter Island}
-\author{Peter Steiglechner}
-%\date{\today}
+%\usepackage{csquotes}
+%\usepackage[style=numeric, sorting=none, backend=bibtex]{biblatex}
+\usepackage[backend=bibtex, natbib=true, style=authoryear, dashed=false, maxbibnames=3, giveninits=true, uniquename=init]{biblatex}
+\renewcommand{\citet}[1]{\citeauthor{#1} (\citeyear{#1})}
+
 
 \addbibresource{../Literature/EasterIslandbib.bib}
+%\def\citep\parentcite
+\input{/home/peter/Organisatorisches/Latex_dinge/packages_kththesis}
+\title{Development of a spatially explicit Agent-Based Model of human-resource interaction on Easter Island}
+\alttitle{det är en svenska titlen}
+\author{Peter Steiglechner}
+\email{peter.steiglechner@gmail.com}
+\supervisor{Agostino Merico}
+\examiner{Michael Hanke}
+\hostcompany{Leibniz Centre for Tropical Marine Research (ZMT)}
+\programme{Master in Computer Simulations in Science and Engineering}
+\school{School of Engineering Sciences}
+\date{\today}
+
+\kthcover{kth-cover.pdf}
 
 \begin{document}
+\frontmatter
+%\input{Titlepage}
+\titlepage
 
-\input{Titlepage}
-
-\newpage 
+\begin{abstract}
+	English
+\end{abstract}
+\begin{otherlanguage}{swedish}
+\end{otherlanguage}
+%\newpage 
 
 \tableofcontents
 
-\input{Abstract}
+\mainmatter
+%\input{Abstract}
 
-\input{Introduction}
+%\input{Introduction}
 
 \input{Methods}
 
@@ -25,7 +47,12 @@
 
 \input{Conclusion}
 
-%\citep{Merico2017}
-\printbibliography
+
+
+\printbibliography[heading=bibintoc]
+
+\appendix
+\chapter{Bla}
+\tailmatter
 
 \end{document}
