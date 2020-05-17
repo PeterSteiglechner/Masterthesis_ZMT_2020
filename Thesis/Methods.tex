@@ -49,7 +49,7 @@ Figure \ref{fig:SketchABM} summarises all environmental variables, the agent var
 \section{Creating a 2D discretised Map of Easter Island}
 
 First, a discretised map is created dividing the island into a number of small 2D triangular cells with certain geographical features via a triangulation of a rectangular grid of points.
-I use a 2D equidistant grid ranging from $(-27.2050^\circ N, \, -109.4650^\circ E)$ to $(-27.0437^\circ N, \, -109.2227^\circ E)$ and a resolution of \todo{$points/km^2$}(i.e.\ $100$ points in $x$(East)- and $50$ points in $y$(North)-direction).. 
+I use a 2D equidistant grid ranging from ($-27.2050^\circ N$, \, $-109.4650^\circ E$) to ($-27.0437^\circ N$, \, $-109.2227^\circ E$) and a resolution of \todo{$\delta = points/km$}(i.e.\ $100$ points in $x$- (East) and $50$ points in $y$-direction (North)). 
 In principle, the map can be created with any arbitrary resolution, constrained only by the resolution of the underlying geographical data. 
 Also other grid types, e.g.\ one with higher resolution in a specific region of interest, are completely compatible with the model. 
 While a higher resolution results in a more detailed and less discretisation error, computation time of the presented model scales highly non-linearly (see Section \TODO).
@@ -66,6 +66,7 @@ The remaining ones constitute the landmass of the discretised island.
 With the resolution given above, $N_c = 11387$ cells remain. 
 The area of the discretised Easter Island is $A=\TODO$, i.e.\ only a negligible fraction off from the $163.6\, {km^2}$ in reality.
 with a area of once cell of $\overline{A(c)}= todo \pm todo$ \TODO.  
+
 There are three -- or two in periods of major droughts (see \citet{Rull2020}) -- permanent crater lakes on Easter Island, providing the major freshwater sources for the prehistoric Easter Island population, as discussed later in Section \ref{sec:Moving}.
 The corresponding cells are calculated from the locations and radii of these lakes. 
 This procedure gives a detailed, discretised representation via triangular cells with geographical features of Easter Island. 
@@ -86,13 +87,13 @@ E.g.\ \citet{Bahn2017} state that soil sufficient for tree growth is present `al
 However, \citet{Rull2020} also investigates the possibility of mosaic vegetation patterns with high densities of trees around the lakes and the coastal areas.
 %As mentioned in the introduction \TODO, there's no comprehensive record of tree patterns. While some \todo{cite Rull?} archaeologsits state that the majority ($80\%$ of the island) was densley forrested \todo{cite}. 
 The model presented here can incorporate any pattern of pre-arrival tree density. 
-For the results in this thesis, I assume an equal density pattern characterised excluding those cells with very high elevation or slope ($T(c,t) = 0$ $\Rightarrow$ $el(c)>430\, {\rm m}$ or $sl(c)>10^\circ$).
+For the results in this thesis, I assume an equal density pattern characterised excluding those cells with very high elevation or slope ($el(c)>430\, {\rm m}$ or $sl(c)>10^\circ$ $\Rightarrow$ $T(c,t) = 0$).
 %by two terrain-dependent tree density levels: (1) `normal density' for low elevation $el(c)<250\, \rm{m}$ and slope $sl(c)<5^\circ$, (2) `half density' for moderately high elevations $250\, \rm{m}el(c)<430\, \rm{m}$ (elevation of Lake Rano Aroi) and slope $5^\circ < sl(c) < 9^\circ$, and (3) `zero density' for cells above these thresholds.
-In this model, 
+In this model, a total of 
 \begin{equation}
 \mathbf{T}(t=t_\text{arrival}) = \sum_{c} \, T(c,t=t_\text{arrival}) =  16 \cdot 10^6
 \end{equation} 
-trees are distributed with uniform probability among all cells with potential tree for tree growth. 
+trees (iterated over all cells, denoted by the bold symbol) are distributed with uniform probability among all cells with potential tree for tree growth. 
 A resulting map of pre-arrival tree numbers $T(c,t_\text{arrival})$ in cells $c$ extending on $80\%$\TODO of Easter Island is shown in Figure \ref{fig:Map_tree}.
 
 \begin{figure}
@@ -146,17 +147,24 @@ These sites are mainly located in the well-suited or poorly suited regions of th
 All in all, one can conclude that the expected yield of sweet potato farming strongly depends on the specific location and its climatic conditions and soil quality.
 This spatial variation alone would require a complex model as well as more field research.
 In this model, I build on the works by \citep{Puleston2017} and \citet{Louwagie2006}.
-I use the map of well-suited and poorly suited sites from \citet{Puleston2017} and transfer it to the cells of the discretised map of Easter Island.
-Following roughly the classification by \citet{Louwagie2006}, I assign Farming Productivity Indices, $F_\text{PI}(c)$, to each cell:
+I use the map of well-suited and poorly suited regions from \citet{Puleston2017} and transfer it to the cells of the discretised map of Easter Island.
+Throughout the simulation, the agents set up a basic unit gardens of size $1\, {\rm acre}$ on arable cells\footnote{Hence, they do not use the full area of a cell but only the number of acres that fit into the cell.}.
+These acres are denoted as sites in this thesis. 
+A cell has 
+\begin{equation}
+A_{\rm acres}(c) = \text{Rounded Down }(A(c)[\text{acres}])
+\end{equation}
+number of acres, which can be turned into gardens and farmed.
+Following roughly the classification by \citet{Louwagie2006}, I assign Farming Productivity Indices, $F_\text{PI}(c)$, to each cell and its according sites:
 \begin{eqnarray*}
 F_\text{PI}|_\text{well} = 80\% & \text{ for well-suited (between optimal and moderately suitable}\\
 F_\text{PI}|_\text{poor} = 10\%  & \text{ for poorly suited and}\\ F_\text{PI}|_\text{non-viable} = 0\% & \text{ for non-viable sites}
 \end{eqnarray*}
-The absolute productivity of arable land in units of people it can support is taken from calculations in \citet{Puleston2017} assuming two different Nitrogen fixation scenarios (see later).
+The absolute productivity of acres of arable land in units of people it can support is taken from calculations in \citet{Puleston2017} assuming two different Nitrogen fixation scenarios (see in detail later).
 
 As mentioned by several authors, soil erosion through radical deforestation and heavy rainfalls also constrain the farming productivity of the island especially in the later phase (e.g.\ \citet{Brander1998}, \citet{Mieth2005}, \citet{Bahn2017}, \ldots).
 As trees are removed from a region, rain can wash away nutrient-rich soil and reveal less fertile ground with reduced productivity \citet{Mieth2005}.
-In the model, I assume that, as a cell is completely deforested, the consequent erosion reduces the $F_\text{PI}(c)$ for well suited sites to $F_\text{PI}|_\text{eroded}=50\%$. 
+In the model, I assume that, as a cell is completely deforested, the consequent erosion reduces the $F_\text{PI}(c)$ for well suited cells to $F_\text{PI}|_\text{eroded}=50\%$. 
 This soil degradation is reverted as soon as trees pop back up, i.e.\ if the cell has been kept barren (without farming) for the previous $10$ years.
 
 It should be emphasized that, the agricultural potential of Easter Island and its impact on the population dynamics and especially the peak population size able to live on Easter Island remains a strong limitation in this model. %in estimating the carrying capacity.
@@ -177,124 +185,196 @@ The map of Farming Productivity Indices $F_\text{PI}(c)$ of all cells on Easter 
 
 \section{Agents and Agent-Environment Interaction}\label{sec:AgentUpdate}
 % Topic: Agents Households with properties
-The agents of this ABM are households situated on the discretised map.
+The ABM consists of agents representing households situated on the discretised map derived in the previous section.
 %Agents have several constant properties: 
 %A reproduction rate $rr$, a moving radius $r_M$, a resource search radius 
-Agents have several variables describing their state.
-Each agent $i$ is located on a position $\vec{x}(t) = (x_i,\, y_i)(t)$ on the discretised map and, hence, associated with one spefic cell $c_i(t)$.
-The household consists of $pop_i(t)$ people, which can range from $6$ to $48$.
-In order to sustain and potentially increase their population size, the agent relies on an intake of resources each year.
-As described in the Introduction, I consider two major resources, tree cutting and sweet potato cultivation.
-An agent can aquire these resources from cells within certain radii: The tree search radius $r_T$ and agriculture search radius $r_A$. 
-I assume that both are fixed for all agents and throughout the simulation.
-In each year, the agent searches for trees and if necessary new agriculturally viable sites in those cells, whose midpoints are within the search radius, $C_T(c_i(t))$ and $C_A(c_i(t))$, respectively.
-\begin{eqnarray}\label{eq:Circle}
-C_{T/A}(c_i(t)) = \{ \tilde{c}\ | \   | |  \vec{\tilde{c}} - \vec{x_i}(t)
-%\begin{pmatrix} \tilde{c}_x \\ \tilde{c}_y \end{pmatrix}  - \begin{pmatrix}x_i\\ y_i \end{pmatrix}(t)
-| |  \leq r_{T/A} \}
-\end{eqnarray}
-
-However, this need for tree and agriculture harvest for each agent varies with the population size $pop_i(t)$ and an adaptive trait of the agent, the tree preference described in the following. 
-In the initial phase, the islanders lived off the natural resources, i.e.\ birds, fish, and fruit from the trees \citet{Bahn2017}. 
-Over time, the islander's economy `switched from predominantly hunter-gatherer to a dryland farming society' \citep{Louwagie2006}.
-In this model this shift is reflected by a trait parameter of each agent, the tree preference $TPref_i(t)$, ranging from $0$ to $1$.
-This tree preference indicates the value of tree harvest over agricultural production and, hence, increases the need for one over the other in order to fill the resource requirements.
-The tree preference is high in the initial state, but decreases as trees become scarce and more land is available for cultivation of crops.
-Hence, $TPref_i(t)$ responds to some degree to the local environment of the agent.
-In this model, $TPref_i(t)$ depends on the local, relative change of tree density within the tree search radius $r_T$ with respect to the initial state:
+An agent with index $i$ has several varying properties describing its state at time $t$.
+The settlement is located at 
 \begin{equation}
-TPref_i(t) = f\left( \, \frac{\sum_{\tilde{c} \in C_{T}(c_i(t)) } \, T(\tilde{c}, t)}{\sum_{\tilde{c} \in C_{T}(c_i(t))} \, T(\tilde{c}, 0) } \, \right)
+	\vec{x}(t) = (x_i,\, y_i)(t)
 \end{equation}
-The shape of the function indicates a responsiveness of the economy/society to environmental change. How fast does the agent adapt its harvest requirements, when the non-renewable resource, trees, declines from the inital state?  
-I am considering four possibilities: 
+ on the discretised map and, hence, associated with one specific cell $c_i(t)$.
+ The agent's population size, i.e.\ the number of individuals in the household, 
+ \begin{equation}pop_i(t) \end{equation}
+ typically ranges from $12$ (minimum $6$) to ca.\ $42$.% ranging from $6$ to $42$ .
+While, all calculations and decisions on harvest and moving happen on the individual scale, macroscopic indicators, like the total population of the farmed land in a cell, can be calculated simply by iterating over all agents. 
+Iterations over all agents (or cells of the map for the corresponding variables) are denoted via bold symbols in all equations in this thesis.
+
+Agents rely on an intake of resources each year in order to sustain and potentially increase their population size.
+As mentioned before, I consider two major resources, trees and sweet potato farming, accessible through interaction with the environment.
+An agent $i$ can harvest resources from environmental cells whose midpoints $\vec{\tilde{c}}$ are within certain, fixed radii of the agent's location:
+\begin{equation} \label{eq:Circle_T}
+C_{T}(c_i(t)) = \{ \tilde{c}\ | \   | |  \vec{\tilde{c}} - \vec{x_i}(t) | |  \leq r_{T} \} 
+\end{equation}
+for resource tree with tree search radius $r_T =2\, {\rm km}$ and 
+\begin{equation} \label{eq:Circle_F}
+C_{F}(c_i(t)) = \{ \tilde{c}\ | \   | |  \vec{\tilde{c}} - \vec{x_i}(t) | |  \leq r_{F} \}
+\end{equation}
+for farming sites with farming radius $r_F = 1\, {\rm km}$.
+
+An agent's required total resource uptake per year varies with the population size 
+This resource uptake is split between trees and farming yield.
+The shares are given by a trait parameter, the tree preference $T\_\text{Pref, i}(t)$ for agent $i$ at time $t$, which reflects the agent's harvest behaviour in response to its local environment.
+In the first settlement phase, the islanders mainly lived off the abundant natural resources of the island, i.e.\ birds, fish, and fruit from the trees \citet{Bahn2017}. 
+Over time, the economy `switched from predominantly hunter-gatherer to a dryland farming society' \citep{Louwagie2006}.
+In the model, this behavioural shift results from a decrease in the variable adaptive tree preference parameter, $T_\text{Pref i}(t)$ of each agent over time.
+The idea of this trait parameter is that agent's adapt their resource reuqirements to changes in the local environment, in particular the deforestation. 
+%It is an adaptive trait reflecting the local state of the environment around an agent, in particular the local abundance of trees. %(i.e.\ trees $T(c,t)$ of cells within $C_T(c_\text{i}(t)$).
+Hence, as the island's trees are removed and more arable land is cleared freeing space for agriculture, the agent's tree preference decreases and farming activity increases, accordingly.
+%This tree preference indicates the value of tree harvest over agricultural production and, hence, increases the need for one over the other in order to fill the resource requirements.
+%The tree preference is high in the initial state, but decreases as trees become scarce and more land is available for cultivation of crops.
+%Hence, $TPref_i(t)$ responds to some degree to the local environment of the agent.
+In this model, the tree preference, $T_\text{Pref, i}(t)$, depends on the local, relative change of tree density within the tree search radius $r_T$ with respect to the initial state at $t=t_\text{arrival}$, i.e.:
+\begin{equation}
+T_\text{Pref, i}(t) = f\left( \, \frac{\sum_{\tilde{c} \in C_{T}(c_i(t)) } \, T(\tilde{c}, t)}{\sum_{\tilde{c} \in C_{T}(c_i(t))} \, T(\tilde{c}, t_\text{arrival}) } \, \right)
+\end{equation}
+The shape of the function indicates an indicator of the responsiveness of the economy/society to environmental change. How fast do agents adapt their harvest behaviour, when the non-renewable resource,the trees, is depleted from the initial state?  
+I consider four possibilities (see also Figure \ref{fig:TPref_T}): The tree preference $T_\text{Pref, i}(t)$ decreases
 \begin{itemize}
-	\item The tree preference decreases linearly with the local, relative tree density decline (linear case).  
-	\item The tree preference decreases delayed with the local, relative tree density decline (delayed case).
-	\item The tree preference decreases quicker than the local, relative tree density decline (careful case).
-	\item The tree preference decreases first delayed, and at some point quicker than the local, relative tree density decline (switched case).
+	\item linearly with the local, relative tree density decline (linear case).  
+	\item delayed with the local, relative tree density decline (delayed case).
+	\item quicker than the local, relative tree density decline (careful case),
+	\item first delayed, and at some point quicker than the local, relative tree density decline (switched case) 
 \end{itemize}
 \begin{figure}
 	\centering
 	%\includegraphics[width=\textwidth]{images/TreePreferenceOverTreeDensities}
-	\caption{The relation of an agent's tree preference $TPref_i(t)$ adaption to relative changes in the local tree density for the four considered relationship types.}
+	\caption{The relation of an agent's tree preference, $T_\text{Pref, i}(t)$, to relative changes in the local tree density for the four considered adaptive types.}
 	\label{fig:TPref_T}
 \end{figure}
-The tree preference is cut off at certain minmium and maximum thresholds, since an agent can hardly live off trees and its derivatives entirely and even for agricultural productivity a certain amount of trees is required (e.g.\ as cooking wood or for tools). 
-I choose: $TPref_{min} = 0.2$ and $TPref_{max} = 0.8$, which is also the initial value for the first settlers.
+The tree preference is cut off at certain minimum and maximum thresholds, assuming an agent can not live purely off trees (and associated derivative products) and some tree cutting is required even for maximum agricultural production (e.g.\ as cooking wood or for tools). 
+Here, I choose: 
+\begin{equation}
+T_\text{Pref, min} = 0.2 \quad \text{and} \quad T_\text{Pref, max} = 0.8
+\end{equation} 
+Since tree density is maximal at $t=t_\text{arrival}$, the initial agents start with maximal tree preference of $T_\text{Pref, i}(t=t_\text{arrival} = 0.8 \  \forall \ i$.
 
-In total, the agent's resource requirements of tree harvest, $TReq_i(t)$, and agricultural production, $AReq_i(t)$, per year are calculated as:
+
+In total, the agent's resource requirements of tree harvest, $T_\text{Req, i}(t)$, and agricultural production, $F_\text{Req, i}(t)$, per year are calculated as:
 \begin{equation}
-TReq_i(t) = TPref_i(t) \cdot pop_i(t) \cdot TReq\_pP \, 
+T_\text{Req, i}(t) = T_\text{Pref, i}(t) \cdot pop_{\rm i}(t) \cdot T_\text{Req, pP} \, 
 \end{equation}
-and similarily, 
+and, similarly, 
 \begin{equation}
-AReq_i(t) = (1-TPref_i(t)) \cdot pop_i(t) \cdot AReq\_pP\, , 
+F_\text{Req, i}(t) = (1-T_\text{Pref, i}(t)) \cdot pop_{\rm i}(t) \cdot F_\text{Req, pP}\, , 
 \end{equation}
-where $TReq\_pP$ is the tree requirement per year per person in absence of agriculture and $AReq\_pP$ is the required agriculture production per year in the absence of trees.
-These parameters are crucial of course for the whole dynamics. 
-For $TReq\_pP$, I am using an estimate of the model study in \citet{Brandt2015} (which had only half of the inital trees though). 
-In the standard run I am using $5$ Trees per Person per year. However, I vary this parameter in a sensitivity analysis (see Section \ref{sec:SensitivityAnalysis}).
-For $AReq\_pP$, I am using the estimates by \citet{Puleston2017}. In their agricultural model, they identify the Nitrogen fixation as a major uncertainty in the evaluation of potential agricultural yields. 
-With two different assumptions of Nitrogen fixation in the soil (high and low), \citet{Puleston2017} model the sweet potato harvest on a high quality agriculture site and combine it with the nutritional need of an individual person.
-I do not consider fallowing in the model, as this in general reduces the per area harvest (while its higher effectiveness decreases the labour for a single worker), since I focus on map constraints rather than modelling labour. \todo{Check this statement}.
-One can then calculate that for high N-fixation for one person (in the abesence of other food) needs $0.5\, \rm{acres}$ of high quality agricultural productivity of sweet potato cultivation.
-In the case of low N-fixation this increase to $1.7\, \rm{acres}$ per Person. 
-Here, I am using both values in order to test the different scenarios.
-The resource requirements for trees given in absolute numbers and agricultural production given in acres of high quality agriculture sites are thus agent-specific features updated each year, which can be tuned through the global parameters $TReq\_pP$ and $AReq\_pP$.
+where $T_\text{Req, pP}$ is the tree requirement per year per person in absence of agriculture and $F_\text{Req, pP}$ is the required agriculture production per year in the absence of trees.
+These parameters are crucial for the temporal development of the island's environment. 
+
+The tree requirement per person (in the absence of other food sources) in principle depends on a multitude of factors, e.g.\ whether sugary sap from cut tree trunks was used as freshwater replacement as suggested by \citet{Mieth2015}.
+Here, I use a constant parameter of 
+\begin{equation}
+T_\text{Req, pP} = 5\, \frac{\text{Trees}}{\rm person\cdot yr}
+\end{equation}
+(for the standard model settings) based on the maximum harvest rate used in \citet{Brandt2015}, ca.\ $3$ to $7$ trees per year\footnote{\citet{Brandt2015} use a only half of the initial trees before arrival of the first settlers, though)}. 
+%In the standard run I am using $5$ Trees per Person per year. However, I vary this parameter in a sensitivity analysis (see Section \ref{sec:SensitivityAnalysis}).
+
+The agriculture requirement per person is connected to the set up of the agricultural model resulting in productivity indices $F_\text{PI}(c)$ (Figure \ref{fig:Map_agric}).
+\citet{Puleston2017} simulate the nutritional productivity of farming on `well suited' land for two different environmental scenarios for the Nitrogen fixation in the soil, i.e.\ the rate at which Nitrogen is renewed, representing a major uncertainty in their model.
+This can be converted into the minimum land required to sustain one person using the nutrition content of sweet potato ($1\, \rm{t/yr}$ roughly sustains $1$ individual in the absence of other food sources): 
+\begin{equation}
+F_\text{Req, i}(t) = \begin{cases}
+	0.5 \, {\rm \frac{acre}{person} } & \text{ for high N fixation} \\
+	1.7 \, {\rm \frac{acre}{person} } & \text{ for low N fixation} \\
+ \end{cases}
+\end{equation}
+%For $AReq\_pP$, I am using the estimates by \citet{Puleston2017}. In their agricultural model, they identify the Nitrogen fixation as a major uncertainty in the evaluation of potential agricultural yields. 
+%With two different assumptions of Nitrogen fixation in the soil (high and low), \citet{Puleston2017} model the sweet potato harvest on a high quality agriculture site and combine it with the nutritional need of an individual person.
+I do not consider fallowing of arable land in the model to increase its productivity, as this in general reduces the yield per total area needed for each individual (see Table 1 in \citet{Puleston2017}).
+In fact, the only constrain for farming is availability of arable land in this model, not workforce or social structure (as in \citet{Puleston2017})
+%One can then calculate that for high N-fixation for one person (in the abesence of other food) needs $0.5\, \rm{acres}$ of high quality agricultural productivity of sweet potato cultivation.
+%In the case of low N-fixation this increase to $1.7\, \rm{acres}$ per Person. 
+%Here, I am using both values in order to test the different scenarios.
+The resource requirements for trees given in absolute numbers and agricultural production given in acres of well-suited quality agriculture sites are thus agent-specific features updated each year, which can be adjusted through the global parameters $T_\text{Req, pP}$ and $F_\text{Req, pP}$.
 
 % Topic: Fishing Agents constrained by a tabu 
-The model allows for open sea fishing as a replacement for the agricultural requirement, for some agents living near the coast of Anakena.
+The model, furthermore, allows for open sea fishing as a replacement for farming for some agents living near the Anakena coast.
 %Instead of filling the agricultural requirement by cultivating land with crops, these deep-sea fishing household agents obtain their nutrition from the sea in the model. 
-For such fishing agents, the agriculture and tree requirement are calculated in the same way. However instead of occupying land units and harvesting agriculture, like other agents, fishers simply fill this requirement by going out to sea. 
-In the initial phase of Easter Island settlement, fish supply was plentiful, with excarvations proving that shellfish, fish and even porpoise like dolphins were a major part of the diet at the time \citep{Bahn2017}
-However, over time, this resource became more and more scarce and many species even went extinct due to human predation. 
-From \TODO we know that as a reaction to this development the Easter Island society introduced a taboo on fishing. 
-Only members of a specific chiefdom living at Anakena Beach could pursue it \todo{cite}. 
-According to \citet{Bahn2017} or \citet{Diamond2005}, sea fish vanished from the Easter Island typical diet by \TODO.
-Hence, in the model, every agent living within $r_A$ distance of Anakena Beach becomes a fishing agent.
-At time $t_\text{taboo fishing}=$\TODO a taboo is put in place externally letting only \TODO those agents already pursuing fishing to continue but allowing no further agents to enter this resource stock. 
-While I assume that fish supply is unlimited, another constraint of course is the tree requirement, which is quite extensive for building the canoes or providing firewood. Hence, the fisher's minimum tree Preference is set to $TPref_\text{min}|_\text{fisher} = 50\%$ rather than $TPref_{\text{min}} = 20\%$ for agricultural agents.
-While agents, that are allowed to fish, do not have any agricultural requirements due to the assumed unlimited resource stock from the sea, the correspondingly higher requirement for trees still needs to be fulfilled.
+%For such fishing agents, the agriculture and tree requirement are calculated in the same way. However 
+Instead of occupying arable land units and farming, these fishers gain sufficient agricultural resources by going out to sea.
+In the initial phase of Easter Island settlement, excavations prove that shellfish, fish and even porpoise were a major part of the diet at the time \citep{Bahn2017}.
+However, over time, these natural resources became increasingly scarce and many species even went extinct due to human predation, with open ocean fish vanishing from the diet eventually \citep{Diamond2011}.
+As a resource management institution the Easter Island society had taboos on the harvest of natural resources \citep{Good2006}. 
+Fishing was mainly restricted to members of a specific chiefdom (`Miru') living at Anakena Beach \citep{Bahn2017} who would then presumably trade with others.
+%According to \citet{Bahn2017} or \citet{Diamond2011}, sea fish vanished from the Easter Island typical diet by \TODO.
+Hence, in the model, every agent living within farming radius, $r_F$, distance of Anakena Beach automatically becomes a fishing agent.
+\TODO TABOO? Needed??
+%At time $t_\text{taboo fishing}=$\TODO a taboo is put in place externally.
+%Consequently no new fishing agent's are accepted .
+% letting only \TODO those agents already pursuing fishing to continue but allowing no further agents to enter this resource stock. 
+While I assume that fish supply in the sea is unlimited for those living at Anakena Beach, another constraint for the agents is the requirement for trees.
+For fishers this would probably be quite extensive in order to building the canoes or provide firewood. 
+Hence, the fisher's minimum tree preference is increased to
+\begin{equation}
+T_\text{Pref, min}|_\text{fisher} = 0.5
+\end{equation} 
+rather than $T_\text{Pref, min} = 0.2$ for farming agents.
+While fishing agents near Anakena Beach do not have any agricultural requirements due to their access to an unlimited resource stock from the sea, the correspondingly higher requirement for trees and an externally introduced restriction limit the total amount of this resource extraction.
 
 \subsection{Agent-Environment Interaction -- Tree and Agriculture Harvest}\label{sec:Harvest}
-\begin{itemize}
-	\item Tree Harvest
-	\item Agriculture harvest
-	\item How many trees to burn
-	\item Fishing 
-\end{itemize}
+%\begin{itemize}
+%	\item Tree Harvest
+%	\item Agriculture harvest
+%	\item How many trees to burn
+%	\item Fishing 
+%\end{itemize}
 
+%. TODO: CHANGE T REQ TO R_T and R_F 
 % Topic: Tree Harvest
-After calculating the requirements of tree harvest and agricultural production as described in the previous Section, an agent tries to fill these.
+\paragraph{Farming}
+After determining the required amount of trees, $T_\text{Req, i}(t)$, and agricultural production, $F_\text{Req, i}(t)$, as described in the previous section, an agent tries to fill these.
 
-By occupying land units of $1\, \text{acre}$ an agent increases their agricultural Production $AProd_i(t)$ in order to fill the agricultural requirement $AReq_i(t)$.
-The occupied sites by agent $i$ are denoted as $acres_i(t)$, where each element is associated with one cell ($c(a)$ for $a \in acres_i(t)$) and the production obtained from these is:
+An agent occupies arable land unit sites, $A_\text{F, i}(t)$, with a fixed area of $1\, \text{acre}$ associated to one cell on the discretised map and obtains a yearly harvest of
 \begin{equation}\label{AProd}
-AProd_i (t) = \sum_{a \, \in \, acres_i(t)} \, Y(c(a))
+F_\text{i}(t) = \sum_{a \, \in \, A_\text{F, i}(t)} \, F_{PI}(c(a))\ ,
 \end{equation}
-The agent increases $AProd_i(t)$ by occupying more sites and adding them to $acres_i(t)$ until there are no further sites available or the requirement $AProd_i(t) \geq ARequ_i(t)$ is fulfilled.
+where $a$ denotes a farmed acre and $c(a)$ is the corresponding cell of this acre.
+Note, for fishers $F_\text{i}(t) = F_\text{Req, i}(t)$ without farming.
+Agents keep all their currently occupied sites $A_\text{F, i}(t)$ until the next year.%, i.e.\ $acres_i(t+1) = acres_i(t) + new\_acres(t+1)$.
+If the requirement for farming,  $F_\text{Req, i}(t)$, in the next year ($t$\ra $t+1$) increases, agent $i$ might need to acquire more arable land.
+New sites are, thus, only occupied in the model if either an agent's population grows, its tree preference decreases or the soil quality of an agent's occupied sites degrades due to erosion, i.e., in summary, if an agent's farming requirement exceeds the previous agricultural production, i.e.\ if 
+\begin{equation}
+	F_\text{i}(t-1) < A_\text{F, i}(t) \ .
+\end{equation}
+Then the agent occupies more sites extending $A_\text{F, i}(t)$ and thus increasing the produce $F_\text{i}(t)$.
+%By occupying and farming a basic units of $1\, \text{acre}$ of arable land an agent increases the harvest $F_\text{i}(t)$ (in units of ${\rmacre}$)until it exceeds the required $F_\text{Req, i}(t)$.
+%The list of occupied sites by agent $i$ is denoted as $A_\text{F, i}(t)$, in which each acre is associated with one cell ($c(a)$ for $a \in A_\text{F, i}(t)$) and the resulting harvest obtained from these is:
+%\begin{equation}\label{AProd}
+%F_\text{i}(t) = \sum_{a \, \in \, A_\text{F, i}(t)} \, F_{PI}(c(a))
+%\end{equation}
+%The agent increases $AProd_i(t)$ by occupying more sites and adding them to $A_\text{F, i}(t)$ until there are no further sites available or the requirement $AProd_i(t) \geq ARequ_i(t)$ is fulfilled.
 
-An agent first searches for acres in cells with a potential for high quality sites ($Y(c)=1$), to minimise the workload.
-An acre in such a cell can only be occupied (or added to $acres_i(t)$) if at least the necessary space is cleared off trees. 
+In the search for new farming sites, an agent first considers only sites in well-suited cells, i.e.\ $c \in C_\text{F}(c_\text{i}(t))$ with $F_\text{PI}(c)=1$, in order to maximise efficiency.
+An acre in an arable cell can only be occupied (or added to $A_\text{F, i}(t)$) if at least this one acre is cleared off trees and not occupied. 
 Assuming that the trees are evenly distributed on the cell's area, the condition can be calculated as 
 \begin{eqnarray}
-& \text{Treeless Area\,[acre]} - \text{Occupied Acres\,[acre]}  & \geq 1  \\
-\Leftrightarrow & \left( 1 - \frac{T(c,t)}{T(c,0)} \right) \cdot \text{Area}(c) - \text{Occupied Acres}(c) & \geq   1
+%& \text{Treeless Area\,[acre]} - \text{Occupied Acres\,[acre]}  & \geq 1  \\
+%\Leftrightarrow & 
+\left( 1 - \frac{T(c,t)}{T(c,0)} \right) \cdot A(c) - \mathbf{A}_\text{F}(c) & \geq   1
 \label{eq:BurningCond}
 \end{eqnarray}
-If there are no high quality sites left that fulfill this condition, the agent uses the slash and burn method to reduce the number of trees $T(c,t)$ for the cell $c$ where the least amount of trees need to be burned until the condition holds.
-The use of fires to clear space is supported by the extensive charcoal record starting with the period of intensified agriculture \citep{Mieth2015}. 
-However it is not clear whether trees were felled and used (e.g.\ for extraction of the sugar sap) before burning and consequent agricultural use of the land \citep{Mieth2015} or slash and burn method was used directly to clear space (e.g.\ indicated by \citet{Bahn2017}). % Bahn: ``fires directly accompanied by agriculture''
-If after occupying all available high quality sites the requirement is not yet fulfilled, i.e.\ $AProd_i(t)<AReq_i(t)$, the agent also considers low quality sites in the same procedure.
-The agent keeps all occupied sites $acres_i(t)$ until the next year.%, i.e.\ $acres_i(t+1) = acres_i(t) + new\_acres(t+1)$.
-New sites are, thus, only occupied in the model if the agricultural requirement has increased from last year through population growth or tree preference decrease or if the soil quality of occupied sites has degraded through erosion compared to the previous year.
+where the first term is the treeless area in ${\rm acres}$ and the second term, $\mathbf{A}_\text{F}(t)$ is the number of farmed acres (by any agent) in cell $c$.
 
-After filling the agricultural requirement, the agent then cuts trees in order to fill the tree requirement. 
-An agent selects random cells from $C_T(c)$ with probabilites proportional to the tree number $T(c,t)$ on them.
-Then, the agent removes one tree successively from these cells and adds these to $TCut_i(t)$.
-This is done successively until its tree requirement is fulfilled, i.e.\ $TCut_i(t)=TRequ_i(t)$, or there are no trees left in cells within the $r_T$ distance of the agent.
-Unlike the agricultural production, where occupied sites are kept and re-used (with the same yield) in the next update, the agent needs to find new trees every year, i.e.\ $TCut_i(t)$ is starts at $0$ each year.
-If tree regrowth is switched off, this tree harvest therefore represents a non-renewable resource dependency.
+If there are no well-suited sites left that fulfil this condition, the agent uses the slash and burn method to reduce the number of trees $T(c,t)$ of an available well-suited cell $c$.
+The agent starts with the cell, that requires the least amount of trees removed for the condition to hold.
+But it continues until the farming requirement is exceeded or all well-suited acres are occupied.
+The use of fires to clear space is supported by the extensive charcoal record starting with the period of intensified agriculture \citep{Mieth2015}. 
+Here, I assume that if space is required for farming trees were burned directly and independently of the continuous tree harvest .
+Of course, one could also use these trees first and (e.g.\ for extracting the sugary sap) then burn the remaining material to clear the land for next year as indicated by \citet{Mieth2015}, but this would require agents that plan ahead.
+%felled and used (e.g.\ for extraction of the sugar sap) before burning and consequent agricultural use of the land \citep{Mieth2015} or slash and burn method was used directly to clear space as necessary next to tree harvest %(e.g.\ indicated by \citet{Bahn2017}). % Bahn: ``fires directly accompanied by agriculture''
+If, all well-suited sites within $C_F(c_i(t))$ are occupied, but the agent's agricultural production does not yet meet the farming requirement ($F_\text{i}(t)<A_\text{Req, i}(t)$, the agent also occupies eroded and then  poorly suited cells in the same procedure.
+
+\TODO
+
+\paragraph{Tree Harvest}
+After filling the farming requirement, the agent then cuts trees according to their tree requirement $T_\text{Req, i}(t)$.
+An agent $i$ selects random cells $c\in C_T(c_i(t))$ with uniform probabilities and successively removes trees from these cells until the number of cut trees, $T_\text{i}(t)$ matches the requirement $T_\text{Req, i}(t)$ or no further trees area present. 
+%An agent $i$ selects random cells $c\in C_T(c_i(t))$ with probabilities proportional to the tree number $T(c,t)$ on them. \TODO?!?
+%Then, the agent removes one tree successively from these cells and adds these to $TCut_i(t)$.
+%This is done successively until its tree requirement is fulfilled, i.e.\ $TCut_i(t)=TRequ_i(t)$, or there are no trees left in cells within the $r_T$ distance of the agent.
+Unlike farming, where occupied sites are kept and re-used (with the same productivity index) in the next update, the agent needs to find new trees every year,.% i.e.\ $TCut_i(t)$ is starts at $0$ each year.
+Therefore, if tree regrowth is disabled, this tree harvest represents a non-renewable resource dependency of the Easter Island society.
+While the agent's adapt their harvest behaviour via the tree preference, a minimum amount of trees is always required and, hence, there's no equilibrium state without tree regrowth.
 
 Figure \TODO \ref{fig:treeburning} shows an example sketch of potential procedure of deforestation and consequent replacement by agriculture in an example cell. 
 
@@ -304,172 +384,198 @@ Figure \TODO \ref{fig:treeburning} shows an example sketch of potential procedur
 	\caption{Sketch of deforestation procedure in an example cell $c$ (box). 
 		In the beginning the cell has 17 of its initial 20 trees still standing. 
 		The area of cell $c$ is $3.2\, \rm{acres}$. 
-		Agent $a$ removes 5 trees from cell $c$ (among others potentially) to fulfill its tree requirement. An agent $b$ consequently occupies the now free space on cell $c$ for agricultural production. 
+		Agent $a$ removes 5 trees from cell $c$ (among others potentially) to fulfil its tree requirement. An agent $b$ consequently occupies the now free space on cell $c$ for agricultural production. 
 		Next, an agent $c$, needs to occupy more sites to fill its agricultural requirement as well and cannot find any other unoccupied acre in $C_A(c_c)$ despite the ones in cell $c$. 
 		However the agent needs to burn $5$ trees before being able to occupy the second acre on this cell.}
 	\label{fig:treeburning}
 \end{figure}
 
-Each year the agent tries to fill its requirements for trees and agriculture as much as possible with the procedure described above. 
-Afterwards I evaluate the happiness $h_i(t)$ of this agent, reflecting the success of the harvest.
-Assuming that filling the tree requirement and the agriculture requirement is equally important to the agent, the happiness is simly the minimum of the fraction of requirements that could be filled:
+\paragraph{Happiness}
+An agent $i$'s happiness $h_\text{i}(t)$ after the harvest depends on the ratio between the $T_\text{i}(t)$ cut trees and $F_\text{i}(t)$ agricultural produce in comparison to the requirements determined beforehand.
+%Assuming that both requirements determine  the tree requirement and the agriculture requirement is equally important to the agent, the happiness is simply the minimum of the fraction of requirements that could be filled:
+By assuming that both resources are equally indispensable, the happiness is equal to the smaller of the two fractions:
 \begin{equation} 
-h_i(t) = min \left( \frac{TCur_{i}(t)}{TRequ_i(t)}, \, \frac{AProd_i(t)}{AReq_i(t)} \right)
+h_\text{i}(t) = min \left( \frac{T_\text{i}(t)}{T_\text{Req, i}(t)}, \, \frac{F_\text{i}(t)}{F_\text{Req, i}(t)} \right)
 \label{eq:h_i}
 \end{equation}
-If both requirements are filled for agent $i$, $h_i(t)=1$.
-However, if there either $TCut_i(t)$ or $AProd_i(t)$ are $0$, $h_i(t)=0$ regardless of the success of filling the other requirement.
-Since agent's usually have some inertia in reacting to changes in harvest success (e.g.\ by storing some food over the years), I furthermore calculate a smoothed happiness $H_i(t)$:
+If both requirements are filled for agent $i$, the happiness is maximised $h_\text{i}(t)=1$.
+However, if either $T_\text{i}(t)=0$ or $F_\text{i}(t)=0$, $h_\text{i}(t)=0$ follows regardless of the success in harvesting the other resource.
+
+%Following the harvest action, the population size of an agent is adapted and 
+%the agent's population dynamics responds and the agent might decide to re-locate the settlement.
+Since households have some resilience to a decline in harvest success (e.g.\ by storing food over more successful years), a memory happiness $H_\text{i}(t)$ is calculated in each year:
 \begin{equation}
-H_i(t) = \frac{h_i(t) + h_i(t-1)}{2}
+H_\text{i}(t) = \begin{cases} 
+				h_\text{i}(t) & \text{ if } h_\text{i}(t)\geq h_\text{i}(t-1) \\
+				\frac{h_\text{i}(t) + h_\text{i}(t-1)}{2} & \text{ if } h_\text{i}(t)<h_\text{i}(t-1) 
+		\end{cases}
 \end{equation}
-This factor also ensures, that if the agent has constantly too few resources, the happiness will decrease monotonically.
-This happiness and smoothed happiness, as indicators of how well the agent is doing, determine responses to the harvest year (Reproduction, Population decline, or Moving the Settlement), which are described in the following section.
+If an agent's resource availability decreases, its memory happiness decreases monotonically.
+If e.g.\ all trees were to suddenly vanish within a year, an agent would have two years before its memory happiness bottoms at $H_\text{i}(t) = 0$.
+In the following section, I describe the possible responses of agent $i$ depending on the memory happiness $H_\text{i}(t)$, as an indicator for successful resource acquisition.
+
+
 
 
 \section{Agent's reaction to the harvest}\label{sec:Reaction} 
 \subsection{Population Dynamics}
 
 %The population of an agent is assumed to b
-
-After agricultural production and tree cutting, the agent's population size is adapted. 
-The growth rate (positive or negative) of the agent's population at a specific time depends only on the smoothed happiness. 
+Following farming and tree cutting actions, the agent's population size is adapted. 
+The net (positive or negative) growth rate of the agent's population at a specific time depends only on the smoothed happiness. 
 \begin{equation}\label{eq:popgrowthcontinuos}
-pop_i(t+1) = g(H) \cdot pop_i(t)
+pop_{\rm i}(t+1) = g(H_{\rm i}(t)) \cdot pop_{\rm i}(t)
 \end{equation}
-In fact, instead of assuming continuous growth or decline according to this growth rate, I consider a discrete, stochastic version of this.
-Each individual memeber of the agent has a $1-g(H)$ probability to di, if $g(H)<1$, or a $g(H)-1$ chance to reproduce (i.e.\ adding one individual to the household/agent), if $g(H)>1$.
+In fact, instead of assuming continuous growth or decline according to this growth rate, $g(H_{\rm i}(t))$, the population dynamics is implemented as discrete, stochastic process.
+Each individual member of the agent has a $1-g(H)$ probability to die, if $g(H)<1$, or a $g(H)-1$ chance to reproduce (i.e.\ adding one individual to the household/agent), if $g(H)>1$.
 The population size stays constant at $g(H)=1$. 
-This results in a stochastic growth/decline of the population where each agent's course is a realisation that can vary. 
-Figure \ref{fig:app:PopulationGrowth} \TODO in the appendix shows a few different realisations of such a growth scenario with constant growth rate $g=1.007$ in comparison with the continuous growth.
-The expected trajectory, though, follows the continuous growth from equation \ref{eq:popgrowthcontinuos} (compare e.g.\ with \cite{Bungartz2013}).
+This results in a growth/decline of the population where each agent's trajectory is a single realisation of the stochastic process which on average matches the continuous growth in equation~\ref{eq:popgrowthcontinuos} (compare e.g.\ with \cite{Bungartz2013}).
+Figure \ref{fig:app:PopulationGrowth} \TODO in the appendix shows a few different realisations of such a growth scenario with constant growth rate $g=1.007$ (i.e.\ $H=1$) in comparison with the continuous growth.
 
-The reproduction rate of the Easter Island population in the case of unlimited food supply, i.e.\ especially in the initial phase, is quite widely discussed in the literature.
-Parameters used range from $0.7\%$ per year \citep{Bahn2017} or `always below $1\%$' \citep{Brander1998} to exceeding $3\%$ for short periods of time or even $2.3-4.5\%$ \citep{Brandt2015}.
-It is clear that depending on the story and proposed chronology, researchers have to make very contrary assumptions on the population growth in order to fit the few undisputed facts about population dynamics on Easter Island. 
-If an arrival around 1200 is assumed (as in \citet{Hunt2007} or \citet{Brandt2015}), assuming a large population growth is unavoidable. 
-There is no way, that only a few hundred inhabitants in the 14th and 15th century could have caused a massive alteration of the island's environment and created several hundred Moai.
-With most researchers proposing arrival dates around 800, one has more freedom in choosing the initial growth rate, especially considering that there might have been several phases of population declines as proposed in \citet{\TODO Bahn2017}. 
-One could imagine that after initial fast growth of the population after an early arrival, through fertility control a steady population size was reached below Easter Island's resource carrying capacity. 
-Archaeological and charcoal data, however, suggest an intensification of human activity (and its impacts on the environment) only at around 1200 \citet{Hunt2007} and very little environmental impact before that.
-Most researchers rather assume a slow but continued population growth from an early arrival to a peak population around 1300-1700 (e.g.\ \citet{Brander1998}, \citet{Bahn2017})
-Hence, choosing an early arrival date here ($t_0=800\, A.D.$), I assume a slow growth rate in case of unlimited food supply and, therefore, happy agents: $g(1)=1.007$.
 
-The specific dependency of the population growth/decline with limited food resources is another uncertainty.
-\citet{Lee2008} have constructed a food-limited dempgraphy model which was applied for the Polynesian context \citet{Puleston2008} and extended and to Easter Island society and agricultural constraints in \citet{Puleston2017}. 
-Here I take a very simplified result of this model to parametrise the impact of non-optimal harvests on the population dynamics. 
-The model calculates age-dependent survival and fertility rates, which are both S-shaped curves w.r.t.\ the food availability, i.e.\ high for large food availability and low for scarce food availability.
-Since, I do not consider structures below the agent/household level, I simply assume a growth rate with the same shape as the survival and fertility rates.
+The reproduction rate of the Easter Island population in the case of unlimited food supply, i.e.\ especially in the initial phase, is widely discussed in the literature.
+Parameters used range from $0.7\%$ per year \citep{Bahn2017} or `always below $1\%$' \citep{Brander1998} to exceeding $3\%$ \citep{Hunt2006} for short periods of time or $2.3-4.5\%$ \citep{Brandt2015}.
+It is clear that depending on the proposed chronology, researchers have to make very contrary assumptions on the population growth in order to fit the few undisputed facts about population dynamics on Easter Island. 
+If an arrival around $1200\, \text{A.D.}$ is assumed (as in \citet{Hunt2007} or \citet{Brandt2015}), assuming a large population growth is unavoidable. 
+There is no way, that only a few hundred inhabitants in the 14th and 15th century could have caused a massive alteration of the island's environment and created several hundred Moai statues.
+On the other hand, many researchers propose arrival dates around $800\, \text{A.D.}$(e.g.\ \citet{Bahn2017}) with earlier studies assuming settlements as early as $400\, \text{A.D.}$ (\citet{Good2006} and \citet{Brander1998}).
+Archaeological data, e.g.\ charcoal data, however, suggests a period of intensification of human activity starting not before $1200\, \text{A.D.}$ (e.g.\ \citet{Bahn2017}) and \citet{Hunt2006}).
+Hence, these researchers assume a slow but continued population growth starting with the arrival way before $1000\, {\rm A.D.}$ up to a peak population in $1300-1700\, \text{A.D.}$.
+%, one has more freedom in choosing the initial growth rate.
+%especially considering that there might have been several phases of population declines as proposed in \citet{\TODO Bahn2017}. 
+%One could imagine that after initial fast growth of the population after an early arrival, through fertility control a steady population size was reached below Easter Island's resource carrying capacity. 
+%Archaeological and charcoal data, however, suggest an intensification of human activity (and its impacts on the environment) only at around 1200 \citet{Hunt2007} and very little environmental impact before that.
+%Most researchers rather assume a slow but continued population growth from an early arrival to a peak population around 1300-1700 (e.g.\ \citet{Brander1998}, \citet{Bahn2017})
+Following \citet{Bahn2017}, I choose an early arrival date here ($t_\text{arrival}=800\, A.D.$) and a slow growth rate in the case of unlimited food supply and, therefore, happy agents: 
 \begin{equation}
-g(H) \sim CDF(\Gamma_\text{Dist}(shape, scale=0.1))
+	g(H_\text{i}(t)=1) = 1.007
 \end{equation}
-where $CDF(\Gamma_\text{Dist})$ is the cummulative density function of the Gamma distribution with scale set as in \citet{Lee2008}.
-I then tune the shape parameter of this function to give the same equilibrium point $g(H)=1$, i.e.\ a constant population size, as in \citet{Puleston2017}: $g(H=0.6883)=1$. 
-In order to test sensitivity of this parameter, I also investigae a higher shape parameter $shape=3$\TODO, which leads to a less resilient population size as resource scarcity sets in: $g(H=0.84)=1$ and steeper decline of $g$ for $H<1$.
-The amplitude of the resulting function is scaled to give the chosen reproduction rate under unconstrained food supply from the last paragraph: $g(H=1)=1.007$.
-Figure \ref{fig:growthrate} shows the resulting dependence of the growth/decline rate of a household $g$ on the smoothed happiness $H$ (for the standard run in blue and a less resilient case in red for testing the sensitivity).
+
+The specific dependency of the population growth/decline with limited food resources is a further uncertainty.
+\citet{Lee2008} have constructed a food-limited dempgraphy model which was applied for the Polynesian context \citet{Puleston2008} and extended and to Easter Island society and agricultural constraints in \citet{Puleston2017}. 
+Here I take a use a strongly simplified version of this model to parametrise the impact of non-optimal harvests on the population dynamics. 
+The model calculates age-dependent survival and fertility rates, which are both S-shaped curves w.r.t.\ the food availability (i.e.\ high in the case of large food availability and low in the case of scarce food availability).
+Since, I do not consider (age-stratified) structures below the agent/household level, I simply assume a growth rate with the same shape as the survival and fertility rates.
+\begin{equation}
+g(H_\text{i}(t)) \sim CDF(\Gamma_\text{Dist}(shape, scale=0.1))
+\end{equation}
+where $CDF(\Gamma_\text{Dist})$ is the cumulative density function of the Gamma distribution with scale set as in \citet{Lee2008}.
+I then tune the shape parameter of this function to obtain \citet{Puleston2017}'s (supplementary material)  equilibrium point $g(H_\text{i}(t) =H_\text{equ})=1$, at which the population size remains constant:
+\begin{equation}
+H_\text{equ}=0.6883 \quad \text{with } g(H_\text{i}(t) = H_\text{equ})=1  
+\end{equation} 
+In order to test sensitivity of this parametrisation, I also investigate a higher shape parameter $shape=3$\TODO, which leads to a less resilient population size as resource scarcity sets in.
+In this alternative, less resilient scenario, the growth rate declines faster with food scarcity (and thus happiness $H_\text{i}(t)<1$) and $H_\text{equ, 2}=0.84$ with $g(H_\text{i}(t)=H_\text{equ, 2})=1$
+The amplitude of the resulting function (for both scenarios) is scaled to give the chosen reproduction rate under unconstrained food supply from last paragraph 
+$g(H_\text{i}(t)=1)=1.007$.
+Figure \ref{fig:growthrate} shows the resulting two regimes of population growth (for $H_\text{i}(t)>H_\text{equ}$, with a maximum of $g(H_\text{i}(t)=1)=1.007$) and decline (for $H_\text{i}(t)<H_\text{equ}$) (standard setting in blue and less resilient setting in red).
 \begin{figure}
 	\centering
 	%\includegraphics[width=\textwidth]{images/reproductionrate}
 	\caption{}
 	\label{fig:growthrate}
 \end{figure}
-At $H=1$, the households population grows with rate $1.007$, as tree or agricultural land availability decreases, the agent's smoothed happiness decreases and so does the growth rate. If $H<0.6883$, the population size decreases.
+%There are two regimes of population dynamics: a population growth for $H_\text{i}(t)>H_\text{equ}$ with maximum $g(H=1)=1.007$, and a decline for 
+%At $H=1$, the households population grows with rate $1.007$, as tree or agricultural land availability decreases, the agent's smoothed happiness decreases and so does the growth rate. If $H<0.6883$, the population size decreases.
 
-If the household size $pop_i$ of an agent $i$ falls below a certain threshold $pop\_min = 6$, the agent $i$ disappears and the remaining individuals are adopted by other households living within $C_T(c_i)$ and are chosen randomly. \TODO
+If the household size $pop_i$ of an agent $i$ falls below a certain threshold $pop\_min = 6$, the agent $i$ disappears and the remaining individuals are adopted by other households chosen randomly within $C_T(c_i)$ distance. \TODO
 It should be noted, that the use of the model in \citet{Pulestion2017} is strongly simplified here.
-E.g.\ I am using a different notion of food/tree availability, which I express via the smoothed Happiness, rather than \citet{Puleston2017}'s food requirement.
+E.g.\ I am using a different notion of food/tree availability, which I express via the smoothed happiness $H_\text{i}(t)$, rather than \citet{Puleston2017}'s food ratio.
 Also the distinction between survival and fertility rate especially given their age-dependency is entirely neglected.
-Nevertheless, the resulting dependency of growth/decline rate on the agent's happiness (and consequently its success in resource acquisition) given in Figure \ref{fig:growthrate} is reasonable. 
+Nevertheless, the resulting dependency of growth/decline rate on the agent's happiness (and consequently its success in resource acquisition) given in Figure \ref{fig:growthrate} seems to be a reasonable functional parametrisation. 
 
 
 % Topic SPLITTING THE AGENT
-If the household's population gets too large, a subgroup emerges from it and starts a new settlement.
-According to \citet{Bahn2017}, settlements found in archaeological excavations consisted of two to three dwellings, the basic domestic (e.g.\ caves or stone houses). 
-Assuming that roughly a dozen people can live in such a dwelling, which would include the larger family, a household has on average $2.5\cdot 12$ individuals.
-In this model, if the number increases to a value, such that more than three dwellings would be needed, a group of twelve individuals splits and starts a new settlement on a different location of the island. 
+If the household's population becomes too large, a subgroup emerges from it and starts a new settlement.
+According to \citet{Bahn2017}, settlements found in archaeological excavations consisted of two to three dwellings, the basic domestic units (e.g.\ caves or stone houses). 
+Assuming that roughly a dozen people can live in such a dwelling, which would include the larger family, a household has on average $2.5\cdot 12 = 30$ individuals.
+In this model, if the population size increases to a value, such that more than three dwellings would be needed, a group of twelve individuals splits and starts a new settlement on a different location of the island. 
 It is clear that the social structure of the Easter Island population is much more complex than independent, small households of a few dozen people. 
-E.g.\ \citet{Cauwe}\TODO describes the political structure of chiefdoms, \citet{Puleston2017} consider the economic system of an elite and working class.
-Also there is clear evidence of exchange of goods between households, e.g.\ stone tools.
+E.g.\ \citet{Cauwe2011}\TODO describes the political structure of chiefdoms, \citet{Puleston2017} consider the economic system comprising an elite and working class.
+Also, there is clear evidence of exchange of goods between households, e.g.\ fish, stone tools or the Moai.
 All of theses complex cooperative structures are not considered here, but each agent farms and deforests individually.
-After reproduction, the splitting of a household occurs with a probability 
+The splitting of a household occurs with a probability 
 \begin{equation}
-Pr_{\rm splitting} = \mathcal{N}( \mu = 3.5 \cdot 12, \sigma = 3)\ .
+Pr_{\rm splitting} = \mathcal{N}( \mu = 3.5 \cdot 12 = 42, \sigma = 3)\ .
 \end{equation}
+after the previously described population size adaption.
 The remaining household gives up not required farmed land.
 The splitting agent, immediately moves to a new location determined by the moving process described in the following section.
+Hence, an independently acting agent typically represents a household of $12$ (lower limit of $6$) to $42$ individuals.
 
-\subsubsection{Moving the settlement}
+\subsection{Moving the settlement}
 % When to move
-Agents can move their settlement to a new location as an reaction to insufficient harvest success or if they are starting a new settlement.
-If, after the harvest, the agent's smoothed happiness $H_i(t)$ is below the threshold at which the population size decreases, $g(H)\leq 1$, i.e. $H<0.69$ in the standard setting, the agent moves.
-The agent first chooses a cell among all reachable cells according to probabilities indicating how highly the location is evaluated by the agents.
+Agents move their settlement to a new location as an reaction to insufficient harvest success or after splitting from a large household to start a new settlement.
+If, after the harvest, the agent's smoothed happiness is below the equilibrium point $H_\text{equ}=0.6883$ (standard setting), i.e.\ population is decreasing with $g(H_\text{i}(t))\leq 1$, the agent relocates the settlement in the hope of improving the situation.
+The agent first chooses a cell among cells  within a certain radius according to probabilities indicating how highly the agent evaluates this location.
 Within this new cell, the agent chooses a location with uniform probability and settles there.
 
 % How to calculate moving radius
 In the initial phase of settling, agents can choose new locations from all cells on the island.
-However, if a certain population size is exceeded (here $Moving\_Radius\_PopThreshold=5000 \, \rm{ppl}$), I assume that agents choose sites within a smaller radius from there .
-Hence, I make the somewhat reasonable assumption that large total population size restricts the agent's freedom of choosing a settlement location.
-Thus, the cells considered as potential new location for an agent $i$ are
+However, if a certain population size is exceeded (here $\mathbf{pop}(t)\geq \mathbf{pop}_\text{restricted moving} = 5000 \, \rm{people}$), I externally enforce a restriction of the agents' freedom to move around freely and, therefore, only allow new settlements on a limited, less distant range of cells. 
+When relocating the settlement, an agent $i$, thus, chooses from cells:
+%Thus, the cells considered as potential new location for an agent $i$ are
 \begin{equation}
-C_{M}(c_i, pop) = 
+C_{M}(c_{\rm i}, \mathbf{pop}(t)) = 
 \begin{cases}
 \{\tilde{c} | \ \tilde{c}\text{ on island}\} & \text{ if } \mathbf{pop}(t) <5000 \\
-\{\tilde{c} | \ | | \vec{\tilde{c}} - \vec{x_i}(t) | |
+\{\tilde{c} | \ | | \vec{\tilde{c}} - \vec{x_{\rm i}}(t) | |
 %\begin{pmatrix} \tilde{c}_x \\ \tilde{c}_y \end{pmatrix}  - \begin{pmatrix}x_i\\ y_i \end{pmatrix} 
-\leq r_{M} \} & \text{else} 
+\leq r_{\rm M} \} & \text{else} 
 \end{cases}
 \end{equation}
-with radius $r_M = 5\, \rm{km}$ after the threshold.
+with radius $r_{\rm M} = 5\, {\rm km}$ after exceeding the population threshold.
 
 % Topic: It's a decision making process.
-Determining the new location for an agent represents a decision-making process through evaluation of sites by the agent.
-The calculation of the probability to move to a specific cell bases on penalties from different categories: Distance to freshwater sources $P_W$, resource availability, $P_A$ for agriculture and $P_T$ for trees, geographical constraints, i.e.\ terrain elevation and slope, $P_G$, and population density $P_P$.
-High penalties indicate unfavourable conditions (in the specific category) for setting up a settlement in this location.
+%Determining the new location for an agent represents a decision-making process through evaluation of sites by the agent.
+In a semi-rationale decision making process the agents decide on a new location by evaluating cells within $C_{\rm M} (c_{\rm i}, \mathbf{pop}(t))$ according to certain criteria.
+The calculation of the probability to move to a specific cell bases on penalties from different categories: Distance to freshwater sources $P_W$, resource availability, $P_F$ for farming productivity and $P_T$ for trees, geographical constraints $P_G$, i.e.\ terrain elevation and slope, and population density $P_D$.
+High penalties represent unfavourable conditions (in the specific category) for setting up a settlement in this location.
 The choice of contributions and their functional dependency is described in the remaining section.
 There is, of course, substantial freedom in determining these evaluations and the decision making process.
 The framework is therefore kept flexible and other assumptions or new categories can easily be added or adjusted.
 
-Penalties from all categories are linearly combined to the total penalty of a cell $P_{\rm tot}(c)$ and then converted to give a (discrete) probability distribution of potential cells.
-While this represents a rationale evaluation by the agent, not necessary the optimum is taken.
-This could e.g.\ be interpreted as imperfect knowledge of the penalties. 
-Also, by interacting with the environment, the agent's change the penalties of locations. 
-E.g.\ an initially favourable cell can become unfavourable quickly, if many agents cut trees or occupy more arable land in the nearby area.  
-Hence, there is a certain degree of randomness in the moving process. 
-
 %TOPIC: LOGISITIC FUNCTIONS
-Penalties for each category $P_X$ ($X={W,G,T,A,P}$) are calculated via logistic functions depending on a characteristic evaluation variable $x$.
-Each penalty category is evaluated according to one variable $x$ (in the case of agriculture two), which ranges from $x_{\rm min}$ to $x_{\rm max}$.
+Penalties for each category $P_{\rm X}$ ($X=\{\text{W,\, G,\, T,\, F, \, D}\}$) are calculated via logistic functions depending on a characteristic evaluation variable $x$.
+Each penalty category is evaluated according to one characteristic variable $x$ ranging $x_{\rm min}$ to $x_{\rm max}$.
 % Motivation 
-This parametrisation is of course simplified and the functional dependency complex.
+I determine the shape of the functional dependence of $P_X$ on variable $x$ through thresholds $x_{\rm P0.01}$ and $x_{\rm P0.99}$ indicating the value of $x$ at which the penalty $P_{\rm X}$ is smaller than $1\%$ or larger than $99\%$, respectively, in this category $X$.
+The penalty $P_{\rm X}$ in a cell $c$ with value $x(c)$ is then
+\begin{eqnarray}\label{eq:P_X(c)}
+	P_{\rm X}(c) & = & \frac{1}{1+\exp\left( - k_{\rm X} (x(c)-\frac{x_{\rm P0.01}+x_{\rm P0.99}}{2}) \right)} %= \\
+%		& = & \begin{cases}
+%	<0.01  & \text{ for }x_{\rm min}<x(c)<x_{P0.01} \\
+%	\text{?}  & \text{ for } x_{P0.01}\leq x(c) \leq x_{P0.99} \\
+%	>0.99  & \text{ for }x_{P0.99}<x(c) < x_{\rm max} \\	
+%	\end{cases}
+\end{eqnarray}
+where steepness $k_{\rm X}$ is 
+\begin{equation}\label{eq:k}
+k_{\rm X} = \left(\frac{x_{\rm P0.99}-{x_{\rm P0.01}}}{2}\right)^{-1} \cdot \log\left(\frac{0.99}{0.01}\right) \ .
+\end{equation}
+to adjust the penalty at $x_{\rm P0.01}$ and $x_{\rm P0.99}$.
+This function is shown in Figure \ref{fig:logF}.
+\begin{figure}
+	\centering
+	% 
+	\caption{General shape of the logistic function $f(x)$ determining the penalty given a value of the characteristic variable $x$ in any evaluation category.}
+	\label{fig:logF}
+\end{figure}
+For each category $X$, this logistic function has the same (relative) shape between $x_{\rm P0.01}$ and $x_{\rm P0.99}$ given by $k$. 
+Hence, by choosing $x_{\rm P0.01}$ and $x_{\rm P0.99}$, the sensitivity of penalty $P_X$ to differences in variable $x$ is chosen. 
+If $x_{\rm P0.01}$ and $x_{\rm P0.99}$ are close together, the function converges to a sigmoid function. 
+If they are far apart, the function resembles a more linear increase of penalty $P_X$ with $x$.
+For $x=\frac{x_{\rm P0.01} + x_{\rm P0.99}}{2}$ the penalty is $P_X = 50\%$.
+
+Note, that if $x$ is chosen such that large values are favourable (e.g.\ for the tree and agriculture penalty), choosing values $x_{\rm P0.01}>x_{\rm P0.99}$ simply mirrors the logistic function in equation \ref{eq:P_X(c)} at $x=\frac{x_{\rm P0.01}+x_{\rm P0.99}}{2}$ and all $<$ or $>$ signs accordingly.
+
+
+This reduction to one variable is of course strongly simplified and a functional dependency in general more complex than a simple logistic evaluation.
 However, assuming that advantages and disadvantages of a potential location (summarised in a single variable) play a non-linear role in the agent's decision making, the use of a logistic function seems reasonable.
 For example an agent might not care whether the potential location is $100\, \text{m}$ or $500\, \text{m}$ away from a large freshwater source (penalty $P_W$ small). 
 However, if the nearest lake is too far away from the agent to rely on it for everyday use, alternative sources have to be found, regardless of whether the distance is $5$ or $10\, {\rm km}$.
-
-The shape of the functional dependence of $P_X$ on variable $x$ is determined by thresholds $x_{P0.01}$ and $x_{P0.99}$ indicating the value of $x$ at which the penalty $P_X$ is smaller than $1\%$ or larger than $99\%$, respectively, in this category $X$.
-The penalty $P_X$ in a cell $c$ with value $x(c)$ is then
-\begin{eqnarray}\label{eq:P_X(c)}
-	P_X(c) & = & \frac{1}{1+\exp\left( - k_X (x(c)-\frac{x_{\rm P0.01}+x_{\rm P0.99}}{2}) \right)} = \\
-		& = & \begin{cases}
-	<0.01  & \text{ for }x_{\rm min}<x(c)<x_{P0.01} \\
-	\text{?}  & \text{ for } x_{P0.01}\leq x(c) \leq x_{P0.99} \\
-	>0.99  & \text{ for }x_{P0.99}<x(c) < x_{\rm max} \\	
-	\end{cases}
-\end{eqnarray}
-where steepness $k_X$ is 
-\begin{equation}\label{eq:k}
-k_X = \left(\frac{x_{\rm P0.99}-{x_{\rm P0.01}}}{2}\right)^{-1} \cdot \log\left(\frac{0.99}{0.01}\right)
-\end{equation}
-For each category $X$, this logistic function has the same (relative) shape between $x_{P0.01}$ and $x_{P0.99}$ given by $k$. 
-Hence, by choosing $x_{P0.01}$ and $x_{P0.99}$, the sensitivity of penalty $P_X$ to differences in variable $x$ is chosen. 
-If $x_{P0.01}$ and $x_{P0.99}$ are close together, the function is converges to a sigmoid function. 
-If they are far apart, the function resembles a more linear increase of penalty $P_X$ with $x$.
-For $x=\frac{x_{P0.01} + x_{P0.99}}{2}$ the penalty is $P_X = 50\%$.
-
-Note, that if $x$ is chosen such that large values are favourable (e.g.\ for the tree and agriculture penalty), choosing values $x_{P0.01}>x_{P0.99}$ simply mirrors the logistic function in equation \ref{eq:P_X(c)} at $x=\frac{x_{\rm P0.01}+x_{\rm P0.99}}{2}$ and all $<$ or $>$ signs accordingly.
-
 %The steepness $k_0$ can be chosen, such that the different cases of function $P_X(x)$ are reasonably close at the threshold values $x_{\rm P0.01/P0.99}$. 
-%Here, I choose $k_0 = \left( \frac{x_{\rm P0.01}-{x_{\rm P0.99}}}{2}\right)^{-1}\cdot \log\left(\frac{0.01}{0.99}\right)$, giving $P_X(x=x_{\rm P0.01})=0.01$ and $P_X(x=x_{\rm P0.99}) = 0.99$.
+%Here, I choose $k_0 = \left( \frac{x_{\rm P0.01}-{x_{\rm P0.99}}}{2}\right)^{-1}\cdot \log\left(\frac{0.01}{0.99}\right)$, giving $P_{\rm X(x=x_{\rm P0.01})=0.01$ and $P_{\rm X(x=x_{\rm P0.99}) = 0.99$.
 %Higher $k_0$ results in a steeper increase of the penalty with $x$.
 %Nevertheless, this choice for parametrising a complex decision making process as well as the values for the thresholds are very flexible. 
 %Of course, we can not know how Easter Island households evaluated potential new settlement areas.
@@ -477,10 +583,10 @@ Note, that if $x$ is chosen such that large values are favourable (e.g.\ for the
 %However, it reflects a decision. 
 
 % Following up: Penalty Categories and summary in sketch and table
-I determine the choice of the evaluation variable $x$ and thresholds $x_{P0.01}$ and $x_{P0.99}$ by rule-of-thumb logic.
+I determine the choice of the evaluation variable $x$ and thresholds $x_{\rm P0.01}$ and $x_{\rm P0.99}$ by rule-of-thumb logic.
 There is no comparable approach for Easter Island society and \todo{anasazi?}.
-The following paragraphs point out the motivation for the specific variable for the agent's evaluation process and the threshold choices in the standard settings of the model for each category: Water Availability $P_W$, Geographical Constraints (terrain elevation and slope) $P_G$, Resource Availability $P_T$ for trees and $P_A$ for agriculture sites, and the Population Density $P_P$. 
-Table \ref{tab:moveParameters} summarises these and Figures \ref{fig:LogisticWater} to \ref{fig:LogisticPopDensity} show the dependency of $P_X$ on $x$.
+The following paragraphs point out the motivation for the specific variable for the agent's evaluation process and the threshold choices in the standard settings of the model for each category: Freshwater Distance $P_{\rm W}$, Geographical Constraints (terrain elevation and slope) $P_{\rm G}$, Resource Availability $P_{\rm T}$ for trees and $P_{\rm F}$ for farming sites, and the Population Density $P_{\rm D}$. 
+Table \ref{tab:moveParameters} summarises these and Figures \ref{fig:LogisticWater} to \ref{fig:LogisticPopDensity} show the dependency of $P_{\rm X}$ on $x$.
 %All of these contributions in a cell $c$ are then linearly combined to a total penalty for this cell $P_{tot}(c)$. 
 
 \begin{table}
@@ -494,18 +600,19 @@ Table \ref{tab:moveParameters} summarises these and Figures \ref{fig:LogisticWat
 \end{figure}
 
 % TOPIC: Water Distance PEnalty
-\paragraph{Water Penalty $P_W$}
+\paragraph{Water Penalty $P_{\rm W}$}
 There are very limited permanent sources of freshwater on the island. 
 Nearly all studies point out that the lakes inside the three volcano craters (Rano Kau in the South, Rano Rarakua in the East, and Rano Aroi in the North) are dominant factor in the population's freshwater supply.
-Other potential sources include pools in lava tubes and springs in the North Coast, an intermittent stream from Mount Terevaka, wells and water bubbles at low tide, and sugar cane juice (all mentioned in \citep{Diamond2011}), 
+Other potential sources include pools in lava tubes and springs in the North Coast (all mentioned in \citet{Bahn2017}), an intermittent stream from Mount Terevaka, wells and water bubbles at low tide, and sugar cane juice (all mentioned in \citep{Diamond2011}), 
 Additionally, \citet{Mieth2015} emphasizes the possibility to obtain a sugary sap from cut palm tree trunks, which could have replaced the need for freshwater for a large share of the population.
-However, as the most reliable (and accessible) large freshwater supply the volcano craters are `obvious centres for human activity' \citep{Bahn2017}.
-%Topic Variable x
-Therefore, I assume that potential locations close to (large) lakes are more likely settled.
-The evaluation variable $w$ is radially increasing with the distance to the nearest lake weighted by the area of it , s.t.\
+However, the most reliable (and accessible) large freshwater supply are the volcano craters, which, thus, are `obvious centres for human activity' \citep{Bahn2017}.
+%Topic Variable xC
+Consequently, I assume that potential locations close to (large) lakes are more likely settled.
+The evaluation variable $w$ is radially increasing with the distance to the nearest lake weighted by the area of it:
 \begin{equation}
 	w = min_{\text{lake}\in \text{[Kau, Raraku, Aroi]}} \left( \frac{||
-		\begin{pmatrix} c_x \\ c_y \end{pmatrix}  - \begin{pmatrix} \vec{lake}\\ y_i \end{pmatrix}(t)||^2}{r_\text{lake}^2\pi} \right)
+		%\begin{pmatrix} c_x \\ c_y \end{pmatrix}  - \begin{pmatrix} \vec{lake}\\ y_i \end{pmatrix}
+		 \vec{c}- \vec{lake}(t)||^2}{r_\text{lake}^2\pi} \right)
 \end{equation}
 %\begin{equation}
 %	P_W(c) = \frac{1}{N} \cdot min_{\text{lake}\in \text{[Kau, Raraku, Aroi]}} \left( \frac{\text{dist(lake, c)}^2}{r_\text{lake}^2\pi} \right)
@@ -513,20 +620,25 @@ The evaluation variable $w$ is radially increasing with the distance to the near
 with $r_\text{Kau} = 506\, \rm{m}$, $r_\text{Raraku} = 170\, \rm{m}$, $r_\text{Aroi} = 75\, \rm{m}$ and $\vec{lake}$ the position of the cells corresponding to the lakes.
 %Here, $dist$ is the minimum straight line distance between a lake and the cell's midpoint.
 %$N$ is a normalisation factor, such that the penalty $P_W\in[0,1]$.
-The thresholds are chosen as $w_{P0.01} = \frac{1\, {\rm km}}{r_\text{Raraku}^2\pi}$ and $x_{P0.99}=\frac{10\, {\rm km}}{r_\text{Raraku}^2\pi}$ ($1$ and $10\, {\rm km}$ distance of a lake like Rano Raraku, respectively)
+The thresholds are chosen as 
+\begin{equation}
+w_{\rm P0.01} = \frac{1\, {\rm km}}{r_\text{Raraku}^2\pi} \qquad
+ w_{\rm P0.99}=\frac{10\, {\rm km}}{r_\text{Raraku}^2\pi}
+\end{equation} 
+($1$ and $10\, {\rm km}$ distance of a lake like Rano Raraku, respectively)
 Then, $P_W(c)$ is calculated as equation \ref{eq:P_X(c)}, with $x=w$, the corresponding thresholds and $k_W$ as in equation \ref{eq:k}:
 \begin{equation}
 	P_W(c) = \frac{1}{1+\exp\left( - k_W (w(c)-\frac{w_{\rm P0.01}+w_{\rm P0.99}}{2}) \right)}
 \end{equation}
 
-As described before drought periods during the Medieval Climate Anomaly and the Little Ice Age potentially lead a drying especially of the Raraku crater lake in the period before $1200$ and between $1570-1720$ \citep{Rull2020}. 
-Hence, during drought periods the locations around Rano Raraku have a substantially higher water penalty $P_W$.
+As described before drought periods during the Medieval Climate Anomaly and the Little Ice Age potentially lead a drying especially of the Raraku crater lake in the period before $1200\, {\rm A.D.}$ and between $1570-1720 \, {\rm A.D.}$ \citep{Rull2020}. 
+Hence, during drought periods the locations around Rano Raraku have a substantially higher water penalty $P_{\rm W}$.
 %The penalty is cut-off at its maximum value $1$, even for this case with higher penalties.
 Except for these droughts, the water penalty is constant for all agents and times.
 
 %Topic: Elevation Slope
-\paragraph{Geographical Constraints (terrain elevation and slope) $P_G$}
-The elevation and slope of Easter Island further influence the settlement probabilities in this model.
+\paragraph{Geographical Constraints (terrain elevation and slope) $P_{\rm G}$}
+High elevation and slope of Easter Island further penalise the settlement probabilities in this model.
 Archaeological evidence (e.g.\ the distribution of the Ahu and Moai) shows that the main settlements remained dominantly within the first $1-2\, \rm{km}$ of the coast, even if upland locations were farmed \citep{Bahn2017}.
 There are several possible reasons for that including easier access to small-scale fishing, higher agricultural potential at the coast or cultural reasons.
 Hence, I assume that the geographical penalty depends on the cell's elevation.
@@ -558,46 +670,46 @@ Hence, locations with a large slope are also penalised.
 %	P_{\text{sl}}(c) = 
 %		\text{scaledTanh}(\frac{sl(c)}{sl_\text{P=1}},\, \frac{sl_\text{P=0.5}}{sl_\text{P=1}}, \, \kappa)
 %\end{eqnarray}
-Hence, the evaluation variables are $el(c)$ and $sl(c)$. 
-I choose $el_{\rm P0.01}=min_c(el(c))=0\, {\rm m}$ and $el_{\rm P0.99}=max_c(el(c)) = 500\, {\rm m}$ for the elevation and $sl_{\rm P0.01}=0^\circ$ and $sl_{\rm P0.99}=10^\circ$ (from intuition) for the slope. 
-Then, with corresponding $k_{\rm el}$ and $k_{\rm sl}$, the penalties for terrain elevation and slope are calculated as 
+The location evaluation variables, $el(c)$ and $sl(c)$, and the corresponding chosen thresholds $el_{\rm P0.01}=min_c(el(c))=0\, {\rm m}$ and $el_{\rm P0.99}=max_c(el(c)) = 500\, {\rm m}$ for the elevation and $sl_{\rm P0.01}=0^\circ$ and $sl_{\rm P0.99}=10^\circ$ (without any reference) for the slope. 
+Then, with corresponding $k_{\rm el}$ and $k_{\rm sl}$ from equation~\ref{eq:k}, the penalties for terrain elevation and slope are calculated as 
 \begin{eqnarray}
 	P_{\text{el}}(c) = \frac{1}{1+\exp\left( - k_{\rm el} (el(c)-\frac{el_{\rm P0.01}+el_{\rm P0.99}}{2}) \right)}\\
 	P_{\text{sl}}(c) = \frac{1}{1+\exp\left( - k_{\rm sl} (sl(c)-\frac{sl_{\rm P0.01}+sl_{\rm P0.99}}{2}) \right)}
 \end{eqnarray}
-For a single geographical penalty $P_G$, I combine them by choosing the bigger constraint for each cell $c$ as the determining contribution:
+For a single geographical penalty $P_{\rm G}$ for a cell $c$, I choose the larger value of $P_{\rm el}$ and $P_{\rm sl}$:
 \begin{equation}
-P_G (c) = \rm{max}\left(P_\text{el}(c), P_\text{sl}(c) \right)
+P_{\rm G}(c) = \rm{max}\left(P_\text{el}(c), P_\text{sl}(c) \right)
 \end{equation}
 Figure \ref{fig:P_G} shows the geographic penalty, which is constant for all agents and times.
 		
 % TOPIC: Tree Penalty
-\paragraph{Tree availability}
-The probability to settle to a new location is further penalised if resource availability is scarce in the local environment of the location.
-The tree penalty $T_P(\tilde{c})$ is thus characterised by the number of trees within $C_T(\tilde{c}$):
+\paragraph{Tree Availability $P_\text{T}$}
+Next, tree scarcity in the local environment also decreases the probability to settle in a location .
+The tree penalty $P_{\rm T}(\tilde{c})$ is thus indirectly related to the evaluation variable $tr(c)$, the number of trees within $C_{\rm T}(\tilde{c}$):
 \begin{equation}
 	tr(\hat{c}) = \sum_{\hat{c} \in C_T(\tilde{c})}\, T(\tilde{c},t)
 \end{equation}
-Hence, a cell with higher value of variable $tr$ is assigned a lower penalty.
-The lower threshold $tr_{P0.01}$ is quite arbitrary.
-Here I choose that an agent considers tree availability as `optimal' if the tree number is sufficient for a household with population size $42$ (the mean splitting population threshold) and maximum tree preference $T_\text{Pref, i}$ to fill its tree needs for the average lifespan of an individual ($45\, {\rm yrs}$)
+A cell with higher value of $tr$ is assigned a lower penalty.
+The lower threshold of $tr$, $tr_{\rm P0.01}$, is quite arbitrary.
+Here, I choose that an agent considers tree availability as `optimal' if the tree number is sufficient for a household with population size $42$ (the mean splitting population threshold) and maximum tree preference $T_\text{Pref, max}$ to fill its tree needs for the average lifespan of an individual ($\sim 45\, {\rm yrs}$)
 \begin{equation}
-tr_{P0.01} = T_\text{Pref, max} \cdot T_\text{Requ, pP} \cdot 42 \, {\rm ppl} \cdot 45\, {\rm yrs}
+tr_{\rm P0.01} = T_\text{Pref, max} \cdot T_\text{Requ, pP} \cdot 42 \, {\rm ppl} \cdot 45\, {\rm yrs} = 7560 \, {\rm trees} \ .
 \end{equation}
-The tree number assigned to $99\%$ penalty is the tree number required to keep the population size constant (happiness $H_{equ}$) for at least one year:
+The tree number assigned to $99\%$ penalty is the tree number required to keep the current agent's population at a happiness level of $h_{\rm i}(t) = H_{equ}$ for at least the next year:
 % $T_\text{Requ, i}(t) \cdot H_\text{equ} \cdot 5\, {\rm yrs} $
-\begin{equation}
-tr_{P0.99} = T_\text{Pref, min} \cdot T_\text{Req, pP} \cdot Pop_i(t) \cdot H_\text{equ} 
+\begin{equation}% $T_\text{Requ, i}(t) \cdot H_\text{equ} \cdot 5\, {\rm yrs} $
+tr_{\rm P0.99} = T_\text{Pref, i}(t) \cdot T_\text{Req, pP} \cdot pop_i(t) \cdot H_\text{equ} \ ,
 \end{equation}
-On top of the logistic function, the resource availability (trees and later agriculture) for at least one year without population decrease are a necessary condition for setting up a settlement.
-I.e.\ if the tree number is smaller than this threshold $tr_{P0.99}$, the penalty becomes $P_T = \infty$ to ensure that the agent does not move there, even if all other penalty contributions are optimal.
+which is typically below $5-100\, {\rm trees}$.
+On top of the logistic penalty dependency, the resource availability (trees and later also farming) imposes also a necessary condition:
+To move to a spot in cell $\tilde{c}$, at least sufficient trees to reach $h_{\rm i}(t)\geq H_{\rm equ}$ in the next year have to be present, i.e.\ $tr(\tilde{c}) \stackrel{!}{>} tr_{\rm P0.99}$. Otherwise, the site is avoided by the agent and penalty is $P_{\rm T}= \infty$ to ensure that the cell is not considered even if all other penalty contributions are favourable.
 \begin{equation}
 P_T(\tilde{c}) = 
-\begin{cases} \infty & { if }tr(\tilde{c})< tr_{P0.99} \\
+\begin{cases} \infty & { if }tr(\tilde{c})< tr_{\rm P0.99} \\
 \frac{1}{1+\exp\left( - k_{\rm tr} (tr(\tilde{c})-\frac{tr_{\rm P0.01}+tr_{\rm P0.99}}{2}) \right)} & \text{ else }
 \end{cases}
 \end{equation}
-Hence, with the agent favours settlement locations with a high tree density around the cell.
+Hence, agents favour settlement locations with a high tree density around the cell.
 
 
 %Unless the agent's population size is reduced or its tree preference changes the agent will have to move in the next year again though. 
@@ -622,46 +734,48 @@ Hence, with the agent favours settlement locations with a high tree density arou
 \paragraph{Agriculture Penalty $P_A$}
 %Location penalised by agriculture
 The penalty for agriculture, here, depends on two evaluation variables: 
-The total potential yield $Y_\text{pot, tot}(\tilde{c})$ and the potential yield from non-eroded high quality sites $Y_\text{pot, high}(\tilde{c})$.
-The penalties for both variables is calculated and then averaged.
+The total available farming potential $F_\text{tot}(\tilde{c})$ and the potential farming yield from non-eroded well-suited cells only, $F_\text{well}(\tilde{c})$.
+The penalties for both variables are calculated and then averaged.
 
-The total potential yield is simply a summation of all productivity indices of unfarmed, arable cells within $C_A(\tilde{c})$.
+The total available farming potential is simply a summation of all productivity indices of arable, unoccupied sites (i.e.\ acres within a cell) within $C_\text{F}(\tilde{c})$.
 \begin{equation}
-	a_\text{tot} = Y_\text{pot, tot}(\tilde{c}) = \left( \sum_{\hat{c} \in C_A(\tilde{c}) }\, Y(\hat{c}) \cdot (\text{Sites}(\hat{c})  - \text{Unfarmed Sites}(\hat{c}) )\right)
+	F_\text{tot}(\tilde{c}) = \left( \sum_{\hat{c} \in C_{\rm F}(\tilde{c}) }\, F_{\rm PI}(\hat{c}) \cdot (A_{\rm acres}(\hat{c})  - \mathbf{A}_{\rm F}(\hat{c}) )\right) \ ,
 \end{equation}
-where high $a$ means more favourable.
-Similarly, 
+where $A_{\rm acres}(c)$ is the number of acres and $ \mathbf{A}_{\rm F}(c)$ is again the number of occupied sites in cell $c$ and therefore unavailable for agents in a cell.
+Similarly for well-suited cells only, 
 \begin{equation}
-	a_\text{high} = Y_\text{pot, high}(\tilde{c}) = \left( \sum_{\hat{c} \in C_A(\tilde{c}) \ \cup \ Y(\hat{c})=1} \, Y(\hat{c}) \cdot (\text{Sites}(\hat{c})  - \text{Unfarmed Sites}(\hat{c}) )\right)
+	F_\text{well}(\tilde{c}) = \left( \sum_{\hat{c} \in C_{\rm F}(\tilde{c}) \ \cup \ F_{\rm PI}(\hat{c})=1} \, F_{\rm PI}(\hat{c}) \cdot (A_{\rm acres}(\hat{c})  - \mathbf{A}_{\rm F}(\hat{c}) )\right) \ .
 \end{equation}
-for the high quality sites. 
-This $Y_\text{pot, high}$ is an important contribution as it makes cells with high quality sites more favourable than sites with the same potential yield but low quality sites, where the cultivation of much more gardens is required and hence, the workload multiplies.
+This $F_\text{well}$ is an important consideration for agents as it makes cells
+more favourable where a certain farming produce can be obtained from a few well-suited rather than a larger number of poorly suited sites indicating larger workload for the individuals.
 
-The thresholds for optimal location is the agent's 
+The threshold for an optimal location w.r.t.\ farming is the maximum possible land needed to be farmed by an agent with population $42$.
 \begin{equation}
-a_\text{high, P0.01} = a_{tot, P0.01} =  A_\text{Req, max, 36\, ppl} = (1-T_\text{pref, min})\cdot A_\text{Req, pP} \cdot 42\, {\rm ppl} 
+F_\text{well, P0.01} = F_\text{tot, P0.01} =  (1-T_\text{pref, min})\cdot F_\text{Req, pP} \cdot 42\, {\rm ppl} 
 \end{equation}
-The thresholds are the agent's current agriculture requirement multiplied by the equilibrium happiness $H_{equ}$.
+The threshold for penalty $P_{\rm F}(c)=0.99$ is the agent's current farming requirement sufficient to obtain happiness $h_{\rm i}(t) = H_{\rm equ}$, i.e.\
 \begin{equation} 
-a_\text{high, P0.99} = a_{tot, P0.99} =  AReq_i(t) \cdot H_{equ}
+F_\text{well, P0.99} = F_\text{tot, P0.99} =  F_\text{Req, pP}\cdot pop_{\rm i}(t) \cdot H_{equ}
 \end{equation}
-Then $k_a$ is the same for both evaluation variables $a_\text{high} $ and $a_\text{low}$.
+The parameter, $k_F$ is the same for both evaluation variables $F_\text{well} $ and $F_\text{tot}$.
 
-Furthermore, for all cells with $Y_\text{tot}(\tilde{c})< A_\text{Req, i}(t) \cdot H_{equ}$ (i.e.\ $a_\text{tot} < a_\text{tot, P0.99}$), the penalty is set to $P_A(\tilde{c})=1$ 
+As for trees, a necessary condition for moving to a cell is enforced:
+ If the available farming potential $F_\text{tot}(\tilde{c})$  at a cell $\tilde{c}$ is smaller than $F_\text{tot, P0.99}$, the farming penalty is set to $P_{\rm F}(\tilde{c}) = \infty$ to ensure that the cell is not considered even if all other penalty contributions are favourable.
+ % , for all cells with $Y_\text{tot}(\tilde{c})< A_\text{Req, i}(t) \cdot H_{equ}$ (i.e.\ $a_\text{tot} < a_\text{tot, P0.99}$), the penalty is set to $P_A(\tilde{c})=1$ 
 Then, the total penalty is 
 \begin{equation}
-P_{A} (\tilde{c}) = 
+P_{\rm F} (\tilde{c}) = 
 \begin{cases} 
-\infty & \text{ if } a_\text{tot} < a_\text{tot, P0.99}\\
-\frac{0.5}{1+\exp\left( - k_A (a_\text{high}(c)-a_\text{P0.5}) \right)} + \frac{0.5}{1+\exp\left( - k_A (a_\text{tot}(c)-a_\text{P0.5}) \right)} & \text{ else}
+\infty & \text{ if } F_\text{tot} < F_\text{tot, P0.99}\\
+\frac{0.5}{1+\exp\left( - k_A (F_\text{well}(c)-F_\text{P0.5}) \right)} + \frac{0.5}{1+\exp\left( - k_A (F_\text{tot}(c)-F_\text{P0.5}) \right)} & \text{ else}
 \end{cases}
 \end{equation}
-with $a_\text{P0.5} = \frac{a_{\rm P0.01}+a_{\rm P0.99}}{2}$.
-The agriculture penalty thus is smallest for those sites with a lot of available, in particular high quality farmland.
-The penalty is large for those with few farmland and in particular few available high qualtiy sites.
-E.g.\ penalty $P_A=0.5$ is for 
+with $F_\text{P0.5} = \frac{F_{\rm P0.01}+F_{\rm P0.99}}{2}$.
+In summary, the farming penalty is smallest for those cells surrounded by a lot of well-suited, available sites.
+The penalty is large for those cells surrounded by few available sites in general and, in particular, few available sites in well-suited cells.
+%E.g.\ penalty $P_{\rm F}=0.5$ 
 
-The threshold $Y_{tot}>A_\text{Req, i}(t) \cdot H_{equ}$ ensures that the new location always has the same number or higher number of potential agriculture yield than the last. 
+%The threshold $Y_{tot}>A_\text{Req, i}(t) \cdot H_{equ}$ ensures that the new location always has the same number or higher number of potential agriculture yield than the last. 
 
 %The minimum workload is an index of how many acres a household needs to occupy in order to fill its requirement, i.e.\ a measure for the optimum mean productivity indices 
 %It is more favourable to settle in a location with sufficient unfarmed high quality sites rather than a location surrounded by sufficient low quality sites.
@@ -694,75 +808,81 @@ The threshold $Y_{tot}>A_\text{Req, i}(t) \cdot H_{equ}$ ensures that the new lo
 
 
 
-
 % TOPIC: Pop Density Penalty
-\paragraph{Population density $P_P$}
-Last but not least, the population density at locations 
+\paragraph{Population density $P_{\rm D}$}
+Finally, agents avoid moving to locations with a large population density.
 As described previously, while different agents share the same resources and thus interact with the same environment, their actions and moving decision are independent from each other. 
 However, penalising potential new locations due to high population densities introduces a direct agent-agent interaction. 
-To some degree this is already incorporated in the agriculture penalty, as regions with large population density, also have fewer available agriculture sites.
-The population density of a potential new cell (i.e.\ the evaluation variable) for an agent is defined as the population size in cells within the agriculture radius of cell $\tilde{c}$, i.e.\ $C_A(\tilde{c})$, divided by the area.
+To some degree, this is already incorporated in the agriculture penalty, as regions with large population density, also have fewer available agriculture sites.
+The population density of a potential new cell (i.e.\ the evaluation variable) for an agent is defined as the population size in cells within the farming radius of cell $\tilde{c}$, i.e.\ $C_F(\tilde{c})$, divided by the area.
 \begin{equation}
-	pd (\tilde{c}) = \frac{\mathbf{pop}|_{\hat{c} \in C_A(\tilde{c}) }}{r_A^2 \pi}
+	pd (\tilde{c}) = \frac{\mathbf{pop}|_{\hat{c} \in C_F(\tilde{c}) }}{r_F^2 \pi}
 \end{equation}
 The thresholds are chosen as
 \begin{equation}
-	pd_{P0.01} = 0 \, {\rm \frac{ppl}{km^2}}
+	pd_{\rm P0.01} = 0 \, {\rm \frac{ppl}{km^2}}
 \end{equation}
 and 
 \begin{equation}
-	pd_{P0.99} = 350 \, {\rm \frac{ppl}{km^2}}
+	pd_{\rm P0.99} = 300 \, {\rm \frac{ppl}{km^2}}
 \end{equation}
-The latter is chosen from population density estimates of 
-The population density penalty is 
+with \citet{Kirch2010} estimating values of $262$ and $389\, {\rm \frac{ppl}{km^2}}$ on `prime agricultural land' in Hawaii and Maui, which would likely be overestimates of maximum local densities on Easter Island \citep{Puleston2017}. %Puleston state that!!
+%The latter is chosen from local population density estimates of \todo{Puleston 558}.
+The population density penalty is then
 \begin{equation}
-	P_P(\tilde{c}) = \frac{1}{1+\exp\left( - k_P (pd(\tilde{c})-\frac{pd_{P0.01} + pd_{P0.99}}{2}) \right)}
+	P_{\rm D}(\tilde{c}) = \frac{1}{1+\exp\left( - k_{\rm D} (pd(\tilde{c})-\frac{pd_{\rm P0.01} + pd_{\rm P0.99}}{2}) \right)}
 \end{equation}
-with the corresponding $k_P$ from equation~\ref{eq:k}.
+with the corresponding $k_{\rm D}$ from equation~\ref{eq:k}.
+
+
+\paragraph{From Penalties to Probability}
+
 
 % TOPIC: From Penalty to Pop, and mask, no sites left?
-\paragraph{From Penalty to Probability}
-The resulting penalties for a cell are linearly combined to obtain a probability $Pr(\tilde{c})$ of moving to a certain cell $\tilde{c}$.
-With weights $\alpha$ (and the agent's tree preference $T_\text{Pref, i}(t)$):
+The resulting penalties from all categories are linearly combined to obtain a total penalty for a cell, which is then converted to a discrete probability $Pr(\tilde{c})$ of moving to this cell $\tilde{c}$ in $C_{\rm M}(c_{\rm i}(t))$.
+With (normed) weights $\alpha$ (and the agent's tree preference $T_\text{Pref, i}(t)$):
 \begin{equation}
-\vec{\alpha} = (\alpha_W, \alpha_G, \frac{T_\text{Pref, i}(t) \cdot \alpha_T}{\eta_i(t)}, \frac{(1-T_\text{Pref, i}(t))\cdot \alpha_A}{\eta_i(t)} \alpha_A, \alpha_P)
+\vec{\alpha} = (\alpha_{\rm W}, \alpha_{\rm G}, \frac{T_\text{Pref, i}(t)}{\eta_{\rm i}(t)} \cdot \alpha_{\rm T}, \frac{(1-T_\text{Pref, i}(t))}{\eta_{\rm i}(t)} \alpha_{\rm F}, \alpha_{\rm D})
 \end{equation} 
-where $eta_i(t) = \frac{\alpha_T T_{Pref, i}+ \alpha_A (1-T_{Pref, i})}{\alpha_T+\alpha_A}$ is a normalisation factor to ensure that, $\frac{T_\text{Pref, i}(t) \cdot \alpha_T}{\eta_i(t)} + \frac{(1-T_\text{Pref, i}(t))\cdot \alpha_A}{\eta_i(t)} \alpha_A = \alpha_T + \alpha_A$ and, therefore, $||\vec{\alpha}||=1$. 
-, the total penalty is:
+where $\eta_{\rm i}(t) = \frac{\alpha_{\rm T} T_\text{Pref, i}+ \alpha_{\rm F} (1-T_\text{Pref, i})}{\alpha_{\rm T}+\alpha_{\rm F}}$ is a normalisation factor to ensure that, $\frac{T_\text{Pref, i}(t)}{\eta_{\rm i}(t)}\cdot \alpha_{\rm T} + \frac{(1-T_\text{Pref, i}(t))}{\eta_{\rm i}(t)} \cdot \alpha_{\rm F} = \alpha_{\rm T}+ \alpha_{\rm F}$ and, therefore, $||\vec{\alpha}||=1$. 
+The total penalty is:
 \begin{equation}
-P_{tot, i}(t) =  \begin{cases} \infty & \text{ if } \tilde{c}\notin C_M(c_i(t))\\
-	 \langle \vec{\alpha}{, } \vec{P} \rangle { else}
+P_\text{tot, i}(t) =  \begin{cases} \infty & \text{ if } \tilde{c}\notin C_{\rm M}(c_{\rm i}(t))\\
+	 \langle \vec{\alpha}{, } \vec{P} \rangle \text{ else}
 	 \end{cases}
 \end{equation}
-with $\vec{P} = (P_W, P_G, P_T, P_A, P_P)$.
+with $\vec{P} = (P_{\rm W}, P_{\rm G}, P_{\rm T}, P_{\rm F}, P_{\rm D})$.
 Finally, 
 \begin{equation}
-	Pr(\tilde{c})  = \frac{1}{N} \cdot \exp \left( - \kappa \cdot P_{tot} \right) 
+	Pr(\tilde{c})  = \frac{1}{N} \cdot \exp \left( - \gamma \cdot P_{tot} \right) 
 \end{equation}
-\TODO
-where $N$ is the normalisation and $\kappa$ is a dimensionless scaling factor, which represents the agent's tendency to actually follow the penalty evaluation. 
-By increasing $\kappa$, the agent's move less likely to spaces with low probability (high total penalty). 
-E.g.\ for $\kappa\ra \infty$, the agent moves to the optimal cell with the minimal penalty, i.e.\ decision making is an increasingly deterministic optimisation process\footnotemark.
-\footnotetext{Proof: Let's consider the relation between $Pr(c_{min})$, where $c_{min}$ denotes the cell with the minimal penalty, and $Pr(c)$ for all cells $c$. Then, $Pr(c_{max})/Pr(c) = \exp(-\kappa P_\text{tot, min})/ \exp(-\kappa P_\text{tot}(c)) = \exp(-\kappa(P_\text{tot,min}-P_\text{tot}(c)))$. For $\kappa\ra \infty$ this is $\delta_{c=c_{min}}$.}
-On the other hand, $\kappa=0$ implies that agent's just move to a new location without consideration of the penalties associated with this new location.
-By choosing $\kappa$ large, but finite, I set the agents up to make individualistically, rationale choices when moving, but keep some stochasticity to this process, as knowledge is always limited and other factors of course contribute to the decision making.
+where $N$ is the normalisation and $\gamma$ is a dimensionless scaling factor, which represents the agent's tendency to actually follow the penalty evaluation. 
+By increasing $\gamma$, the agent's move less likely to spaces with low probability (high total penalty). 
+E.g.\ for $\gamma \ra \infty$, agents have perfect knowledge of the island's properties and move to the optimal cell with minimal penalty, i.e.\ the decision making is an increasingly deterministic optimisation process\footnotemark.
+\footnotetext{Proof: Let's consider the relation between $Pr(c_\text{min})$, where $c_\text{min}$ denotes the cell with the minimal penalty, and $Pr(c)$ for all cells $c$. Then, $Pr(c_\text{min})/Pr(c) = \exp(-\kappa P_\text{tot, min})/ \exp(-\kappa P_\text{tot}(c)) = \exp(-\kappa(P_\text{tot, min}-P_\text{tot}(c)))$. For $\gamma \ra \infty$ this is $\delta_{c=c_\text{min}}$.}
+On the other hand, $\gamma=0$ implies that agent's just move to a any new location without consideration of the penalties associated with this new location.
+By choosing $\gamma$ large, but finite, I set the agents up to make individualistically, semi-rationale choices when moving, but include stochasticity (e.g.\ due to imperfect knowledge or further contributing factors) in the decision.
+Furthermore, an agent moves to a site based on individually assessed.
+However, multiple agents share the same local environment and can quickly change the conditions of a location (e.g.\ by deforesting). 
+Hence, when agents in this model decide on relocating their settlement, they do so not deterministically or as an optimising process but rather self-focused and guided by the rationale of avoiding unfavourable areas and locations that allow for further population growth.
+% choosing a well suited location to surviving and increasing their population size.
 
 Having selected a new cell, the agent chooses a location within this cell with uniform probability.
-Note, that the actual availability of available land and/or trees, might deviate slightly from the calculation of the cell's penalty (and corresponding probability), as the location of the settlement differs from the cell's midpoint, which was used for the penalty evaluation.
-This error decreases with higher discretisation resolution.
+Note, that the actual availability of arable, free land and/or trees, might deviate slightly from the calculation of the cell's penalty (and corresponding probability), as the location of the settlement differs from the cell's midpoint, which was used for the penalty evaluation.
+This accuracy error decreases with higher discretisation resolution.
 
 
 \todo{Figure Sketch Node model}
 
 % TOPIC: When does it occur, calc penalty in each day, \ldots
 With this procedure, agent's move (as resource availability becomes scarce or a subgroup splits from a large household) according to environmental features. 
-The specific settings create spatial patterns of settlement behaviour which in turn non-linealry change the agent-environment interaction and, thus, environment dynamics.
+The specific settings create spatial patterns of settlement behaviour which in turn non-linearly change the agent-environment interaction and, thus, environment dynamics overall.
 
-Concerning computation time, this evaluation of potential moving sites is at least quartic w.r.t.\ the grid resolution $\delta$, i.e.\ $\mathcal{O}(\delta^4)$, the number of gridpoints per distance: The overall Number of cells $N_C$ increases quadratic with $\delta$ and the evaluation of penalties (e.g.\ summing up trees from cells in $C_T(\tilde{c})$) for a single cell also scales quadratic with $\delta$. 
+Concerning computation time, this evaluation of potential moving sites is at least quartic w.r.t.\ the grid resolution $\delta$, i.e.\ $\mathcal{O}(\delta^4)$, the number of grid points per unit of length: The overall Number of cells $N_C$ increases quadratic with $\delta$ and the evaluation of penalties (e.g.\ summing up trees from cells in $C_T(\tilde{c})$) for a single cell also scales quadratic with $\delta$. 
 Hence, this is the bottleneck of the simulation. 
-In order to minimise this constraint, I use efficient dot products from the python-package `numpy' and efficient storage of a (constant) distance matrix between all cells using the python package `scipy', both implemented in \\todo{Cpp}.
-Another implementation could adjust penalties immediately when the agent's interact with the environment, which would scale as $O(\delta^2\cdot N_{agents}(t))$.
-However, since resolution does not have to be too reasonable small for this study, and the number of moving actions is small compared to $N_C$, the first implementation is reasonable.
+In order to minimise this constraint, I use efficient dot products from the python-package `numpy' and a (constant) distance matrix between all cells using the python package `scipy', both implemented in \\todo{Cpp}.
+Another implementation might adjust penalties immediately when the agent's interact with the environment, which would scale as $O(\delta^2\cdot N_{agents}(t))$.
+However, since the resolution does not have to be too reasonable small for this study, and the number of moving actions is usually small compared to $N_C$, the first implementation is reasonable.
 	
 		
 % Measure Agric Productivity in acres of high quality sites
