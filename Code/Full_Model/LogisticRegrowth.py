@@ -9,74 +9,47 @@ sys.path.append("/home/peter/EasterIslands/Code/Triangularisation/")
 
 
 def regrow_update(g0):
-    #def logistic(n):
-    #    if config.EI.carrying_cap[n] == 0:
-    #        return 0
-    #    else:
-    #        return (g0 * (1 - ( config.EI.tree_density[n]/config.EI.carrying_cap[n]))
-    ##d = (config.EI.carrying_cap - config.EI.tree_density)
-    #g = np.array([ logistic(n) if config.EI.agriculture[n]==0 else 0 for n in range(config.EI.N_els)])
-    #g = np.zeros(config.EI.N_els)
-    inds = np.where(    (config.EI.agriculture==0)* (config.EI.carrying_cap>0) * (config.EI.tree_density>0) * (config.EI.tree_density<config.EI.carrying_cap))[0]
-    g = g0 * (1 - ( config.EI.tree_density[inds]/config.EI.carrying_cap[inds]))
-    #print("g: ", np.max(g), np.min(g), np.mean(g), np.nonzero(g))
-    #grow = np.random.random(len(inds)) < g
-    #print("Trees regrowing are ", np.nonzero(grow))
-    #inds = np.array([ i  for i in range(0,config.EI.N_els) if (not (grow[i]==0))], dtype=int)
-    #inds = inds[np.where(grow)]
-    #for i in inds:
-    #    config.EI.tree_density[i]= min(config.EI.carrying_cap[i], config.EI.tree_density[i]+np.round(g[i],0)).astype(int)
-    regrownTrees = np.round(g*config.EI.tree_density[inds],0).astype(int)
-    config.EI.tree_density[inds]=(config.EI.tree_density[inds]+regrownTrees).clip(max = config.EI.carrying_cap[inds]).astype(int)
-    #print("#new nr of trees: ", np.sum(config.EI.tree_density))
-    config.TreeRegrowth.append(np.sum(regrownTrees))
+    # cells with no agriculture, no carrying cap, no T_c but carrying_cap>0
+    inds = np.where(    (config.EI.A_F_c==0)* (config.EI.carrying_cap>0) * (config.EI.T_c>0) * (config.EI.T_c<config.EI.carrying_cap))[0]
+    # Growth Rate 
+    g = g0 * (1 - ( config.EI.T_c[inds]/(config.EI.carrying_cap[inds])))    #(1-config.EI.agriculture[inds]/config.EI.EI_triangles_areas[inds])
+    regrownTrees = np.round(g*config.EI.T_c[inds],0).astype(int)
+    config.EI.T_c[inds]=(config.EI.T_c[inds]+regrownTrees).clip(max = config.EI.carrying_cap[inds]).astype(int)
+    config.RegrownTrees = np.append(config.RegrownTrees, np.sum(regrownTrees))
     return 
 
 def agric_update():
-    config.EI.agric_yield = config.initial_agric_yield
-    notreecells = np.where(config.EI.tree_density==0)[0].astype(int)
-    #config.EI.treeless_years[notreecells]+=1
-    # For all cells with 20 years without trees, decrease soil quality to Eroded Soil yield or even lower
-    #if config.EI.treeless_years[i]>config.YearsBeforeErosionDegradation else config.EI.agric_yield[i] 
-    config.EI.agric_yield[notreecells] =  np.array([np.minimum(config.EI.agric_yield[i], config.ErodedSoilYield) for i in notreecells])
-    #for n,triang in enumerate(config.EI.EI_triangles):
-    #    if 
-   
+    # set all cells to well-suited
+    config.EI.F_pi_c = config.F_pi_c_tarrival
+    config.EI.well_suited_cells = config.well_suited_cells_tarrival
+    # check where no trees are present and the cell is well-suited
+    cells_wellsuited_noTrees = np.where((config.EI.T_c==0)*(config.EI.F_pi_c==config.F_PI_well))[0].astype(int)
+    # set these to eroded soil
+    config.EI.F_pi_c[cells_wellsuited_noTrees] =  config.F_PI_eroded
+    #np.array([np.minimum(config.EI.F_pi_c[i], config.F_PI_eroded) for i in notreecells])
+
+    config.EI.eroded_well_suited_cells[cells_wellsuited_noTrees] = config.EI.A_acres_c[cells_wellsuited_noTrees]
+    config.EI.well_suited_cells[cells_wellsuited_noTrees]= 0
+    #config.poorly_suited_cells= np.where(config.EI.F_pi_c==config.F_PI_poor)[0]
+    #config.eroded_well_suited_cells= np.where(config.EI.F_pi_c==config.F_PI_eroded)[0]
     return 
 
 def popuptrees(t):
-    if t>config.StartTime+config.tree_pop_timespan:
-        #no_agric = np.where(config.EI.agriculture==0)
-
-        to_pop_up = config.tree_growth_poss[np.where(config.EI.tree_density[config.tree_growth_poss]==0)[0]]#.astype(int)
-
-        no_agric = to_pop_up[np.where(config.Array_agriculture[to_pop_up,-config.tree_pop_timespan:].sum(axis=1) == 0)[0]]
-
-        
-        #inds, counts = np.unique(np.concatenate([no_agric, to_pop_up,tree_growth_poss]), return_counts=True)
-        
-        #where_to_pop = inds[counts>2]
+    if t>config.t_arrival+config.barrenYears_beforePopUp:
+        # where no trees are present
+        to_pop_up = np.where(config.EI.T_c==0)[0]
+        #        #config.tree_growth_poss[np.where(config.EI.T_c[config.tree_growth_poss]==0)[0]]#.astype(int)
+        # where no agriculture was present for treePop
+        no_agric = to_pop_up[np.where(config.Array_F_ct[to_pop_up,-config.barrenYears_beforePopUp:].sum(axis=1) == 0)[0]]
+        # these are all the indices where trees will pop
         where_to_pop = no_agric
 
-        config.EI.tree_density[where_to_pop] = (config.tree_pop_percentage * config.EI.carrying_cap[where_to_pop]).astype(int)
-        config.TreePopUp.append(np.sum(config.EI.tree_density[where_to_pop]).astype(int))
+        config.EI.T_c[where_to_pop] = (config.tree_pop_percentage * config.EI.carrying_cap[where_to_pop]).astype(int)
+        config.TreesPoppedUp = np.append(config.TreesPoppedUp, np.sum(config.EI.T_c[where_to_pop]).astype(int))
     else:
-        config.TreePopUp.append(0)
+        config.TreesPoppedUp = np.append(config.TreesPoppedUp, 0)
     return 
 
 
 if __name__ == "__main__":
     pass
-    #from CreateEI_ExtWater import Map
-
-    #config.TreeDensityConditionParams = {'minElev':0, 'maxElev':430,'maxSlope':7}
-
-
-    #config.EI = Map(50, N_init_trees= 1e6, verbose=True)
-    #config.EI.plot_TreeMap_and_hist(name_append = -1)
-
-    #config.EI.init_trees(3e5)
-    #for i in range(100):
-    #    if i%5==0:
-    #        config.EI.plot_TreeMap_and_hist(name_append = i)
-    #    regrow_update(1)    

@@ -109,7 +109,7 @@ However, there seems to be a consensus between both theories that rats effective
 In line with these arguments, forest regeneration is not possible in the standard setting of this model.
 Thus, trees constitute an entirely non-renewable resource in this case. 
 However, I further explore alternative experiments in which the forest can hypothetically regenerate following anthropogenic deforestation.
-Each year, tree numbers in all cells regrow logistically to their (local) carrying capacity $T(c,t=t_\text{Arrival})$.
+Each year, tree numbers in all cells regrow logistically to their (local) carrying capacity $T(c,t=t_\text{Arrival})$ if there is no farming activity on the specific cells.
 The maximum growth rate of this localised logistic regeneration of the specific palm tree is believed to be rather slow and has even been made responsible for the ecological degradation of the island in earlier studies (e.g.\ \citet{Brander1998}).
 \citet{Brandt2015} use a maximum tree regrowth rate between $0.02$ and $0.07 \, \rm{1/yr}$ for their model in the absence of rats.\TODO
 In this model, experiments, in which localised forest regrowth is allowed, the logistic growth rate is thus 
@@ -117,8 +117,18 @@ In this model, experiments, in which localised forest regrowth is allowed, the l
 g_{\rm T} = 0.05\, \rm{1/yr} \ .
 \end{equation}
 Some cells are deforested entirely in a single update step, disabling their regeneration in the model. 
-However, forest regrowth is also possible in such sites with seeds being transported to the empty cell via e.g.\ wind, birds or human activity.
-To incorporate this in the model, a small number of trees `pops up' ($0.5\%$ of the cell's carrying capacity) after a cell has been left barren, i.e.\ the cell is uncultivated and without trees, for $10$ consecutive years.  
+However, forest regrowth is also possible in such cells with seeds being transported to the empty cell via e.g.\ wind, birds or human activity.
+To incorporate this in the model, a small number of trees `pops up' ($0.5\%$ of the cell's carrying capacity) after a cell has been left barren, i.e.\ the cell is uncultivated and without trees, for $10$ consecutive years.
+Then before any anthropogenic deforestation the tree number in the next year is
+\begin{equation}
+T(c,t+1)= \begin{cases}
+T(c,t) + T(c,t) \cdot g_{\rm T} \cdot \left(1- \frac{T(c,t)}{T(c,0)}\right) \quad & \forall \ c \text{ with } \mathbf{A}_F(c,t)=0 \\
+0.005 \cdot T(c,0)  & \forall  \ c \text{ with } T(c,t)=0 \text{ and}\\
+& \mathbf{A}_{\rm F}(c,\hat{t})=0 \  \ \forall \  \hat{t} \in \{t-10, \ldots, t\} \\
+0 & \text{ else }
+\end{cases}
+\end{equation}
+
 In the following years, these trees (if not deforested) grow logistically.
 The two experiments, with and without tree regrowth following anthropogenic deforestation, allow for testing of the impact of the Polynesian rats, assuming that they effectively hindered tree regeneration.
 
@@ -157,8 +167,9 @@ A_{\rm acres}(c) = \text{Rounded Down }(A(c)[\text{acres}])
 number of acres, which can be turned into gardens and farmed.
 Following roughly the classification by \citet{Louwagie2006}, I assign Farming Productivity Indices, $F_\text{PI}(c)$, to each cell and its according sites:
 \begin{eqnarray*}
-F_\text{PI}|_\text{well} = 80\% & \text{ for well-suited (between optimal and moderately suitable}\\
-F_\text{PI}|_\text{poor} = 10\%  & \text{ for poorly suited and}\\ F_\text{PI}|_\text{non-viable} = 0\% & \text{ for non-viable sites}
+F_\text{PI}|_\text{well} = 80\% & \text{ for well-suited (optimal to moderate)}\\
+F_\text{PI}|_\text{poor} = 10\%  & \text{ for poorly suited (not suitable)}\\
+F_\text{PI}|_\text{non-viable} = 0\% & \text{ for non-viable sites}
 \end{eqnarray*}
 The absolute productivity of acres of arable land in units of people it can support is taken from calculations in \citet{Puleston2017} assuming two different Nitrogen fixation scenarios (see in detail later).
 
@@ -214,18 +225,18 @@ for farming sites with farming radius $r_F = 1\, {\rm km}$.
 
 An agent's required total resource uptake per year varies with the population size 
 This resource uptake is split between trees and farming yield.
-The shares are given by a trait parameter, the tree preference $T\_\text{Pref, i}(t)$ for agent $i$ at time $t$, which reflects the agent's harvest behaviour in response to its local environment.
+The shares are given by a trait parameter, the tree preference $T_\text{Pref, i}(t)$ for agent $i$ at time $t$, which reflects the agent's harvest behaviour in response to its local environment.
 In the first settlement phase, the islanders mainly lived off the abundant natural resources of the island, i.e.\ birds, fish, and fruit from the trees \citet{Bahn2017}. 
 Over time, the economy `switched from predominantly hunter-gatherer to a dryland farming society' \citep{Louwagie2006}.
 In the model, this behavioural shift results from a decrease in the variable adaptive tree preference parameter, $T_\text{Pref i}(t)$ of each agent over time.
-The idea of this trait parameter is that agent's adapt their resource reuqirements to changes in the local environment, in particular the deforestation. 
+The idea of this trait parameter is that agent's adapt their resource requirements to changes in the local environment, in particular the deforestation. 
 %It is an adaptive trait reflecting the local state of the environment around an agent, in particular the local abundance of trees. %(i.e.\ trees $T(c,t)$ of cells within $C_T(c_\text{i}(t)$).
 Hence, as the island's trees are removed and more arable land is cleared freeing space for agriculture, the agent's tree preference decreases and farming activity increases, accordingly.
 %This tree preference indicates the value of tree harvest over agricultural production and, hence, increases the need for one over the other in order to fill the resource requirements.
 %The tree preference is high in the initial state, but decreases as trees become scarce and more land is available for cultivation of crops.
 %Hence, $TPref_i(t)$ responds to some degree to the local environment of the agent.
 In this model, the tree preference, $T_\text{Pref, i}(t)$, depends on the local, relative change of tree density within the tree search radius $r_T$ with respect to the initial state at $t=t_\text{arrival}$, i.e.:
-\begin{equation}
+\begin{equation}\label{eq:TPref}
 T_\text{Pref, i}(t) = f\left( \, \frac{\sum_{\tilde{c} \in C_{T}(c_i(t)) } \, T(\tilde{c}, t)}{\sum_{\tilde{c} \in C_{T}(c_i(t))} \, T(\tilde{c}, t_\text{arrival}) } \, \right)
 \end{equation}
 The shape of the function indicates an indicator of the responsiveness of the economy/society to environmental change. How fast do agents adapt their harvest behaviour, when the non-renewable resource,the trees, is depleted from the initial state?  
@@ -238,8 +249,8 @@ I consider four possibilities (see also Figure \ref{fig:TPref_T}): The tree pref
 \end{itemize}
 \begin{figure}
 	\centering
-	%\includegraphics[width=\textwidth]{images/TreePreferenceOverTreeDensities}
-	\caption{The relation of an agent's tree preference, $T_\text{Pref, i}(t)$, to relative changes in the local tree density for the four considered adaptive types.}
+	\includegraphics[width=\textwidth]{images/TPref}
+	\caption{The relation of an agent's tree preference, $T_\text{Pref, i}(t)$, to relative changes in the local tree density for the four considered adaptive types with $x$ given in equation~\ref{eq:TPref}.}
 	\label{fig:TPref_T}
 \end{figure}
 The tree preference is cut off at certain minimum and maximum thresholds, assuming an agent can not live purely off trees (and associated derivative products) and some tree cutting is required even for maximum agricultural production (e.g.\ as cooking wood or for tools). 
@@ -247,6 +258,10 @@ Here, I choose:
 \begin{equation}
 T_\text{Pref, min} = 0.2 \quad \text{and} \quad T_\text{Pref, max} = 0.8
 \end{equation} 
+In the standard setting in this model, I use the linear relation and, hence, 
+\begin{equation}
+	T_\text{Pref, i}(t) =  \frac{\sum_{\tilde{c} \in C_{T}(c_i(t)) } \, T(\tilde{c}, t)}{\sum_{\tilde{c} \in C_{T}(c_i(t))} \, T(\tilde{c}, t_\text{arrival}) } \cdot (T_\text{Pref, max}-T_\text{Pref, min}) + T_\text{Pref, min}
+\end{equation}
 Since tree density is maximal at $t=t_\text{arrival}$, the initial agents start with maximal tree preference of $T_\text{Pref, i}(t=t_\text{arrival} = 0.8 \  \forall \ i$.
 
 
@@ -297,7 +312,10 @@ However, over time, these natural resources became increasingly scarce and many 
 As a resource management institution the Easter Island society had taboos on the harvest of natural resources \citep{Good2006}. 
 Fishing was mainly restricted to members of a specific chiefdom (`Miru') living at Anakena Beach \citep{Bahn2017} who would then presumably trade with others.
 %According to \citet{Bahn2017} or \citet{Diamond2011}, sea fish vanished from the Easter Island typical diet by \TODO.
-Hence, in the model, every agent living within farming radius, $r_F$, distance of Anakena Beach automatically becomes a fishing agent.
+Hence, in the model, every agent living within farming radius, $r_F$, distance of Anakena Beach (in cell $c_{\rm Anakena}$) automatically becomes a fishing agent.
+\begin{equation}
+ 	c_{\rm i} \in C_{\rm F}(c_{\rm Anakena}) \quad \Rightarrow \text{Agent i  fishes}
+\end{equation}
 \TODO TABOO? Needed??
 %At time $t_\text{taboo fishing}=$\TODO a taboo is put in place externally.
 %Consequently no new fishing agent's are accepted .
@@ -350,10 +368,10 @@ Assuming that the trees are evenly distributed on the cell's area, the condition
 \begin{eqnarray}
 %& \text{Treeless Area\,[acre]} - \text{Occupied Acres\,[acre]}  & \geq 1  \\
 %\Leftrightarrow & 
-\left( 1 - \frac{T(c,t)}{T(c,0)} \right) \cdot A(c) - \mathbf{A}_\text{F}(c) & \geq   1
+\left( 1 - \frac{T(c,t)}{T(c,0)} \right) \cdot A(c) - \mathbf{A}_\text{F}(c, t) & \geq   1
 \label{eq:BurningCond}
 \end{eqnarray}
-where the first term is the treeless area in ${\rm acres}$ and the second term, $\mathbf{A}_\text{F}(t)$ is the number of farmed acres (by any agent) in cell $c$.
+where the first term is the treeless area in ${\rm acres}$ and the second term, $\mathbf{A}_\text{F}(c, t)$ is the number of farmed acres (by any agent) in cell $c$.
 
 If there are no well-suited sites left that fulfil this condition, the agent uses the slash and burn method to reduce the number of trees $T(c,t)$ of an available well-suited cell $c$.
 The agent starts with the cell, that requires the least amount of trees removed for the condition to hold.
@@ -438,9 +456,9 @@ Parameters used range from $0.7\%$ per year \citep{Bahn2017} or `always below $1
 It is clear that depending on the proposed chronology, researchers have to make very contrary assumptions on the population growth in order to fit the few undisputed facts about population dynamics on Easter Island. 
 If an arrival around $1200\, \text{A.D.}$ is assumed (as in \citet{Hunt2007} or \citet{Brandt2015}), assuming a large population growth is unavoidable. 
 There is no way, that only a few hundred inhabitants in the 14th and 15th century could have caused a massive alteration of the island's environment and created several hundred Moai statues.
-On the other hand, many researchers propose arrival dates around $800\, \text{A.D.}$(e.g.\ \citet{Bahn2017}) with earlier studies assuming settlements as early as $400\, \text{A.D.}$ (\citet{Good2006} and \citet{Brander1998}).
-Archaeological data, e.g.\ charcoal data, however, suggests a period of intensification of human activity starting not before $1200\, \text{A.D.}$ (e.g.\ \citet{Bahn2017}) and \citet{Hunt2006}).
-Hence, these researchers assume a slow but continued population growth starting with the arrival way before $1000\, {\rm A.D.}$ up to a peak population in $1300-1700\, \text{A.D.}$.
+On the other hand, many studies propose arrival dates around $800\, \text{A.D.}$(e.g.\ \citet{Bahn2017}) with older studies assuming settlements as early as $400\, \text{A.D.}$ (\citet{Good2006} and \citet{Brander1998}).
+Archaeological data, e.g.\ charcoal evidence, however, suggests a period of intensification of human activity starting after $1200\, \text{A.D.}$ (e.g.\ \citet{Bahn2017}) and \citet{Hunt2006}).
+Hence, these studies assume a slow but continued population growth starting with the `early' arrival.% way before $1000\, {\rm A.D.}$.% up to a peak population in $1300-1700\, \text{A.D.}$.
 %, one has more freedom in choosing the initial growth rate.
 %especially considering that there might have been several phases of population declines as proposed in \citet{\TODO Bahn2017}. 
 %One could imagine that after initial fast growth of the population after an early arrival, through fertility control a steady population size was reached below Easter Island's resource carrying capacity. 
@@ -478,7 +496,8 @@ Figure \ref{fig:growthrate} shows the resulting two regimes of population growth
 %There are two regimes of population dynamics: a population growth for $H_\text{i}(t)>H_\text{equ}$ with maximum $g(H=1)=1.007$, and a decline for 
 %At $H=1$, the households population grows with rate $1.007$, as tree or agricultural land availability decreases, the agent's smoothed happiness decreases and so does the growth rate. If $H<0.6883$, the population size decreases.
 
-If the household size $pop_i$ of an agent $i$ falls below a certain threshold $pop\_min = 6$, the agent $i$ disappears and the remaining individuals are adopted by other households chosen randomly within $C_T(c_i)$ distance. \TODO
+If the household size $pop_i$ of an agent $i$ falls below a certain threshold 
+$pop\_min = 6$, the agent $i$ disappears and the remaining individuals are adopted by other households chosen randomly within a the moving radius distance, $r_M$ ($C_M(c_i)$ defined later).
 It should be noted, that the use of the model in \citet{Pulestion2017} is strongly simplified here.
 E.g.\ I am using a different notion of food/tree availability, which I express via the smoothed happiness $H_\text{i}(t)$, rather than \citet{Puleston2017}'s food ratio.
 Also the distinction between survival and fertility rate especially given their age-dependency is entirely neglected.
@@ -622,10 +641,10 @@ with $r_\text{Kau} = 506\, \rm{m}$, $r_\text{Raraku} = 170\, \rm{m}$, $r_\text{A
 %$N$ is a normalisation factor, such that the penalty $P_W\in[0,1]$.
 The thresholds are chosen as 
 \begin{equation}
-w_{\rm P0.01} = \frac{1\, {\rm km}}{r_\text{Raraku}^2\pi} \qquad
- w_{\rm P0.99}=\frac{10\, {\rm km}}{r_\text{Raraku}^2\pi}
+w_{\rm P0.01} = \frac{(1\, {\rm km})^2}{r_\text{Raraku}^2\pi} \qquad
+ w_{\rm P0.99}=\frac{(5\, {\rm km})^2}{r_\text{Raraku}^2\pi}
 \end{equation} 
-($1$ and $10\, {\rm km}$ distance of a lake like Rano Raraku, respectively)
+($1$ and $5\, {\rm km}$ distance of a lake like Rano Raraku, respectively)
 Then, $P_W(c)$ is calculated as equation \ref{eq:P_X(c)}, with $x=w$, the corresponding thresholds and $k_W$ as in equation \ref{eq:k}:
 \begin{equation}
 	P_W(c) = \frac{1}{1+\exp\left( - k_W (w(c)-\frac{w_{\rm P0.01}+w_{\rm P0.99}}{2}) \right)}
@@ -739,12 +758,12 @@ The penalties for both variables are calculated and then averaged.
 
 The total available farming potential is simply a summation of all productivity indices of arable, unoccupied sites (i.e.\ acres within a cell) within $C_\text{F}(\tilde{c})$.
 \begin{equation}
-	F_\text{tot}(\tilde{c}) = \left( \sum_{\hat{c} \in C_{\rm F}(\tilde{c}) }\, F_{\rm PI}(\hat{c}) \cdot (A_{\rm acres}(\hat{c})  - \mathbf{A}_{\rm F}(\hat{c}) )\right) \ ,
+	F_\text{tot}(\tilde{c}) = \left( \sum_{\hat{c} \in C_{\rm F}(\tilde{c}) }\, F_{\rm PI}(\hat{c}) \cdot (A_{\rm acres}(\hat{c})  - \mathbf{A}_{\rm F}(\hat{c}, t) )\right) \ ,
 \end{equation}
-where $A_{\rm acres}(c)$ is the number of acres and $ \mathbf{A}_{\rm F}(c)$ is again the number of occupied sites in cell $c$ and therefore unavailable for agents in a cell.
+where $A_{\rm acres}(c)$ is the number of acres and $ \mathbf{A}_{\rm F}(c,t)$ is again the number of occupied sites in cell $c$ and therefore unavailable for agents in a cell.
 Similarly for well-suited cells only, 
 \begin{equation}
-	F_\text{well}(\tilde{c}) = \left( \sum_{\hat{c} \in C_{\rm F}(\tilde{c}) \ \cup \ F_{\rm PI}(\hat{c})=1} \, F_{\rm PI}(\hat{c}) \cdot (A_{\rm acres}(\hat{c})  - \mathbf{A}_{\rm F}(\hat{c}) )\right) \ .
+	F_\text{well}(\tilde{c}) = \left( \sum_{\hat{c} \in C_{\rm F}(\tilde{c}) \ \cup \ F_{\rm PI}(\hat{c})=1} \, F_{\rm PI}(\hat{c}) \cdot (A_{\rm acres}(\hat{c})  - \mathbf{A}_{\rm F}(\hat{c},t) )\right) \ .
 \end{equation}
 This $F_\text{well}$ is an important consideration for agents as it makes cells
 more favourable where a certain farming produce can be obtained from a few well-suited rather than a larger number of poorly suited sites indicating larger workload for the individuals.
@@ -755,7 +774,7 @@ F_\text{well, P0.01} = F_\text{tot, P0.01} =  (1-T_\text{pref, min})\cdot F_\tex
 \end{equation}
 The threshold for penalty $P_{\rm F}(c)=0.99$ is the agent's current farming requirement sufficient to obtain happiness $h_{\rm i}(t) = H_{\rm equ}$, i.e.\
 \begin{equation} 
-F_\text{well, P0.99} = F_\text{tot, P0.99} =  F_\text{Req, pP}\cdot pop_{\rm i}(t) \cdot H_{equ}
+F_\text{well, P0.99} = F_\text{tot, P0.99} = (1-T_\text{pref, i}(t))\cdot F_\text{Req, pP}\cdot pop_{\rm i}(t) \cdot H_{equ}
 \end{equation}
 The parameter, $k_F$ is the same for both evaluation variables $F_\text{well} $ and $F_\text{tot}$.
 
@@ -775,6 +794,13 @@ In summary, the farming penalty is smallest for those cells surrounded by a lot 
 The penalty is large for those cells surrounded by few available sites in general and, in particular, few available sites in well-suited cells.
 %E.g.\ penalty $P_{\rm F}=0.5$ 
 
+In locations, where open-sea fishing is enabled, the agents do not farm. 
+Hence, the farming penalty should not depend on arable land and encourage agents to move to this location.
+Hence, I decide to set the `farming' penalty to a negative value in those cells close to the fishing spot, Anakena Beach.
+\begin{equation}
+	P_{\rm F}(\hat{c}) = - 1 %(1-T_\text{Pref, i}(t)) 
+	 \quad \forall \  \hat{c} \in C_\text{F}(c_{\rm Anakena})
+\end{equation}
 %The threshold $Y_{tot}>A_\text{Req, i}(t) \cdot H_{equ}$ ensures that the new location always has the same number or higher number of potential agriculture yield than the last. 
 
 %The minimum workload is an index of how many acres a household needs to occupy in order to fill its requirement, i.e.\ a measure for the optimum mean productivity indices 

@@ -1,223 +1,188 @@
-##########################################
-#####    CONFIG FILE FOR FULL MODEL   ####
-##########################################
-
 import numpy as np
-class EI_empty:
-    def __init__(self):
-        # CONSTANT
-        self.N_els=0
-        self.corners={'upper_left':[0,0],'bla':[0,0]}
-        self.EI_midpoints=[]
-        self.pixel_dim=[]
-        self.points_EI_km=np.array([[0,0],[0,0]])
-        #self.distMatrix=np.zeros([self.N_els, self.N_els])
-        self.all_triangles = []
-        self.mask = []
-        self.EI_triangles=[]
-        self.carrying_cap=np.array([])
-        self.EI_triangles_areas=[]
-        self.EI_midpoints_elev=[]
-        self.EI_midpoints_slope=[]
-        #self.NeighbourhoodRad = 0# = config.params['resource_search_radius']
-        self.TreeNeighbours_of_triangles =np.array([])
-        self.AgricNeighbours_of_triangles =np.array([])
-        self.LateMovingNeighbours_of_triangles = np.array([])
-        self.tree_search_radius = 0
-        self.agriculture_radius = 0
-        self.moving_radius_late = 0
-        # CONSTANT EXTENSIONS
-        self.water_penalties=[]
-        self.map_penalty = np.array([])
-        self.slopes_cond = np.array([])
-        self.water_triangle_inds = []
-        self.nr_highqualitysites = []
-        self.nr_lowqualitysites = []
-        self.agric_yield=np.array([])
-        self.treeless_years = np.array([])
-        self.max_tree_density = 0
-        
-        # WILL CHANGE OVER TIME
-        self.agentOccupancy=np.array([])
-        self.populationOccupancy = np.array([])
-        self.tree_density=np.array([])
-        self.agriculture = np.array([])
-        self.AnakenaBeach_ind=-1
 
-    def transform(self, pos):
-        return pos
-    def get_triangle_of_point(self, pos, triObject):
-        ind_triangle, m, _corner = [0,0,[]]
-        return ind_triangle, m, _corner
-    def plot_TreeMap_and_hist(self , ax=None, fig=None, name_append = "", hist=False, save=False, histsavename="", folder="Map/"):
-        return fig, ax
-    def plot_agricultureSites(self, ax=None, fig=None, save=True, CrossesOrFacecolor="Crosses", folder=""):
-        return fig, ax
-
-### HOUSEHOLD PARAMS
-
-MaxSettlementSlope=0
-#MaxSettlementElev=0
-#MinSettlementElev=0
-Penalty50_SettlementElev = 0
+N_agents_arrival = 0
+Pop_arrival = 0
+r_M_arrival = 0
+t_arrival = 0
+F_pi_c_tarrival = np.array([])
 
 
-max_pop_per_household_mean = 0
-max_pop_per_household_std = 0
-LowerLimit_PopInHousehold = 0
-childrenPop = 0
-
-
-MaxPopulationDensity=0
-MaxAgricPenalty = 0
-
-tree_need_per_capita = 0
-MinTreeNeed=0. #Fraction
-TreePref_kappa = 0
-
-BestTreeNr_forNewSpot = 0
-
-#Nr_AgricStages = 1
-#dStage = ((1-MinTreeNeed)/Nr_AgricStages)
-
-agricYield_need_per_Capita = 0
-
-maxNeededAgric=0
-
-#treePref_decrease_per_year = 0.0
-#treePref_change_per_BadYear = 0.0
-
-#HowManyDieInPopulationShock = 0
-FractionDeathsInPopShock=0.0
-g_of_H = lambda x: 0
-PopulationChange_shape = 0
-
-MovingHappyThreshold = 0.0
-
-alpha_w=0
-alpha_t=0
-alpha_p=0
-alpha_a=1
-alpha_m= 0
-
-PenalToProb_Prefactor=0
-
-NrOfEquivalentBestSitesToMove = 0
-
-# Each agent can (in the future) have these parameters different
-params={'tree_search_radius': 0, 
-        'agriculture_radius':0,
-        'moving_radius': 0,
-        'reproduction_rate': 0.,
-        }
-PopulationMovingRestriction=0
-
-MaxFisherAgents = 0
-FishingTabooYear = 0
-MinTreeNeed_fisher = 0
-
-
-MaxReachableTrees = 0
-MaxYield = 0
-
-P50t = 0
-PkappaT=0
-
-PkappaP=0
-P50p = 0
-
-P50a=0
-PkappaA=0
-
-def scaled_tanh(x,mu,kappa):
-    return 1/(np.tanh(kappa*(1-mu))-np.tanh(kappa*(0-mu))) * (np.tanh(kappa*(x-mu))-np.tanh(kappa*(0-mu)))
-        
-###  INIT
-N_agents = 0
-N_trees = 0
-firstSettlers_moving_raidus = 0
-firstSettlers_init_pop=0
-init_TreePreference = 1.
-index_count=0  # Index of agent (index is unique regardless of dead households)
-
-
-### RUNS ###
-folder = ""
-seed = 100
-updatewithreplacement = True
-StartTime = 0
-EndTime=0
-N_timesteps = 0
-move=0
-#t = 800
-
-###  MAP  ###
-TreeDensityConditionParams = {'minElev':0, 'maxElev':0,'maxSlope':0}
-tree_pop_percentage = 0.0
-tree_pop_timespan  = 0
-UpperLandSoilQuality = 0
-ErodedSoilYield = 0 # Max
-#YearsBeforeErosionDegradation=0
-#AgriConds={'minElev':0,'maxElev_highQu':0,
-#    'maxSlope_highQu':0,'maxElev_lowQu':0,'maxSlope_lowQu':0,
-#    'MaxWaterPenalty':0,}
-m2_to_acre = 0.000247105381  # = acre per m^2
-km2_to_acre = m2_to_acre*1e6 # = acre per km^2 --> areas*km2_to_acre 
-gridpoints_y= 0
+# MAP
+gridpoints_y = 0
 AngleThreshold = 0
-MapPenalty_Kappa = 0
 
+N_trees_arrival = 0
+
+TreeDensityConditionParams =   {
+    'minElev':0, 
+    'maxSlopeHighD': 0, 
+    "ElevHighD":0, 
+    'maxElev': 0,
+    'maxSlope':0,
+    "factorBetweenHighandLowTreeDensity":1
+}
+
+F_PI_well = 0
+F_PI_poor = 0
+F_PI_eroded = 0
 
 tree_regrowth_rate = 0
+tree_pop_percentage = 0
+barrenYears_beforePopUp = 0
 
-drought_RanoRaraku_1=[]
-drought_RanoRaraku_2=[]
+droughts_RanoRaraku=[[], []]
 
-EI_triObject = 0
-tree_growth_poss=np.array([],dtype=int)
-EI=EI_empty()
+well_suited_cells_tarrival = np.array([], dtype = int)
 
-analysisOn= True
-AG0_mv_inds=np.array([])
-AG0_total_penalties=np.array([])
-
-AG0_water_penalties =np.array([])
-AG0_tree_penalty =np.array([])
-AG0_pop_density_penalty = np.array([])
-AG0_agriculture_penalty = np.array([])
-AG0_nosettlement_zones = np.array([])
-AG0_MovingProb=np.array([])
-AG0_map_penalty = np.array([])
-
-initial_agric_yield=np.array([])
+lakeColor = (3/255,169/255,244/255 ,1 )
+m2_to_acre = 0.000247105381  # = acre per m^2
+km2_to_acre = m2_to_acre*1e6 # = acre per km^2 --> areas*km2_to_acre 
 
 
 
-#######################
-###  RESULT ARRAYS  ###
-#######################
-agents=[]
-nr_agents, nr_trees, nr_excessdeaths, nr_excessbirths, nr_pop = [[], [], [], [], []] #[nr_agents, nr_trees, nr_deaths, population]
-excess_births = 0
+# Section Harvest Environment interaction
+
+r_T = 0
+r_F = 0
+T_Req_pP = 0
+T_Pref_max = 0
+T_Pref_min = 0
+xi_T_Pref = 0
+T_Pref_fisher_min = 0
+MaxFisherAgents = 0
+F_Req_pP=0
+
+#FishingTabooYear = 0
+
+
+# Population dynamics
+
+g_H1 = 0
+H_equ = 0
+SplitPop = 0
+pop_agent_max_mean = 0
+pop_agent_max_std=0
+Split_k=0
+Split_theta = 0
+pop_agent_min = 0
+g_shape = 0
+g_scale = 0.1
+g_scale_param = 0
+g_of_H = lambda H: 0
+
+
+# Moving 
+r_M_init = 0
+r_M_later = 0
+pop_restrictedMoving = 0
+k_X = lambda x01,x99: 1/(0.5*(x99-x01)) * np.log(0.99/0.01)
+P_x = lambda x, k_x, x50: 1/(1+np.exp(-k_x*(x-x50)))  # x50 = (x99+x01)/2
+
+
+# categories 
+w01=0; w99=0
+el01=0; el99=0
+sl01=0; sl99=0
+tr01=0; tr99=0 
+f01=0; f99=0
+pd01=0; pd99=0
+trcondition = tr99
+fcondition = f99
+
+alpha_W = 0
+alpha_T=0
+alpha_F = 0
+alpha_D = 0
+alpha_G=0
+gamma = 0
+
+
+# RUN SETTINGS
+t_end = 0
+updatewithreplacement = False
+seed = 0
+
+##### RUNING VARIABLES / STORAGE #####
+
+folder = ""
+index_count = 0
+agents = []
+
+# STORAGE
+Array_N_agents = np.array([]).astype(np.int32)
+Array_pop_ct= np.array([]).astype(np.int)
+Array_T_ct= np.array([]).astype(np.int32)
+Array_F_ct = np.array([]).astype(np.int32)
+agentStats_t = []
+
+FisherAgents = 0
+Pop = np.array([])
+RegrownTrees = np.array([])
+TreesPoppedUp = np.array([])
 excess_deaths = 0
+nr_excessdeaths =  np.array([])
+excess_births = 0
+nr_excessbirths =  np.array([])
 fire=[]
-agents_stages=[]
-agents_pos_size = []
 happyMeans=np.array([])
 happyStd=np.array([])
 treeFills = np.array([])
-agricFills = np.array([])
-nr_agricultureSites=[]
-Array_tree_density = np.array([]).astype(np.int32)
-Array_agriculture = np.array([]).astype(np.int32)
-Array_populationOccupancy = np.array([]).astype(np.int32)
+farmingFills = np.array([])
 Penalty_std = np.array([])
 Penalty_mean = np.array([])
-FisherAgents = 0
 NrFisherAgents = np.array([])
 Fraction_eroded=np.array([])
 GardenFraction = np.array([])
 moves = []
-TreeRegrowth = []
-TreePopUp=[]
+move=0
 timeSwitchedMovingRad = np.nan
+
+
+class EI_Empty:
+    def __init__(self):
+        self.N_c = 0
+        self.T_c= np.array([])
+        self.A_c= np.array([])
+        self.A_F_c= np.array([])
+        self.P_W= np.array([])
+        self.P_G= np.array([])
+        self.points_EI_km= np.array([])
+        self.carrying_cap= np.array([])
+        self.F_pi_c= np.array([])
+        self.pop_c = np.array([])
+        self.C_T_c= np.array([])
+        self.C_F_c= np.array([])
+        self.C_Mlater_c= np.array([])
+        self.A_acres_c = np.array([])
+        self.agNr_c = np.array([])
+        self.vec_c = np.array([])
+        self.points_EI_km=np.array([])
+        self.EI_triangles = np.array([])
+        self.AnakenaBeach_ind =0
+        self.C_F_cAnakena=np.array([])
+        self.well_suited_cells = np.array([], dtype=int)
+        self.poorly_suited_cells = np.array([], dtype=int)
+        self.eroded_well_suited_cells = np.array([], dtype=int)
+        # for plotting
+        self.corners={'upper left':[0,0]}
+        self.water_triangle_inds_RarakuDrought = []
+        self.water_triangle_inds_NoDrought = []
+        self.r_T = 0
+        self.r_F = 0
+    def check_drought(self):
+        return 
+    def init_trees(self):
+        return
+    def get_c_of_point(self,point, triObject):
+        ind = 0; vec_t_ind=[0,0]
+        return ind, vec_t_ind 
+    def get_P_G(self):
+        return 
+EI = EI_Empty()
+EI_triObject = None
+
+
+def logistic(x,k,mu):
+    return 1/(1+np.exp(-k*(x-mu)))
+
+f_T_Pref = lambda x: 0
