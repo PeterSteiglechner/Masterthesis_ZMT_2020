@@ -290,9 +290,12 @@ def update_single_agent(ag,t):
         print("Agent ",ag.index, "(pop",ag.pop,"): Pref ", '%.4f' % ag.T_Pref_i,", TreeNeed ", ag.T_Req_i, ", AgriSite/Need ", np.sum(ag.F_PI_i),"/",len(ag.A_F_i), "/",ag.F_Req_i, " previous happy:",ag.h_i, "Tree/agricFill", "%.2f" % ag.tree_fill, "/","%.2f" % ag.farming_fill, ", penalty","%.2f" % ag.penalty )
 
 
-
-    ag.H_i=np.mean([np.min([ag.tree_fill, ag.farming_fill]), ag.h_i])
-    ag.h_i =  np.min([ag.tree_fill, ag.farming_fill])  
+    h_i_new = np.min([ag.tree_fill, ag.farming_fill])
+    if h_i_new < ag.h_i:
+        ag.H_i= np.mean([h_i_new, ag.h_i])
+    else:
+        ag.H_i = h_i_new
+    ag.h_i = h_i_new 
 
     survived = ag.population_change(ag.H_i,t) # REprod and Pop Shock!
     if survived:
