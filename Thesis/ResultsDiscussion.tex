@@ -1,2 +1,54 @@
 % !TEX root=frame_thesis.tex
-\section{Results and Discussion}
+\chapter{Results}
+
+\section{Standard Run}
+ \begin{itemize}
+ 	\item Fig 1: Aggregate Dynamics (population, trees, mean penalties and happiness, fires, excess mortality/fertility). The plot that Esteban sketched during last Zoom Meeting [called statistics plot from now on]. All statistics plots are mean ensemble runs of 10 different seeds.
+ 	\item Comparison of the spatial deforestation pattern with \citet{Rull2020}'s Figure, which we sent to Valenti.
+ \end{itemize}
+
+\section{Different theories}
+Statistics Plots for a
+\begin{itemize}
+	\item Run with low N fixation (instead of high)
+	\item Run with tree regeneration and high N fixation
+	\item Run with tree regeneration and low N fixation
+\end{itemize}
+
+\section{Different Tree Preference Functions, i.e.\ Agent Adaption}
+\begin{itemize}
+	\item Runs with $f_{\rm Tree \ Pref}$ delayed, careful, logistic.
+\end{itemize}
+I don't know yet if this makes any difference to the standard run and what difference. So we'll see.
+
+\section{A less resilient society}
+Run with a larger shape parameter of $g(H_{\rm i})(t)$.
+I don't know yet if this makes any difference to the standard run and what difference. So we'll see.
+I assume that the turning point of growing population to decreasing population size happens earlier. Maybe I'll just show the statistics plot.
+
+
+\section{Senstivity Analysis of some uncertain parameters}
+$r_{\rm T}$, $r_{\rm F}$,
+$T_{\rm Req, pP}$
+
+\section{Three different decision making processes}
+\begin{itemize}
+	\item Standard setting, $\gamma=20$, $\alpha=(0.2,0.2,0.2,0.2,0.2)$.
+	\item `Only resource availability matters for moving decision' setting, $\gamma=20$, $\alpha=(0, 0, 0, 0.5,0.5)$.
+	\item Hopping agents, that move to a random spot with uniform probability over the island, $\gamma=0$, $\alpha=$ doesn't matter.
+\end{itemize}
+Results not yet known. I guess I'll describe qualitatively what happens to the spatial patterns. 
+If the aggregate dynamics change, this would of course be a big, big result and I would focus on that.
+
+
+\section{Perhaps, if I have time: Regional Dynamics}
+Adjust the statistics plot of total population dynamics to looking at a few hand-defined regions and the plot the aggregate dynamics of them separately. 
+
+\section{Fires}
+Plot the distribution of fires on the map over time. 
+I imagine a map in which the color determines the timing of fires in each cell. 
+I'm not sure yet how to do this exactly since fires in any cell occur at multiple times. Maybe I'll take the first occurence. We'll see.
+
+
+
+\chapter{Discussion and Conclusion}
