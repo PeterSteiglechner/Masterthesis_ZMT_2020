@@ -70,9 +70,9 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = 
     ax.legend(handles = [lake], loc="lower right", frameon=False, fontsize=20)
     if save==True:
         if ncdf==False:
-            ending = ".pdf"
+            ending = ".png"
         else:
-            ending=".png"
+            ending=".pdf"
         plt.savefig(folder+"map_time"+str(t)+ending, bbox_inches="tight")
         plt.close()
 

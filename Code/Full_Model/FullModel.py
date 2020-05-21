@@ -220,9 +220,9 @@ if not AlphaSetting=="alphaStd":
         config.gamma = 20  
     if AlphaSetting=="alphaHopping":
         config.alpha_W= 0.0
-        config.alpha_T = 0.0
+        config.alpha_T = 0.2
         config.alpha_D = 0.0
-        config.alpha_F = 0.0
+        config.alpha_F = 0.2
         config.alpha_G = 0.0
         # Penalty to Probability
         config.gamma = 0.0
