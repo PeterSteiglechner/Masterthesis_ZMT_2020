@@ -49,8 +49,8 @@ def update_time_step(t):
         happyMean= np.mean(happys_inclDead)
         config.happyMeans = np.append(config.happyMeans, happyMean)
         config.happyStd = np.append(config.happyStd, np.std(happys_inclDead))
-        config.treeFills = np.append(config.treeFills, np.sum([ag.tree_fill<1 for ag in config.agents]))
-        config.farmingFills = np.append(config.farmingFills, np.sum([ag.farming_fill<1 for ag in config.agents]))
+        config.treeFills = np.append(config.treeFills, np.mean([ag.tree_fill<1 for ag in config.agents]))
+        config.farmingFills = np.append(config.farmingFills, np.mean([ag.farming_fill<1 for ag in config.agents]))
         config.Penalty_mean = np.append(config.Penalty_mean, (np.mean([ag.penalty if ag.penalty<100 else 1 for ag in config.agents])) )
         config.Penalty_std = np.append(config.Penalty_std, (np.std([ag.penalty if ag.penalty<100 else 1 for ag in config.agents])))
         config.NrFisherAgents = np.append(config.NrFisherAgents, config.FisherAgents)
@@ -81,8 +81,8 @@ def update_single_agent(ag,t):
     
     #ag.change_tree_pref(-config.treePref_decrease_per_year)
     #ag.calc_new_tree_pref()
-    #ag.calc_tree_need()
-    #ag.calc_agri_need()
+    ag.calc_T_Req()
+    ag.calc_F_Req()
 
     previous_treeNr = np.copy(np.sum(config.EI.T_c))
 
@@ -115,13 +115,7 @@ def update_single_agent(ag,t):
             TreelessSpaceForAgr = config.EI.A_c[potential_sites_inds] * config.km2_to_acre *  (1- TreeDens_onPotentialAgri) - config.EI.A_F_c[potential_sites_inds] 
             TreelessSpaceForAgr_int = np.floor(TreelessSpaceForAgr) # Round down.
             
-            #TEST: if any(TreelessSpaceForAgr > config.EI.nr_highqualitysites[potential_sites_inds]):
-            #    print("ERROR in CALC SPACE FOR AGR ", potential_sites_inds, TreelessSpaceForAgr, config.EI.nr_highqualitysites[potential_sites_inds] )
-            #    quit()
-            
-            # TODO   I COULD COMBINE THIS WITH THE TREE BURNING LATER AND JUST TAKE THE ONES WHERE 0 BURNING REQUIRED.
-
-            # The indices of the triangles of ALL acres, that are unoccupied, tree-less and have potential agriculture . e.g. [1,1,1,4,4,5,8,6,13,13,13]
+           # The indices of the triangles of ALL acres, that are unoccupied, tree-less and have potential agriculture . e.g. [1,1,1,4,4,5,8,6,13,13,13]
             treeless_sites_inds = np.array([i  for n,i in enumerate(potential_sites_inds) for k in range(int(TreelessSpaceForAgr_int[n])) ], dtype=int)
             treeless_sites_yields = config.EI.F_pi_c[treeless_sites_inds]
             #bestTreelessSitesFirst_inds = treeless_sites_inds[np.argsort(config.EI.agric_yield[treeless_sites_inds]).astype(int)]
@@ -313,8 +307,8 @@ def update_single_agent(ag,t):
         print("Agent ",ag.index, ", new pop: ",ag.pop," happy:",ag.h_i)
 
     ag.calc_new_tree_pref()
-    ag.calc_F_Req()
-    ag.calc_T_Req()
+    #ag.calc_F_Req()
+    #ag.calc_T_Req()
 
     if np.any(config.EI.A_F_c<0):
             print("ERROR, Update after reproduce, agric <0", np.where(config.EI.A_F_c<0) )
