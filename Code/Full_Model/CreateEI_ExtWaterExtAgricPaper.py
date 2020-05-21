@@ -260,6 +260,7 @@ class Map:
         
         ####    Create grid points ####
         gridpoints_x = int(gridpoints_y * 1.5)
+        #gridpoints_x = int(gridpoints_y * 4/3)
 
         grid_x = np.linspace(0,pixel_x, num=gridpoints_x, endpoint=False)
         grid_y = np.linspace(0,pixel_y, num=gridpoints_y, endpoint=False)
@@ -277,7 +278,10 @@ class Map:
         print("Nr of cornerpoints on EI: ", self.points_EI_int.shape[0]," of total gridpoints ", len(all_points))
         
         #Points on Easter Island in kms from left lower corner
-        self.points_EI_km = np.array([self.transform(p) for p in self.points_EI_int])        
+        self.points_EI_km = np.array([self.transform(p) for p in self.points_EI_int])    
+
+        print("Points on EI x (km between points): ", self.transform([np.mean(np.diff(grid_x)), np.mean(np.diff(grid_y))])) 
+        
         return 
 
     def midpoint_int(self, t):
@@ -521,7 +525,7 @@ class Map:
         P_el = config.logistic(self.el_c, k_el, (config.el01+config.el99)/2)
         k_sl = config.k_X(config.sl01, config.sl99)
         P_sl = config.logistic(self.sl_c, k_sl, (config.sl01+config.sl99)/2)
-        self.P_G = np.maximum(P_el, P_sl)
+        self.P_G = 0.5*(P_el + P_sl)
         self.P_G[self.water_triangle_inds] = 1e6
         return 
 
@@ -610,7 +614,8 @@ class Map:
             plt.close()
         return fig, ax
 
-    def plot_agricultureSites(self, ax=None, fig=None, save=True, CrossesOrFacecolor="Crosses", folder=""):
+    
+    def plot_agricultureSites(self, ax=None, fig=None, save=True, folder=""):
         if ax==None:
             fig = plt.figure(figsize=(10,6))
             ax = fig.add_subplot(1,1,1,fc='aquamarine')
@@ -640,6 +645,7 @@ class Map:
             plt.close()
         return fig, ax
 
+    
     def plot_water_penalty(self, folder=""):
         plt.cla()
         fig= plt.figure(figsize=(10,6))
@@ -717,7 +723,7 @@ if __name__=="__main__":
     '''
     config.N_trees_arrival = 16e6
 
-    config.gridpoints_y=50
+    config.gridpoints_y=48
     TreePattern_evenly = {
         'minElev':0, 'maxSlopeHighD': 10, "ElevHighD":450, 
         'maxElev': 450,'maxSlope':10,

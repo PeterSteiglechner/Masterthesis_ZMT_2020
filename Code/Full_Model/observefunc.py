@@ -30,6 +30,8 @@ widthcbar ="5%"
 distwbar="15%"
 initial_distwbar = "2%"
 
+
+   
 def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = None, ncdf=False, folder=None, posSize_small=False, legend=False, cbar=[True, True, True], cbarax=None):
     global distwbar, initial_distwbar
     if posSize_small:
@@ -43,13 +45,12 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = 
         ax = fig.add_subplot(1,1,1,fc='gainsboro')
     if folder==None:
         folder=config.folder
-    #fig,ax = observe_density(t,ax = ax,fig = fig, save=False)
-    #fig,ax = config.EI.plot_agricultureSites(ax=ax, fig=fig, save=False, CrossesOrFacecolor="Crosses")
     fig, ax, divider, _, cmapTree =   plot_TreeMap_only(fig, ax, t, data=data, ncdf=ncdf, save = cbar[0], cbarax=cbarax)
     ax, divider, _, cmapAgric  = plot_agricultureSites_onTop(ax, divider, t, data=data, ncdf=ncdf, save =cbar[1], cbarax=cbarax)
     if len(config.agents)>0 or (ncdf==True):
         ax,divider, _,cmapPop = plot_agents_on_top(ax, divider,t, ncdf=ncdf, data=data, specific_ag_to_follow=specific_ag_to_follow, save=cbar[2], cbarax=cbarax)
-
+    else:
+        cmapPop=0
     ax.set_title(str(t)+r"$\,$A.D.", x=0.01, y=0.9,fontweight="bold", loc='left')
     ax.set_xticklabels([])
     ax.set_yticklabels([])
@@ -64,38 +65,14 @@ def observe(t, fig=None, ax=None, specific_ag_to_follow=None, save=True, data = 
                             size_vertical=0.2,
                             fontproperties= fm.FontProperties(size=20))#*(1+posSize_small*1)))
     ax.add_artist(scalebar)
-    #waterbox = plt.Rectangle((0.75,0.8), 0.1,0.06, visible=True, label="Lakes", fc=config.lakeColor, transform = ax.transAxes)   
-    #ax.add_artist(waterbox)
-    #plt.text(0.95, 0.05, "Lakes", fontsize=15*(1+posSize_small*1), transform = ax.transAxes)
-    
+
     lake = Patch(label="Lake", facecolor=config.lakeColor)
     ax.legend(handles = [lake], loc="lower right", frameon=False, fontsize=20)
-    # if legend:
-    #     if ncdf==True:
-    #         # p1 = ax.scatter([],[],s=0.2*25, color=(1-data.MinTreeNeed, 0,1,1), label="Agent with $TPref_{\rm{min}}$"  )
-    #         # p2=ax.scatter([],[],s=0.2*25, color=(1-data.init_TreePreference, 0,1,1), label="Agent with $TPref_{\rm{min}}$"  )
-    #         # b1 = plt.Rectangle((0.5,0.5), 1,1, visible=False, label="Cell with Max Agriculture", fc=cmapAgric(1))
-    #         # b2 = plt.Rectangle((0.5,0.5), 1,1, visible=False, label="Cell with Max Tree", fc=cmapTree(1))
-    #         # ax.add_artist(b1)
-    #         # ax.add_artist(b2)
-    #         # plt.legend(loc="bottom left")
-    #         legend_elements = [Line2D([0], [0], color="w",marker='o', markerfacecolor=((1-data.MinTreeNeed), 0,1,1), markersize=int(42*0.2), label='Agent with min TPref'),#$TPref_{\rm{min}}$'),
-    #             Line2D([0], [0], marker='o', color="w", markerfacecolor=((1-data.init_TreePreference), 0,1,1), markersize=int(42*0.2), label="Agent with max TPref"),#$TPref_{\rm{min}}$"),
-    #             Patch(label="Cell with max Agric Occupation", facecolor=cmapAgric[1]),
-    #             Patch(label="Cell with max Tree Nr", facecolor=cmapTree[1])
-    #             ]
-    #         if posSize_small:
-    #             bbox=(0.0,-0.5, 1,0.45)
-    #             fs=18
-    #         else:
-    #             bbox=(0.6, 0.0, 0.4, 0.3)
-    #             fs=10
-    #         ax.legend(handles=legend_elements, loc='best', bbox_to_anchor=bbox, fontsize=fs)
     if save==True:
         if ncdf==False:
-            ending = ".png"
+            ending = ".pdf"
         else:
-            ending=".svg"
+            ending=".png"
         plt.savefig(folder+"map_time"+str(t)+ending, bbox_inches="tight")
         plt.close()
 
@@ -527,6 +504,137 @@ def plot_statistics(data, folder):
     plt.savefig(folder+"Statistics_timeseries.svg")
     plt.close()
     return 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def plot_F_PI_Map():
+        #distwbar="15%"
+        initial_distwbar="2%"
+        fig = plt.figure(figsize=(10,6))
+        ax = fig.add_subplot(1,1,1,fc='gainsboro')
+        #ax, divider, _, _  = plot_agricultureSites_onTop(ax, divider, t, data=data, ncdf=ncdf, save =cbar[1], cbarax=cbarax)
+        face_colors = config.EI.F_pi_c #(config.EI.nr_highqualitysites+config.EI.nr_lowqualitysites).clip(min=0.1)
+        face_colors[face_colors==0]=-1.
+        oranges = plt.get_cmap("Wistia", 11)#(np.linspace(0, 1, int(10*1)))
+        #oranges[:256,3] = np.linspace(0.0,0.9,256)
+        #cmap = LinearSegmentedColormap.from_list("orangeshalf",oranges)
+        cmap = oranges
+        cmap.set_under("white")
+        #plot_agricultureSites_onTop(ax=ax, fig=fig)    
+        AgricPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=cmap, alpha=None, vmax=1, vmin=0)
+        
+        watertriangles = np.zeros([config.EI.N_c])
+        watertriangles[config.EI.water_triangle_inds_NoDrought]=1
+        watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),config.lakeColor],N=2) # Indigo blue
+        _ = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+        config.EI.EI_triangles, facecolors=watertriangles, vmin = 0.0, vmax = 1, cmap=watercmap, alpha=None) 
+        ax.set_aspect('equal')
+        divider = make_axes_locatable(plt.gca())
+        cax2 = divider.append_axes("right", widthcbar, pad=initial_distwbar)
+        cb2 = colorbar(AgricPlot, cax =cax2)#, extend='min')     
+        cb2.set_label_text("Farming Productivity Index \n"+r"$F_{\rm PI}(c, t=t_{\rm arrival})$")# [${\rm acre/acre}$]")
+        #ax.set_title(str(t)+r"$\,$A.D.", x=0.01, y=0.9,fontweight="bold", loc='left')
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_xticks([])
+        ax.set_yticks([])
+        scalebar = AnchoredSizeBar(ax.transData,
+                            5, '5 km', 'lower center', 
+                            pad=0.4,
+                            color='black',
+                            frameon=False,
+                            size_vertical=0.2,
+                            fontproperties= fm.FontProperties(size=20))#*(1+posSize_small*1)))
+        ax.add_artist(scalebar)
+        #waterbox = plt.Rectangle((0.75,0.8), 0.1,0.06, visible=True, label="Lakes", fc=config.lakeColor, transform = ax.transAxes)   
+        #ax.add_artist(waterbox)
+        #plt.text(0.95, 0.05, "Lakes", fontsize=15*(1+posSize_small*1), transform = ax.transAxes)
+        
+        lake = Patch(label="Lake", facecolor=config.lakeColor)
+        ax.legend(handles = [lake], loc="lower right", frameon=False, fontsize=20)
+
+        
+        plt.savefig("Map/Plot_F_PI_c.pdf")
+
+        return #ax, divider, AgricPlot, (cmap, oranges[255])
+
+
+
+
+
+
+def plot_Penalty_Map(which, label, name):
+        #distwbar="15%"
+        initial_distwbar="2%"
+        fig = plt.figure(figsize=(10,6))
+        ax = fig.add_subplot(1,1,1,fc='gainsboro')
+        #ax, divider, _, _  = plot_agricultureSites_onTop(ax, divider, t, data=data, ncdf=ncdf, save =cbar[1], cbarax=cbarax)
+        face_colors = which #(config.EI.nr_highqualitysites+config.EI.nr_lowqualitysites).clip(min=0.1)
+        #face_colors[face_colors==0]=-1.
+        #oranges = plt.get_cmap("Wistia", 11)#(np.linspace(0, 1, int(10*1)))
+        #oranges[:256,3] = np.linspace(0.0,0.9,256)
+        #cmap = LinearSegmentedColormap.from_list("orangeshalf",oranges)
+        #cmap = oranges
+        cmap = plt.get_cmap("Reds")
+        cmap.set_under('gray') 
+        #vmin = 0.0
+        #vmax=1        #plot_agricultureSites_onTop(ax=ax, fig=fig)    
+        PGPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=cmap, alpha=None, vmax=1, vmin=0)
+        
+        watertriangles = np.zeros([config.EI.N_c])
+        watertriangles[config.EI.water_triangle_inds_NoDrought]=1
+        watercmap =  LinearSegmentedColormap.from_list("watercmap",[(0,0,0,0),config.lakeColor],N=2) # Indigo blue
+        _ = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+        config.EI.EI_triangles, facecolors=watertriangles, vmin = 0.0, vmax = 1, cmap=watercmap, alpha=None) 
+        
+        ax.set_aspect('equal')
+        divider = make_axes_locatable(plt.gca())
+        cax2 = divider.append_axes("right", widthcbar, pad=initial_distwbar)
+        cb2 = colorbar(PGPlot, cax =cax2)#, extend='min')     
+        cb2.set_label_text(label)# [${\rm acre/acre}$]")
+        #ax.set_title(str(t)+r"$\,$A.D.", x=0.01, y=0.9,fontweight="bold", loc='left')
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_xticks([])
+        ax.set_yticks([])
+        scalebar = AnchoredSizeBar(ax.transData,
+                            5, '5 km', 'lower center', 
+                            pad=0.4,
+                            color='black',
+                            frameon=False,
+                            size_vertical=0.2,
+                            fontproperties= fm.FontProperties(size=20))#*(1+posSize_small*1)))
+        ax.add_artist(scalebar)
+        #waterbox = plt.Rectangle((0.75,0.8), 0.1,0.06, visible=True, label="Lakes", fc=config.lakeColor, transform = ax.transAxes)   
+        #ax.add_artist(waterbox)
+        #plt.text(0.95, 0.05, "Lakes", fontsize=15*(1+posSize_small*1), transform = ax.transAxes)
+        
+        lake = Patch(label="Lake", facecolor=config.lakeColor)
+        ax.legend(handles = [lake], loc="lower right", frameon=False, fontsize=20)
+
+        
+        plt.savefig("Map/Plot_"+name+".pdf")
+
+        return #ax, divider, AgricPlot, (cmap, oranges[255])
+
+
+
+
 
 
 

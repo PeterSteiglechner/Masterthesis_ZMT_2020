@@ -46,9 +46,18 @@ from write_to_ncdf import final_saving#,  produce_agents_DataFrame
 #from analyse_ncdf import plot_statistics
 
 
+seed = sys.argv[1] # number
+HighorLowFix= sys.argv[2] # highFix, lowFix
+TreeRegrowthOption = sys.argv[3]  # "withRegrowth", noRegrowth
+TPrefOption = sys.argv[4]  # linear, delayed, logistic, careful
+PopulationStability = sys.argv[5] # LessResPop, NormPop
+AlphaSetting = sys.argv[6] # alphaStd, alphaHopping, alphaStd, alphaResource
+
+
+
 # Pre-settings
 CreateNewMap = True
-config.folder = "Figs_May18/"
+config.folder = "Figs_May21/"
 
 
 ################################
@@ -88,7 +97,6 @@ config.F_PI_eroded=0.5  # No Source
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
 
-TreeRegrowthOption = sys.argv[3]  # "withRegrowth"
 if TreeRegrowthOption:
     config.tree_regrowth_rate= 0.05 # every 20 years all trees are back?  # Brandt Merico 2015# Brander Taylor 0.04 % Logisitc Growth rate.
     config.tree_pop_percentage = 0.005
@@ -105,7 +113,7 @@ config.droughts_RanoRaraku=[[config.t_arrival, 1200], [1570, 1720]]
 ####     Run                ####
 ################################config.updatewithreplacement = False
 config.t_end=1900
-config.seed= int(sys.argv[1])
+config.seed= int(seed)
 
 
 
@@ -118,7 +126,6 @@ config.r_F=1
 config.T_Pref_max = 0.8    
 config.T_Pref_min=0.2      #Fraction
 
-TPrefOption = sys.argv[4]
 if TPrefOption =="linear":
     config.f_T_Pref = lambda x: x*(config.T_Pref_max-config.T_Pref_min)+config.T_Pref_min
 elif TPrefOption=="careful":
@@ -130,7 +137,6 @@ elif TPrefOption=="careful":
     config.f_T_Pref = lambda x: config.logistic(x,config.xi_T_Pref, 0.5)*(config.T_Pref_max-config.T_Pref_min)+config.T_Pref_min
 
 config.T_Req_pP = 5 # Brandt Merico 2015 h_t =5 roughly.
-HighorLowFix= sys.argv[2]
 if HighorLowFix=="highFix":
     config.F_Req_pP = 0.5 # Puleston High N  in ACRE!
 else:
@@ -139,11 +145,10 @@ else:
 
 #config.FishingTabooYear = 1400
 config.T_Pref_fisher_min=0.5
-config.MaxFisherAgents=5
+config.MaxFisherAgents=10
 
 # Population dynamics
 config.g_H1 = 1.007  # Bahn Flenley 2017 (with 800 A.D.)
-config.H_equ = 0.6883 # Puleston 2017
 config.SplitPop=int(12)  # 1 dozen = 1 dwelling 
 config.pop_agent_max_mean = 3.5*12  # Bahn2017 2-3 houses with each a dozen people. 
 config.pop_agent_max_std = 3
@@ -152,7 +157,13 @@ config.Split_k = mu**2/config.pop_agent_max_std**2
 config.Split_theta = config.pop_agent_max_std**2 / mu
 
 config.pop_agent_min = 6
-config.g_shape =   1.95  # roughly tuned to get g(H_equ)=1
+if PopulationStability =="LessResPop":
+    config.g_shape=3
+    config.H_equ = 0.84422111
+elif PopulationStability=="NormPop":
+    config.g_shape =   1.95  # roughly tuned to get g(H_equ)=1
+    config.H_equ = 0.68844221 # Puleston 2017
+
 # ALTERNATIVE: config.g_shape = 3
 config.g_scale = 0.1 # as in Lee2008
 config.g_scale_param = (config.g_H1)/ ( scipy.stats.gamma.cdf(1,config.g_shape, scale =config.g_scale)) # Lee 2008 and Puleston 2017
@@ -168,12 +179,12 @@ config.pop_restrictedMoving = 5000
 #config.P_x 
 
 # thresholds
-config.w01 = 1.0/(np.pi*0.170**2)
+config.w01 = 0.5**2/(np.pi*0.170**2)
 config.w99= 5.0**2/(np.pi*0.170**2)
 config.el01 = 0
 config.el99 = 300
 config.sl01=0
-config.sl99=10
+config.sl99=7.5
 config.pd01=0
 config.pd99=300 # Kirch 2010, Puleston 2017, rough estimate of local pop density in Hawaii and Maui
 config.tr01=config.pd99*config.r_T**2/config.r_F**2*45*config.T_Pref_max*config.T_Req_pP
@@ -189,15 +200,35 @@ config.fcondition = config.f99 # to be determined
 #config.alpha_p = 0.0
 #config.alpha_a = 0.3
 #config.alpha_m = 0.2
-config.alpha_W= 0.2
-config.alpha_T = 0.2
-config.alpha_D = 0.2
-config.alpha_F = 0.2
-config.alpha_G = 0.2
+if AlphaSetting=="alphaStd":
+    config.alpha_W= 0.2
+    config.alpha_T = 0.2
+    config.alpha_D = 0.2
+    config.alpha_F = 0.2
+    config.alpha_G = 0.2
 
-# Penalty to Probability
-config.gamma = 20  
-
+    # Penalty to Probability
+    config.gamma = 20  
+if not AlphaSetting=="alphaStd":
+    if AlphaSetting=="alphaResource": 
+        config.alpha_W= 0.0
+        config.alpha_T = 0.5
+        config.alpha_D = 0.0
+        config.alpha_F = 0.5
+        config.alpha_G = 0.0
+        # Penalty to Probability
+        config.gamma = 20  
+    if AlphaSetting=="alphaHopping":
+        config.alpha_W= 0.0
+        config.alpha_T = 0.0
+        config.alpha_D = 0.0
+        config.alpha_F = 0.0
+        config.alpha_G = 0.0
+        # Penalty to Probability
+        config.gamma = 0.0
+    else:
+        print("Error Alpha setting")
+        quit()
 
 
 ################################
@@ -238,12 +269,14 @@ config.EI_triObject = mpl.tri.Triangulation(config.EI.points_EI_km[:,0], config.
 print("Initialising Trees, ...")
 config.EI.init_trees(config.N_trees_arrival)
 print("Total Trees:", np.sum(config.EI.T_c))
-print("Fraction of islands with forest: ", 
-    np.sum([config.EI.A_c[i] for i in range(config.EI.N_c) if config.EI.T_c[i]>0])/
-    (np.sum(config.EI.A_c)))
+print("Fraction of islands with forest: ",  np.sum([config.EI.A_c[i] for i in range(config.EI.N_c) if config.EI.T_c[i]>0])/ (np.sum(config.EI.A_c)))
 config.EI.carrying_cap = copy(config.EI.T_c)
 config.well_suited_cells_tarrival= copy(config.EI.well_suited_cells)
 #config.tree_growth_poss = np.where(config.EI.carrying_cap>0)[0].astype(int)
+
+config.F_pi_c_tarrival = copy(config.EI.F_pi_c)
+
+config.EI.get_P_G()
 
 #EI_triangles = config.EI_triObject.get_masked_triangles()
 #all_triangles = triObject.triangles
@@ -257,11 +290,17 @@ print("################   DONE: MAP ###############")
 #################################################
 ########   Folder and Run Prepa   ###############
 #################################################
-config.folder += "FullModel_grid"+str(config.gridpoints_y)+"_gH1"+'%.0e' % (config.g_H1)+"_"+TreeRegrowthOption+"_"+HighorLowFix+"_seed"+str(config.seed)+"/"
+config.folder += "FullModel_grid"+str(config.gridpoints_y)+\
+    "_gH1"+'%.0f' % (1000*(config.g_H1-1))+"e-3_"+\
+    TreeRegrowthOption+"_"+\
+    HighorLowFix+"_"+\
+    TPrefOption+"_"+\
+    PopulationStability+"_"+\
+    AlphaSetting+\
+    "_seed"+str(config.seed)+"/"
 
-config.F_pi_c_tarrival = copy(config.EI.F_pi_c)
 
-config.EI.get_P_G()
+
 
 np.random.seed(config.seed)
 
@@ -333,7 +372,7 @@ def run():
             for ag in config.agents:
                 ag.r_M=config.r_M_later
             config.timeSwitchedMovingRad=t
-            print("Agents reduced their Moving Radius")
+            print("Agents reduced their Moving Radius to ", config.r_M_later)
         
         ##############################
         #####  Plot / STORE   ########
