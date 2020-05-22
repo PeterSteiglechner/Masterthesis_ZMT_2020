@@ -68,8 +68,9 @@ def calc_penalty(ag, WhichTrianglesToCalc_inds, t):
     P_F[np.where(NecessaryCond_F==False)]=1e15
     #fishingcells = np.array([i for i in WhichTrianglesToCalc_inds if i in config.EI.C_F_cAnakena])
     #fishingcells = np.where(np.dot(config.EI.C_F_cAnakena, C_F_ci_arr))[0]
-    fishingcells = np.isin(WhichTrianglesToCalc_inds, config.EI.C_F_cAnakena)
-    P_F[fishingcells] = -1
+    if config.NrFisherAgents<config.MaxFisherAgents:
+        fishingcells = np.isin(WhichTrianglesToCalc_inds, config.EI.C_F_cAnakena)
+        P_F[fishingcells] = -1
    
     ################################
     #####     MAP PENALTY   ########
