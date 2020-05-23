@@ -97,11 +97,18 @@ config.F_PI_eroded=0.5  # No Source
 # config.m2_to_acre = FIXED
 # config.km2_to_acre = FIXED
 
-if TreeRegrowthOption:
+if TreeRegrowthOption == "withRegrowth":
     config.tree_regrowth_rate= 0.05 # every 20 years all trees are back?  # Brandt Merico 2015# Brander Taylor 0.04 % Logisitc Growth rate.
     config.tree_pop_percentage = 0.005
     config.barrenYears_beforePopUp  = 10
-
+elif TreeRegrowthOption=="noRegrowth":
+    config.tree_regrowth_rate= 0.0 # every 20 years all trees are back?  # Brandt Merico 2015# Brander Taylor 0.04 % Logisitc Growth rate.
+    config.tree_pop_percentage = 0
+    config.barrenYears_beforePopUp  = 0
+else:
+    print("Error; wrong TreeGrowthOption")
+    quit()
+    
 config.droughts_RanoRaraku=[[config.t_arrival, 1200], [1570, 1720]]
 
 
@@ -132,15 +139,20 @@ elif TPrefOption=="careful":
     config.f_T_Pref = lambda x: x**2*(config.T_Pref_max-config.T_Pref_min)+config.T_Pref_min
 elif TPrefOption=="delayed":
     config.f_T_Pref  = lambda x: x**0.5*(config.T_Pref_max-config.T_Pref_min)+config.T_Pref_min
-elif TPrefOption=="careful":
+elif TPrefOption=="logistic":
     config.xi_T_Pref = 1/(config.T_Pref_max - config.T_Pref_min) * np.log(0.99/0.01)
     config.f_T_Pref = lambda x: config.logistic(x,config.xi_T_Pref, 0.5)*(config.T_Pref_max-config.T_Pref_min)+config.T_Pref_min
+else:
+    print("Error; Wront TPrefOption")
+    quit()
 
 config.T_Req_pP = 5 # Brandt Merico 2015 h_t =5 roughly.
 if HighorLowFix=="highFix":
     config.F_Req_pP = 0.5 # Puleston High N  in ACRE!
-else:
+elif HighorLowFix=="lowFix":
     config.F_Req_pP = 1.7
+else:
+    print("Error, wrong HighorLowFix Option")
 #config.F_Req_pP = 2./6.  # Flenley Bahn
 
 #config.FishingTabooYear = 1400
@@ -163,6 +175,9 @@ if PopulationStability =="LessResPop":
 elif PopulationStability=="NormPop":
     config.g_shape =   1.95  # roughly tuned to get g(H_equ)=1
     config.H_equ = 0.68844221 # Puleston 2017
+else:
+    print("Error; wrong PopulationStability Option")
+    quit()
 
 # ALTERNATIVE: config.g_shape = 3
 config.g_scale = 0.1 # as in Lee2008
