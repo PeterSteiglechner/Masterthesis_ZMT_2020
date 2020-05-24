@@ -17,7 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib as mpl
-from copy import copy
+from copy import deepcopy
 from time import time
 import scipy.stats
 import sys 
@@ -285,11 +285,11 @@ print("Initialising Trees, ...")
 config.EI.init_trees(config.N_trees_arrival)
 print("Total Trees:", np.sum(config.EI.T_c))
 print("Fraction of islands with forest: ",  np.sum([config.EI.A_c[i] for i in range(config.EI.N_c) if config.EI.T_c[i]>0])/ (np.sum(config.EI.A_c)))
-config.EI.carrying_cap = copy(config.EI.T_c)
-config.well_suited_cells_tarrival= copy(config.EI.well_suited_cells)
+config.EI.carrying_cap = deepcopy(config.EI.T_c)
+config.well_suited_cells_tarrival= deepcopy(config.EI.well_suited_cells)
 #config.tree_growth_poss = np.where(config.EI.carrying_cap>0)[0].astype(int)
 
-config.F_pi_c_tarrival = copy(config.EI.F_pi_c)
+config.F_pi_c_tarrival = deepcopy(config.EI.F_pi_c)
 
 config.EI.get_P_G()
 

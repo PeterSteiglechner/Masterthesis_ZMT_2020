@@ -175,15 +175,17 @@ def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save=True, cbarax=None)
     if ncdf:
         face_colors =data.T_ct.sel(time=t)/(config.EI.A_c*1e6)
         face_colors[(data.T_ct.sel(time=800)>0)*(face_colors==0)] = -np.spacing(0.0)
+        vmax = np.max(data.T_ct.sel(time=800)/(config.EI.A_c*1e6))
     else:
         face_colors = config.EI.T_c/(config.EI.A_c*1e6)
         face_colors[(config.EI.carrying_cap>0)*(face_colors==0)] = -np.spacing(0.0)
+        vmax = np.max(config.EI.carrying_cap/(config.EI.A_c*1e6))
 
     green = plt.get_cmap("Greens")(np.linspace(0, 1, int(256*1.5)))
     cmap = LinearSegmentedColormap.from_list("greenhalf",green[:256])
     #cmap.set_under("brown")
     treePlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
-    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax = np.max(config.EI.carrying_cap/(config.EI.A_c*1e6)), cmap=cmap, alpha=1)
+    config.EI.EI_triangles, facecolors=face_colors, vmin = 0, vmax=vmax, cmap=cmap, alpha=1)
 
     watertriangles = np.zeros([config.EI.N_c])
     if ncdf:

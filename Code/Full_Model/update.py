@@ -1,7 +1,8 @@
 
 import numpy as np
 from time import time
-from copy import copy
+from copy import deepcopy
+
 import config
 from moving import calc_penalty, move
 
@@ -84,7 +85,7 @@ def update_single_agent(ag,t):
     ag.calc_T_Req()
     ag.calc_F_Req()
 
-    previous_treeNr = np.copy(np.sum(config.EI.T_c))
+    previous_treeNr = deepcopy(np.sum(config.EI.T_c))
 
     ##########################
     ## HARVEST AGRICULTRE   ##
