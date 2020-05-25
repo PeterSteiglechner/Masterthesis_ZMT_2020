@@ -51,7 +51,7 @@ HighorLowFix= sys.argv[2] # highFix, lowFix
 TreeRegrowthOption = sys.argv[3]  # "withRegrowth", noRegrowth
 TPrefOption = sys.argv[4]  # linear, delayed, logistic, careful
 PopulationStability = sys.argv[5] # LessResPop, NormPop
-AlphaSetting = sys.argv[6] # alphaStd, alphaHopping, alphaStd, alphaResource
+AlphaSetting = sys.argv[6] # alphaStd, alphaHopping, alphaStd, alphaResource, alphaDeterministic
 
 
 
@@ -241,6 +241,14 @@ if not AlphaSetting=="alphaStd":
         config.alpha_G = 0.0
         # Penalty to Probability
         config.gamma = 0.0
+    elif AlphaSetting=="alphaDeterministic":
+        config.alpha_W= 0.2
+        config.alpha_T = 0.2
+        config.alpha_D = 0.2
+        config.alpha_F = 0.2
+        config.alpha_G = 0.2
+        # Penalty to Probability
+        config.gamma = 1000 
     else:
         print("Error Alpha setting")
         quit()

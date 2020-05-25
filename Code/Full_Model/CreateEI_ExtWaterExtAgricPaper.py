@@ -471,22 +471,29 @@ class Map:
         #    lake_mid_points.append(lake_midp_kmcoord)
         self.water_midpoints = []
         self.water_triangle_inds = []
+        whichwater = []
         water_areas = []
-        for m,r in zip(lake_mid_points, lake_radius):
+        for i, m,r in zip([0,1,2], lake_mid_points, lake_radius):
             t = self.get_c_of_point(m, triObject)[0]
             self.water_midpoints.append(self.vec_c[t])
             inds_within_lake = np.where((distMatrix[:,t]<r) * (self.sl_c<5))[0]
             if len(inds_within_lake)==0:
                 inds_within_lake=[t]
             self.water_triangle_inds.extend(inds_within_lake)
+            whichwater.extend([i for _ in inds_within_lake])
             water_areas.extend([r**2*np.pi for _ in inds_within_lake])
         print("Nr of water triangles: ", len(self.water_triangle_inds))
         print("Sizes of Lakes are [km**2]: ", np.unique(water_areas))
         print("Water Midpoints are at locations (x,y): ", lake_mid_points )
 
         distance_to_water = distMatrix[self.water_triangle_inds,:]  # shape: water_triangels * N_c
+        #if len(Lakes)==3:
+        #    self.whichLakeIsClosest = np.array([whichwater[np.argmin(distance_to_water[:,c])] for c in range(self.N_c)], dtype=np.uint8)
         weighted_squ_distance_to_water = distance_to_water**2/np.array(water_areas)[:,None]  # NOte: Casting to divide each row seperately
         penalties = np.min(weighted_squ_distance_to_water, axis=0)
+        #if len(Lakes)==3:
+        #    self.whichLakeIsClosestAreaCorrected = np.array([whichwater[np.argmin(weighted_squ_distance_to_water[:,c])] for c in range(self.N_c)], dtype=np.uint8)
+
         #if len(Lakes)==3: self.max_water_penalty_without_drought = np.max(penalties)
         #self.P_W= (penalties/self.max_water_penalty_without_drought ).clip(max=1)
         k_W = config.k_X(config.w01, config.w99)
