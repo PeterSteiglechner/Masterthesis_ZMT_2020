@@ -8,12 +8,12 @@
 The standard run of the ABM presented in Section \ref{chapter:Methods} 
 is set up with parameters as described in Table \ref{tab:sensitivity}.
 %proofs the general functioning and consistency of the model with the generally expected behaviour of the socio-ecological system.
-The spatial patterns of tree cover, farming and agents (with tree preference) at different times of one simulation with parameter settings are shown in Figure \ref{fig:STDrull}.
-In the supplementary material, I provide a movie showing the spatial settlement behaviour of a single realisation over time. \TODO
+The spatial patterns of trees, farmed sites and agents (with their tree preferences) at different times of one simulation with parameter settings are shown in Figure \ref{fig:STDrull}.
+In the supplementary material, I provide a movie showing these spatial patterns of a single simulation over time. \TODO
 Since multiple processes in the model are stochastic, each run with different seed is only a single realisation.
-In order to obtain statistically valid results, I use an ensemble of 15 for runs for all experiments.
+In order to obtain statistically valid aggregate results, I use an ensemble of $15$ runs for all experiments.
 Adding more runs (e.g.\ 20 or 25) does not significantly change the variation of coefficient of the ensemble over time (see Figure \ref{fig:coeffofvariation}).
-The mean and standard deviation of the aggregated variables of this ensemble and their dynamics are shown in Figure \ref{fig:STDstats}.
+The mean and standard deviation of the aggregated variables of this ensemble and their change over time is shown in Figure \ref{fig:STDstats}.
 The uncertainty in the ensemble runs results from slight differences in the timing of the dynamics due to different realisations of the discrete, stochastic population growth process (see also Figure \ref{fig:realisationsofpopgrowth}). 
 Hence, the peaks of the population sizes of single runs are at a similar level but temporally shifted. 
 The ensemble mean therefore slightly underestimates the peak population size.
@@ -38,10 +38,10 @@ The ensemble mean therefore slightly underestimates the peak population size.
 In the beginning of the simulation agents settle at Anakena Beach (in the North). 
 The local tree density is at the carrying capacity and thus the agents' tree preference high (blue colour in Figure \ref{fig:STDrull}).
 In the first phase of the simulated time period, the agents' population size grows at a constant maximum growth rate, because trees and arable land are both abundant. 
-Consequently, groups of individuals split, form new agents and start to colonise the rest of the island.% according to the penalty evaluation scheme described in Section \ref{sec:Moving}.
+Consequently, groups of individuals split, form new agents and start to colonise the rest of the island. % according to the penalty evaluation scheme described in Section \ref{sec:Moving}.
 Until the end of the first drought period in $1200\, {\rm A.D.}$, new agents tend to settle in the arable, coastal region South/South East of the island close to the major freshwater source Rano Kau. 
 %With population density on the rise, deforestation and farming activity in this region intensify.
-After $1200\, {\rm A.D.}$, also the region around Rano Raraku, now providing an alternative freshwater source, is settled at rapid pace.
+After $1200\, {\rm A.D.}$, also the region around Rano Raraku (in the West), now providing an alternative, low elevation freshwater source, is settled at rapid pace.
 %At $1200\,{\rm A.D.}$, the drought period ends and Rano Raraku (in the West) provides another freshwater source, causing many new agents to move to the South West and North West coast.
 %With ever increasing population density, especially in these centres, 
 Agents linearly adapt their tree preference to the slow environmental change and, thus, intensify farming activity.
@@ -85,12 +85,12 @@ In total, this acceleration of the local resource scarcity, leads to an abandonm
 The third phase is characterised by a population decline and substantial shift in the settlement patterns.
 While in $1700\,{\rm A.D.}$ more than half of the agents experience some minor shortage in farming produce (yellow curve in Figure \ref{fig:STDsecondayrstats}), 
 %there is no time when all arable spaces are farmed simultaneously.
-the loss of the non-renewable resource tree for a few agents each year (green line in Figure \ref{fig:STDsecondayrstats}) triggers an exponential decline of the averaged happiness, $\overline{h_{\rm i}(t)}$, just after $1700\, {\rm A.D.}$ (blue line in Figure \ref{fig:STDsecondayrstats}).
-Figure \ref{fig:penaltiesag500t1603} shows an example of an agent deciding on a new settlement location and all penalties, combined penalties and resulting probabilities.
+the loss of the non-renewable resource, tree, experienced by only a few agents each year (green line in Figure \ref{fig:STDsecondayrstats}) triggers an exponential decline of the averaged happiness, $\overline{h_{\rm i}(t)}$, just after $1700\, {\rm A.D.}$ (blue line in Figure \ref{fig:STDsecondayrstats}) and therefore a number of moving agents.
+Figure \ref{fig:penaltiesag500t1603} shows an example of an agent's penalty evaluation while searching for a new settlement location.
 \begin{figure}
 	\centering
 	\includegraphics[width=1.3\linewidth, center]{images/Results/Standard/Penalties_AG500_t=1603}
-	\caption{The moving process for an agent at time $1603\, {\rm A.D.}$ located in the South East. The upper left panel shows the agent in the centre, circles with the radii $r_{\rm F}$, $r_{\rm T}$, and $r_{\rm M}$ (after the moving restriction). The upper middle panel is the total penalty ($\in [0,1]\cup \infty$), and upper right is the corresponding probability for the agent to move to each cell. The agent's old and new location are the filled and unfilled circle. The remaining panels show the corresponding penalties in the categories and the necessary condition for tree and farming penalty, which leads to the exclusion of a few cells in this decision making process.}
+	\caption{Decision making in the moving module of an agent at time $1603\, {\rm A.D.}$ located in the South East. The upper left panel shows the agent in the centre (filled dot) and circles with the radii $r_{\rm F}$, $r_{\rm T}$, and $r_{\rm M}$ (after the moving restriction) searching for a new location (unfilled dot). The upper middle panel is the total penalty ($\in [0,1]\cup \infty$), and upper right is the corresponding probability for the agent to move to each allowed cell. The remaining panels show the corresponding penalties in all categories and the exclusion of some cells due to the necessary condition for tree and farming availability in the lower right panel (black sites inside the $r_{\rm M}$ circle).}
 	\label{fig:penaltiesag500t1603}
 \end{figure}
 This also marks the end of the net exponential growth of the population size, which peaks at around $18\cdot 10^3$ people.
@@ -108,31 +108,32 @@ However, there is no stable coexistence of population and trees in this scenario
 
 \paragraph{Outcomes Consistent with Ecocidal View}
 The succession of events in the Standard Run presented here follows a boom and bust scenario consistent with the classical narrative of Easter Island history of a Malthusian catastrophe initiated by overexploitation supported by \citet{Brander1998}, \citet{Diamond2011} or \citet{Bahn2017}.
-This is not surprising as the agents are designed to maximise their personal population growth every year but eventually rely on a non-renewable resource and a limited, renewable resource .
-Agents here do not plan ahead while harvesting (e.g.\ trees could be cut first and (e.g.\ used for extracting the sugary sap) and then burned to clear the land for farming next year as indicated by \citet{Mieth2015}) and are furthermore entirely self-focused and myopic in their harvest behaviour.
-Hence, 
+This is not surprising as the agents are designed to maximise their personal population growth every year but eventually rely on a non-renewable resource and a limited, renewable resource.
+Furthermore, the arrival date and initial population growth are taken from the ecocidal narrative.
+
 
 \paragraph{Caveat: Population Size is Maximised Myopically per Definition}
 In general, the population size in this model is at the upper range of most estimates stated in the literature \citep{Bahn2017}.
 This is partly due to the fact, that there is no restriction on the amount of labour that agents can put into the resource acquisition. 
-Also, the model does not include any social development or political institution e.g.\ to stabilise the population growth.
+Also, the model does not include any social development or political institution e.g.\ to stabilise the population growth or harvest of natural resources via taboos.
 Further, I assume that except for the eventual erosion of all well-suited cells, arable land has a constant, entirely predictable crop output (in particular even constant during the drought periods). 
 Land availability is, thus, the only constraint for agricultural production. 
 %\todo{A certain stochastic variation due to different climatic conditions each year could be implemented into the model.}
 Sustainability criteria concerning the resource availability (locally and island-wide) do not play a role in the agents' myopic, unabated population expansion as long as the resource situation allows it.
+Agents here also do not plan ahead while harvesting (e.g.\ trees could be cut first and (e.g.\ used for extracting the sugary sap) and then burned to clear the land for farming next year as indicated by \citet{Mieth2015}).
 Only when resources become scarce, the growth declines and turns negative.
-Hence, such large numbers at a peak followed by population size decrease are expected in this setting.
+Hence, such large numbers at a peak followed by population size decrease are expected in this setting as agents are determined to overexploit.
 
 
 \paragraph{The Spatial Component}
 As a first mathematical modelling approach, this model quantitatively investigates the spatial component of the Easter Island settlement history emerging from the local harvest behaviour and moving decisions by the agents.
-There is good agreement of the obtained tree densities (Figure \ref{fig:STDrull}) from this model in the comparison with a qualitative sketch of tree density obtained from charcoal and pollen data of the three crater lakes in \citet{Rull2020} (Figure 7 and 9) including anthropogenic and natural drivers (not considered here).
-Additionally, \citet{Bahn2017} (p.96 and 245) describe a qualitative phase sequence of the spatial Easter Island settlement history which also fits well to the obtained emergent patterns in this study.
+The results show strong agreement of the obtained tree densities (Figure \ref{fig:STDrull}) from this model in the comparison with a qualitative sketch of tree density obtained from charcoal and pollen data of the three crater lakes in \citet{Rull2020} (Figure 7 and 9) including anthropogenic and natural drivers (which are not considered here).
+Additionally, throughout the entire book, \citet{Bahn2017} describes a qualitative phase sequence of the spatial Easter Island settlement history which also fits well to the obtained emergent patterns in this study:
 Settlement of some coastal regions (especially South East Coast near Rano Kau and Anakena Beach) ($800$ to $1100\, {\rm A.D.}$), settlement of the whole coast $1100-1425\,{\rm A.D.}$ (with South Coast rising rapidly around $1300\, {\rm A.D.}$), population and farming peak ($1425-1680\, {\rm A.D.}$), and, finally, population reduction and remote fields abandoned.
 %In an early phase ($800$ to $1100\, {\rm A.D.}$) the settlers centred near the coastal area, especially in the South West near Rano Kau. Anakena Beach was settled some time before $1000\, {\rm A.D.}$. 
 %Between $1100-1425\,{\rm A.D.}$ the whole coast was occupied with the South Coast experiencing a rapid build up around $1300\, {\rm A.D.}$. First inland field systems are established and the megalithic cult of building the Moai starts.
 %The population and farming peaks in $1425-1680\, {\rm A.D.}$. Followed by a last phase, in which population reduces and remote field systems are abandoned.
-While this spatial timeline is only consistent with the ecocidal narrative and should be treated with care, the Standard Run in the ABM presented here captures most of these qualitative statements\footnote{except for the abandonment of the remote fields during the population decrease}.
+While this spatial timeline is only consistent with the ecocidal narrative and should be treated with care, the standard run in this ABM presented here captures most of these qualitative statements\footnote{except for the abandonment of the remote fields during the population decrease}.
 
 
 
@@ -175,9 +176,9 @@ While this spatial timeline is only consistent with the ecocidal narrative and s
 %\section{Dynamics in Separate Regions in the Standard Run}
 %\paragraph{Quantitative Analysis Approach}
 \paragraph{Temporal Dynamics in Separate Regions}
-There is strong regional variation in the dynamics of Easter Island population dynamics as well as deforestation pattern as qualitatively shown in Figure \ref{fig:STDrull}. 
+There is strong regional variation in the dynamics of the population as well as the deforestation as qualitatively shown in Figure \ref{fig:STDrull}. 
 To quantitatively analyse these different developments, I divide the island into seven different regions with common geographical features (Figure \ref{fig:mapregionscoarse}): The area around the crater lake Rano Kau, the South Coast, Rano Raraku, Anakena Beach, the steep North West Coast, the fertile area covering today's main town, Hanga Roa, and the upland area including Poike Peninsula. 
-By choosing centre points of each region or several sub-regions on the map by hand, a region is defined by the cells allocated to the corresponding Voroni Diagram.
+By choosing centre points of each region or several sub-regions on the map by hand, a region is  by the cells allocated to the corresponding Voroni Diagram.
 
 \begin{figure}
 	\centering
@@ -185,11 +186,11 @@ By choosing centre points of each region or several sub-regions on the map by ha
 	\caption{Division of the map into seven separate regions. The black shadow represents elevation.}
 	\label{fig:mapregionscoarse}
 \end{figure}
-
-Overall, the population dynamics in the regions are diverse and heterogeneous. 
+Figure \ref{fig:regionalstats} shows the results of the population in each region over time in the ensemble of 15 runs.
+Overall, the island shows diverse and heterogeneous population dynamics. 
 Some regions, like Hanga Roa and Rano Raraku (with a little delay), show early extensive growth followed by a steep decline of the population size.
 In others, e.g.\ the South Coast or (later) the Uplands, the population declines less strong after reaching a peak.
-In some single realisations, this effect is more extreme than in the ensemble mean.
+In some single realisations, this effect is more pronounced than in the ensemble mean.
 The small, less arable regions at Rano Kau, the North West Coast, or Anakena Beach, show some population growth following the abandonment of other, more favourable regions.
 The population size in these regions then either declines close to linearly or, in the case of Rano Kau, remains at the same level for nearly $200$ years.
 \begin{figure}
@@ -198,8 +199,8 @@ The population size in these regions then either declines close to linearly or, 
 	\caption{The population dynamics of each separate region defined in Figure \ref{fig:mapregionscoarse}.}
 	\label{fig:regionalstats}
 \end{figure}
-Given this strong variation of the dynamics between different regions, this model makes a point in being careful about extrapolating data or conclusions about population dynamics basing on information in single locations.
-This ABM, though, could provide a indication of what such data could imply for the whole island.
+Given this strong variation of the dynamics between different regions, this model makes a point in being careful about extrapolating data or conclusions about population dynamics based on information in single locations.
+This ABM, though, could provide an indication of what such data could imply for the whole island.
 
 \FloatBarrier
 \section{Experiments and Sensitivity Analysis}
@@ -221,8 +222,8 @@ However, the parameters in this setting are debatable and this uncertainty lies 
 In particular, the (spatially varying) farming yields on Easter Island soils (here expressed via $F_{\rm Req, \ pP}$) are uncertain.
 Also, $T_\text{Req, pP}$ is speculative and in fact probably highly heterogeneous between agents.
 These constant parameters, $F_{\rm Req, \ pP}$ and $T_{\rm Req\ pP}$, determine the amount of tree harvesting and farmland occupation and, thus, are crucial for the temporal development of the island's environment and the peak population size. 
-In a series of experiments I change these constants, $F_{\rm Req, \ pP}$ and $T_{\rm Req\ pP}$, and/or allow tree regeneration.
-Figure \ref{fig:ensemblestatisticsalltheories} shows four four different scenarios with strongly varying results:
+In a series of experiments I change these constants, $F_{\rm Req, \ pP}$ and $T_{\rm Req\ pP}$, and/or additionally allow tree regeneration.
+Figure \ref{fig:ensemblestatisticsalltheories} shows four different scenarios with strongly varying results:
 \begin{itemize}
 	\item The upper left panel is again the Standard Run (using the high Nitrogen fixation scenario in \citet{Puleston2017} for $F_\text{Req, pP}$ and disabled tree regeneration) shown in Figure \ref{fig:STDstats} for comparison.
 	\item In the upper right panel, I choose the low Nitrogen fixation by  \citet{Puleston2017}, i.e.\ agents have a higher requirement of farmed land per person.
@@ -238,12 +239,13 @@ Figure \ref{fig:ensemblestatisticsalltheories} shows four four different scenari
 	%However, the peak population size occurs later and at respectively higher levels if the resource trees replenishes and the resource 
 	%After reaching the peak, the population size decreases slowly and levels off at an equilibrium value for both scenarios, in which the renewal of trees matches the requirement of the population and the amount of farming land required remains constant.
 	In both cases with tree regrowth, all available arable sites are farmed in $1600\, {\rm A.D.}$ and $1700\, {\rm A.D.}$ (and mostly remain occupied throughout the rest of the simulation).	
-	A heterogeneous pattern of agents with different tree preferences emerges with some areas dominated by agents at maximum, some at minimum tree preference (not shown).
+	A heterogeneous pattern of agents with different tree preferences emerges in these cases with some areas dominated by agents at maximum, some at minimum tree preference (not shown here).
 \end{itemize}
-A further experiment (not shown) with increased tree requirement per person $T_\text{Req, pP}(t)=10\,{\rm \frac{Trees}{yr\cdot person}}$ yields a similar boom and bust as in the standard setting but the population size peaks earlier and, thus, at a lower peak level, and in general deforestation is intensified.
+A further experiment (not shown) with increased tree requirement per person $T_\text{Req, pP}(t)=10\,{\rm \frac{Trees}{yr\cdot person}}$ yields a similar boom and bust as in the standard setting but the population size peaks earlier and, thus, at a slightly lower peak level, and in general deforestation is intensified in this scenario.
  %(since trees do not regrow on cells with farms in the model or not regrow at all). 
+ 
 The results of these different scenarios obtained by varying only two or three parameters resemble to some degree to the strongly contradictory storylines of prehistoric population dynamics.
-The low Nitrogen fixation scenario\footnote{consistent with \citet{Hunt2007}'s assumption of low quality soil} resulting in constant or only slowly decreasing population size decline corresponds to an `genocidal' \citep{Hunt2007} or `slow-demise' \citep{Brandt2015} view.
+The low Nitrogen fixation scenario\footnote{consistent with \citet{Hunt2007}'s assumption of low quality soil} resulting in constant or only slowly decreasing population size decline corresponds more to the genocidal \citep{Hunt2007} or slow-demise \citep{Brandt2015} view.
 The Standard run (and run with lower $T_{\rm Req, \ pP}$) corresponds more to the ecocidal view as described before.
 
 % correspond to some degree to the different narratives.
@@ -270,28 +272,29 @@ The Standard run (and run with lower $T_{\rm Req, \ pP}$) corresponds more to th
 \end{figure}
 
 \paragraph{How the Resource Search Radii Change the Aggregate Dynamics}
-In Figure \ref{fig:ensemblestatisticslargersmallerrad}, I present experiments of the model with resource search radii in-/decreased by a factor $2$ (left) or  $1/2$ (right) compared to the standard setting. 
-For larger radius the peak population size increases, overall deforestation intensifies and the amount of burnt trees is low for a long period but rises steeply around $1600\, {\rm A.D.}$.
-For smaller radius the peak population size is strongly decreased, overall deforestation is smaller, and burning of trees increases linearly until a cut-off.
+In Figure \ref{fig:ensemblestatisticslargersmallerrad}, I present a sensitivity analysis of the resource search radii which are in-/decreased by a factor of $2$ (left) or  $1/2$ (right) compared to the standard setting. 
+For larger radius the peak population size increases, overall deforestation intensifies and the amount of burnt trees is low for a long time but rises steeply around $1600\, {\rm A.D.}$.
+For smaller radius, the peak population size is strongly decreased, overall deforestation is smaller, and burning of trees increases linearly until a cut-off.
 Variation of the resource search radius has a non-trivial influence on the aggregate dynamics.
-On the one hand, a larger or smaller radius in- or decreases an agent's access to resources at its current location. 
-On the other hand, it does not change the amount of available resources, or required resources on the overall island.
+On the one hand, a larger (or smaller) radius increases (or decreases, respectively) an agent's access to resources at its current location. 
+On the other hand, it does not change the amount of available resources on the island, or required resources by agents.
 As Figure \ref{fig:ensemblestatisticslargersmallerrad} shows, the differences of the results between those scenarios is significant. 
-Even though the carrying capacity of the island with respect to the amount of resources is the same, the agent's harvest behaviour is restricted by its local context and, hence, this local lack of either available arable land or trees determines the shape in this model.
+Even though the carrying capacity of the island with respect to the amount of resources is the same, the agent's harvest behaviour is restricted by its local context and, hence, this lack of either available arable land or trees in the local environment changes the shape of the aggregate dynamics in this model.
 
 \paragraph{Caveat: Non-cooperative Agents}
 It is clear that the social and economic structure of the Easter Island population is much more complex than the independent, small households of a few dozen people acting independently and myopic assumed in this model. 
-E.g.\ \citet{Diamond2011} describes the emergence of roughly a dozen clans or chiefdoms, or \citet{Puleston2017} consider an economic structure including an elite and working class.
+E.g.\ \citet{Diamond2011} describes the existence of roughly a dozen clans or chiefdoms, or \citet{Puleston2017} consider an economic structure including an elite and working class.
 Also, there is clear evidence of exchange of goods between households and clans or chiefdoms, e.g.\ fish, stone tools or the Moai.
+Such social structures would also allow for imposing taboos on the harvest of natural resources and increase the sustainability, as apparent on Easter Island \citep{Good2006}. 
 All of theses complex, cooperative structures based on agent-agent interactions are not considered here, but each agent farms and deforests individually.
 Including such political institutions would decrease the influence of the local context on the population dynamics.
 
 \paragraph{Outlook: Clusters and Chiefdoms}
 The model presented here can be extended to show the emergence of clustered agents that cooperatively harvest resources.
-E.g.\ Fiugre \ref{fig:clusterstds1650} shows the centre points of $7$ clusters using a k-Means clustering algorithm in the three dimensional space spanned by the agent's position and trait, $\left( x_{\rm i}, y_{\rm i}, T_\text{Pref, i} \right)(t)$ for agent $i$, in one specific year, $1650\, {\rm A.D.}$ using the python packages \textit{scikit-learn}\footnote{\citet{scikit-learn}} and \textit{yellowbrick}\footnote{\citet{yellowbrick}}.
+E.g.\ Figure \ref{fig:clusterstds1650} shows the centre points of $7$ clusters obtained by k-Means clustering of the three dimensional space spanned by the agent's position and tree preference trait, $\left( x_{\rm i}, y_{\rm i}, T_\text{Pref, i} \right)(t)$ for agent $i$, in one specific year, $1650\, {\rm A.D.}$ using the python packages \textit{scikit-learn}\footnote{\citet{scikit-learn}} and \textit{yellowbrick}\footnote{\citet{yellowbrick}}.
 For all tested years (between $1200$ and $1900\, {\rm A.D.}$) a number of $7$ to $9$ clusters are optimal according to the elbow method\footnote{The elbow is a heuristic to estimate the number of clusters:
 	Running the k-Means algorithm with more clusters only linearly decreases the distortion, i.e.\ the sum of the squared distances of an agents 3D state to the cluster centres.}.
-While this analysis is very preliminary, clustering might open the possibility of including stronger links within clusters of agents, that tend to move towards each other (e.g.\ negative population density penalty) harvest cooperatively and increase the resource search radius with the cluster size.
+While this analysis is very preliminary, clustering might open the possibility of including stronger links within clusters of agents, that tend to move towards each other (e.g.\ negative population density penalty), harvest cooperatively, and increase the resource search radius with the cluster size.
 One could even think of a trading module between clusters.
 Future research with this model could investigate more complex economic and social structures and thereby overcome one of the major weakness, the self-centred, non-cooperative harvest behaviour of agents.
 
@@ -299,25 +302,25 @@ Future research with this model could investigate more complex economic and soci
 \subsection{Variation in the Population Growth Module}
 
 \paragraph{Impact on the Aggregate Dynamics}
-In this section I test the stability of the model results to a less resilient demography model.
-By increasing the shape parameter of $g(H_{\rm i})(t)$ an agent's population size declines steeper and earlier with a decreasing $H_{\rm i}(t)$.
+I test the stability of the model results to a less resilient demography model.
+By increasing the shape parameter of $g(H_{\rm i})(t)$ an agent's population size declines steeper and earlier as $H_{\rm i}(t)$ drops.
 %and, thereby, increasing the required happiness to remain at a constant population size, $H_{\rm euq}$ a population decline sets in earlier and more extreme in most cases.
 However, in the standard run, happiness of the agents decreases rapidly from $1$ to $0$ typically close to the peak population size and an agent can not find a place sufficient for meeting both resource requirements.
-Hence, the results are indifferent to this variation of the population growth model\footnote{In this simulation a the ensemble net population decrease sets in only $10$ years prior to the standard case.}.
+Hence, the results are nearly indifferent to this variation of the population growth model\footnote{In this simulation the ensemble net population decrease sets in only $10$ years prior to the standard case.}.
 For the scenarios with tree regrowth this shape parameter and its connection to the required resource amount determines the population size in the stable equilibrium.
 
 \paragraph{Caveat: Oversimplified Population Growth Module}
 The population dynamics in this ABM is subject to several limitations.
 The use of the food-limited demography model from \citet{Puleston2017} is strongly simplified here.
-E.g.\ I am using a different notion of \citet{Puleston2017}'s food ratio, which I express via the smoothed happiness $H_\text{i}(t)$ reflecting the success in cutting trees and farming.
+E.g.\ I use a different notion of \citet{Puleston2017}'s food ratio, which I express via the smoothed happiness $H_\text{i}(t)$ reflecting the success in cutting trees and farming.
 Also the distinction between survival and fertility rate especially given their age-dependency is entirely neglected.
-One major problem with the assumed population dynamics in this model is the fast decrease of memory happiness when the resource tree is missing and the agent ca not find a place on the island sufficient to sustain it with trees and farming produce simultaneously and, therefore, perishes quickly.
+One major problem with the assumed population dynamics in this model is the fast decrease of memory happiness when the resource tree is missing and the agent can not find a place on the island sufficient to sustain it with trees and farming produce simultaneously and, therefore, perishes quickly.
 Another issue is the unabated exponential growth of the population.
 %Therefore, in the model agents quickly vanish as local resource scarcity sets in and suitable spots that fill both resource requirements are not available anymore.
-The model would greatly benefit from a smarter, more dynamic integration of the demography model by \citet{Puleston2017} and a more advanced relation between the tree and farming harvest and the population growth in this model.
+The model would greatly benefit from a smarter, more dynamic integration of the demography model by \citet{Puleston2017} and, in general, a more advanced relation between the tree and farming harvest and the population growth in this model.
 
 
-\section{Variation in the Agents' Strategy of Adapting the Tree Preference}
+\subsection{Variation of the Strategy of Adapting the Tree Preference}
 %\paragraph{Differences in Burnt Trees, Population Size and Deforestation given the different adaption speed of the tree preference to local environmental changes}
 %\begin{itemize}
 %	\item Runs with $f_{\rm Tree \ Pref}$ delayed, careful, logistic.
@@ -325,12 +328,12 @@ The model would greatly benefit from a smarter, more dynamic integration of the 
 
 %\paragraph{Impacts on the Aggregate Dynamics of Different Adaption Strategies}
 The change of the tree preference in response to local deforestation is the only far-sighted adaption of the agents in the harvest process to the environmental degradation.
-In the standard setting, an agent's tree preference responds linear to the removal of trees.
-In Section \ref{sec:agentprops}, I presented three alternative adaption functions: Delayed adaption, faster adaption (i.e.\ with foresight), logistic adaption (first delayed then faster) (see Figure \ref{fig:TPref_T}).
+In the standard setting, an agent's tree preference responds linearly to the removal of trees.
+In Section \ref{sec:agentprops}, I presented three alternative adaption strategies: Delayed, faster (i.e.\ with foresight), and logistic adaption (first delayed then faster) (see Figure \ref{fig:TPref_T}).
 \begin{figure}
 	\centering
 	\includegraphics[width=1\linewidth]{images/Results/TPref/TPrefAdaption_TPref}
-	\caption{Ensemble Mean of the mean tree preferences of all agents $\overline{T_\text{Pref, i}(t)}$ over time from five different model realisations with different adaption strategies of th tree preference to the changing local tree density: Linear (standard setting), delayed, early, or logistic adaption strategy (all shown in Figure \ref{fig:TPref_T}).}
+	\caption{Ensemble Mean of the mean tree preferences of all agents $\overline{T_\text{Pref, i}(t)}$ over time from five different model realisations with different strategies to adapt the tree preference to the changing local tree density: Linear (standard setting), delayed, faster, or logistic (all shown in Figure \ref{fig:TPref_T}).}
 	\label{fig:tprefadaptiontpref}
 \end{figure}
 The mean Tree Preference of all agents, $\overline{T_\text{Pref, i}(t)}$, is shown in Figure \ref{fig:tprefadaptiontpref}.
@@ -338,20 +341,21 @@ The mean Tree Preference of all agents, $\overline{T_\text{Pref, i}(t)}$, is sho
 %This, however, has non-linear consequences for the society described in the following.
 and the corresponding ensemble means of the population dynamics in Figure \ref{fig:tprefadaptionpopulationsize}.
 %The population of the logistic case peaks earliest (at a lower level as the peaks of )and also declines faster than the others. 
-The population peak in the fast adaption scenario peaks at a high value (and later) than the others, logistic first follows the delayed curve, but then converges to the linear, standard adaption.
-Eventually, the population size (in $1900\, {\rm A.D.}$) is nearly twice as high for fast adopting vs. delayed adopting agents.
+The population size in the fast adaption scenario peaks at a high value (and later) than with other strategies.
+The logistic strategy first follows the curve of the  delayed strategy, but then converges to the linear, standard strategy.
+Eventually, the population size (in $1900\, {\rm A.D.}$) is nearly twice as high for a fast vs.\ delayed adopting society.
 %In the, in the year $1900$ of the simulation, $6000$ people remain in the faster adaption scenario compared to ca. $4000$ in the logistic or delayed adaption scenarios.
 Similarly, the dynamics of the deforestation level (Figure \ref{fig:tprefadaptiontrees}) and burnt trees (Figure \ref{fig:tprefadaptionburnttrees}) depend on the tree preference adaption strategy. 
 If tree preference is adopted fast, fires increase continuously from beginning to the peak. 
 Especially with delayed and logistic adoption the amount of trees burnt stagnates (or even decreases) between $1300$ and $1500\,{\rm A.D.}$ followed by a sharp increase afterwards.
-The summed amount of burnt trees is highest in the faster adoption in the faster ($5.3\cdot 10^6$), compared to linear ($4.3\cdot 10^6$), logistic ($4.4\cdot 10^6$) and delayed ($3.3\cdot 10^6$).
+The summed amount of burnt trees is highest in the faster adoption in the faster ($5.3\cdot 10^6$), compared to linear ($4.3\cdot 10^6$), logistic ($4.4\cdot 10^6$) and delayed ($3.3\cdot 10^6$) strategy.
 Still, counter-intuitively in total more trees remain at the end of the simulation in scenarios with fast adaption.
 The mean happiness of all agents is also slightly higher (or equivalent) for the fast adoption strategy throughout the time period.
 In summary, the specific shape of the adaption of the tree preference to local environmental change has a non-trivial influence on the aggregate dynamics.
 
-Therefore, a fast decrease (or early adaption) of the tree preference seems to be the best strategy for the agents in all aspects, maximising peak and final population size, the amount of trees, and mean happiness.
-While the logistic and linear strategies are quite similar in their aggregate outcomes, the peak population size is lower for the logistic case.
-Hence, it seems that a better strategy for the civilisation in this model is to adapt linearly early to local tree density changes rather than later but then faster (as in the logistic strategy) to `catch up'.
+Therefore, a fast decrease (or early adaption) of the tree preference seems to be the best strategy for the agents in all aspects, maximising the peak and final population size, the amount of trees, and the mean happiness.
+While the logistic and linear strategies are quite similar in their aggregate outcomes, the peak population size is smaller for the logistic strategy.
+Hence, it seems that a better strategy for a civilisation in this model is to adapt linearly early to local tree density changes rather than later but then  with a steeper rate (as in the logistic strategy) to `catch up'.
 
 \begin{figure}
 	\centering
@@ -382,7 +386,7 @@ Hence, it seems that a better strategy for the civilisation in this model is to 
 %$T_{\rm Req, pP}$
 
 
-\section{Variation in the Decision Making Strategies during the Moving Process}
+\subsection{Variation of the Decision Making Strategy in the Moving Module}
 %\paragraph{Description of differences obtained when the decision making is (1) based on penalties and (1a) stochastic, (1b) deterministic, (1c) only based on resource availability or decision making is (2) entirely random.}
 %\begin{itemize}
 %	\item Standard setting, $\gamma=20$, $\alpha=(0.2,0.2,0.2,0.2,0.2)$.
@@ -393,21 +397,21 @@ Hence, it seems that a better strategy for the civilisation in this model is to 
 %If the aggregate dynamics change, this would of course be a big, big result and I would focus on that.
 
 \paragraph{Different Moving Strategies and their Impacts on the Spatial and Aggregate Dynamics}
-In the analysis so far, I have distinguished between spatial patterns of the settlements and deforestation on one hand and the aggregate dynamics on the other.
-However, I find that the spatial patterns also have an emergent influence on the aggregate variables population size and number of trees.
-Here, I investigate how three different decision making strategies for a new location (see also Table \ref{tab:sensitivity}) compare with the standard setting described above. The strategies consider
+In the analysis so far, I have distinguished between spatial patterns on one hand and the aggregate dynamics on the other.
+However, the results in this Section show that the spatial patterns also have an influence on the aggregate variables, population size and number of trees and burnt trees.
+Here, I investigate how three different decision making strategies in the moving module (see also Table \ref{tab:sensitivity}) compare with the standard setting described above. The strategies consider
 \begin{itemize}
-	\item  all penalties equally high, including some stochasticity ((the Standard run, as described in Figure \ref{fig:STDrull}) 
-	\item `only resources' penalties in Figure \ref{fig:resource}, i.e. $\alpha_{\rm T}= \alpha_{\rm F} = 0.5$.
-	Here, agents spread out on all locations with access to arable, well-suited land irrespective of freshwater distance, elevation, slope and population density.
-	Consequently, the amount of trees burnt is larger in the period from $1200$ to $1600\, {\rm A.D.}$ as there are typically no previously deforested unoccupied, arable sites in dense population centres. 
-	Population peaks at slightly later and at a higher level. 
-	The following population size decrease is steeper with less people remaining in $1900\, {\rm A.D.}$.
-	\item only the `optimal location' with the lowest penalty in a fully deterministic moving process (Figure \ref{fig:optimal}), i.e.\ $\gamma>>1$ and $\vec{\alpha}$ as in the standard setting.
-	Interestingly, agents cluster around `highly evaluated' spots leading to a patchy spatial pattern. The aggregated population size (including peak population size), number of burnt trees or tree number are mostly unaffected by this, though, in comparison to the standard run but the variation in peak size is smaller.
-	\item no penalties at all, with agents performing a `Trial\&Error Hopping' (Figure \ref{fig:hop}) to all cells on the island, i.e.\ $\gamma = 0$.
-	Hence, an agent might `hop' around in consecutive years until a spot with sufficient resource access is found and burn trees to set up farms that are abandoned soon after each time.
-	This process delays the population growth, and consequently the population size peaks (at a similar value as in the standard setting) but a century later (shortly before $1800\, {\rm A.D.}$) followed by a rapid decline (up to $2\%$ per year) to a third of the population size within less than a century.
+	\item  all penalties equally high, including some stochasticity (the standard run, as described in Figure \ref{fig:STDrull}) 
+	\item `only resource' penalties in Figure \ref{fig:resource}, i.e. $\alpha_{\rm T}= \alpha_{\rm F} = 0.5$ and all other weights are zero.
+	Here, agents spread out on all locations with access to arable, well-suited land irrespective of distance from freshwater, elevation, slope and population density.
+	Consequently, the amount of trees burnt is larger in the period from $1200$ to $1600\, {\rm A.D.}$ as there are no dense population centres in which collective tree cutting contributes to the clearing of land. 
+	Population peaks at a slightly later time and at a higher level. 
+	The following population size decrease after the peak is steeper with less individuals remaining in $1900\, {\rm A.D.}$.
+	\item only the `optimal location' with the smallest penalty, i.e. a fully deterministic moving decision with $\gamma>>1$ and $\vec{\alpha}$ as in the standard setting (Figure \ref{fig:optimal}).
+	Interestingly, agents cluster around `highly evaluated' spots leading to a patchy spatial pattern. The aggregated population size (including the peak level), number of burnt trees or tree number are mostly unaffected by this, though, in comparison to the standard run but the variation in peak population size is smaller.
+	\item no penalties or evaluation criteria at all, i.e.\ agents ignore all penalties ($\gamma = 0$) and perform a `Trial\&Error Hopping' (Figure \ref{fig:hop}).
+	Hence, an agent might `hop' around in consecutive years until a spot with sufficient resource access is found but burn trees to set up farms that are abandoned soon after.
+	This process delays the population growth, and, consequently, the population size peaks a century later (shortly before $1800\, {\rm A.D.}$) but at a similar peak size compared to the standard run. The peak population is followed by a rapid decline (up to $2\%$ per year) to a third of the population size within less than a century.
 \end{itemize}
 \begin{figure}
 	\centering
@@ -427,10 +431,9 @@ Here, I investigate how three different decision making strategies for a new loc
 	\caption{Moving strategy `Trial\&Error Hopping'.}
 	\label{fig:hop}
 \end{figure}
-The four different moving strategies presented here (Standard, Only Resources, Optimal Location and Trial\&Error ce 
-These moving decisions do not only change the spatial pattern and can thus easily be computationally reduced in the calculation of aggregate variables but influence the overall dynamics of the model.
-This is most obvious in the Trial\&Error Hopping strategy which leads to a more drastic population size decline compared to the other strategies.
-
+The four different moving strategies presented here (Standard, Only Resources, Optimal Location and Trial\&Error do not only change the spatial pattern but also influence the overall dynamics of the model and, therefore, can not be simply computationally reduced in the calculation of aggregate variables,
+This is especially apparent for the number of burnt trees.
+In particular, if agents do not move according to considerations (`Trial\&Error Hopping' strategy), the overall population dynamics are affected, e.g.\ the decrease after the population size peak becomes steeper.
 %\section{Fires}
 %Plot the distribution of fires on the map over time. 
 %I imagine a map in which the color determines the timing of fires in each cell. 
@@ -439,13 +442,13 @@ This is most obvious in the Trial\&Error Hopping strategy which leads to a more 
 
 
 %The choice of penalty contributions and their functional dependency is described in the remaining Section.
-\paragraph{Comment on the Moving Process Parametrisation}
-There is, of course, substantial freedom in modelling these evaluations and the decision making process.
+\paragraph{Comment on the Moving Module}
+There is, of course, substantial freedom in modelling the evaluations of potential new locations and the decision making process in the moving module.
 The framework is therefore kept flexible and other assumptions or new categories can easily be added or adjusted.
-There is no comparable approach for Easter Island society yet.
+There has not been any comparable approach for Easter Island society yet.
 In the ABM simulating the Anasazi people from \citet{Axtell2002} (and \citet{Janssen2009}), agents that relocate their farms (and settlements) consider all eligible cells that fulfil certain nutrient production and water availability criteria and then choose the cell closest to the previous location.
 In general, I use a similar rationale but implement a more elaborate evaluation process that in particular introduces non-linear, continuous rather than binary evaluation criteria, more/different penalty categories and stochasticity in the decision making process.  
-As shown, this procedure yields complex moving patterns consistent with reasonable assumptions.
+As shown, this procedure (in the standard setting) yields interesting moving patterns which are consistent with plausible beliefs.
 
 
 
