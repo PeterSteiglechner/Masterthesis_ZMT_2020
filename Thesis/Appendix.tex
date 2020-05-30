@@ -1,8 +1,8 @@
 % !TEX root=frame_thesis.tex
 
-\chapter{Details of the Model} \label{sec:APPpopgrowth}
-
-\begin{figure}
+\chapter{More Details of the Model} \label{sec:APPpopgrowth}
+\FloatBarrier
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{images/RealisationsOfPopGrowth.pdf}
 	\caption{Realisations (and the mean) of the discrete, stochastic population growth model (assuming $H_{\rm i}(t) = 1$ for all $t$ here. In comparison, the continuous exponential growth. The growth rate is $g(H_{\rm i}(t)=1)=1.007$, as in the standard setting of the model.}
@@ -10,11 +10,45 @@
 \end{figure}
 
 
-\chapter{More results}
-\section{Standard Run}
-\begin{figure}
+\chapter{More Results}
+\FloatBarrier
+\section{Additional Results: Standard Run}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{images/Results/Standard/CoeffOfVariation}
+	\caption{The coefficient of variation of ensembles of 5 to 25 runs for the Standard run over time. For more than 15 runs, the coefficient of variation does not change significantly and, thus, this provides a good ensemble size}
+	\label{fig:coeffofvariation}
+\end{figure}
+
+
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=1.0\linewidth]{images/Results/Standard/NetGrowthRate}
 	\caption{Ensemble of five Standard runs. The net population growth rate is shown as the mean of the ensemble (blue) and, for easier visibility, as a running mean (red).} 
 	\label{fig:app:STDnetgrowthrate}
+\end{figure}
+\FloatBarrier
+\section{Clustering the Agents}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\linewidth]{images/ClusterSTDS1650}
+	\caption{The map shows one realisation of the Standard run. The agents are assigned to clusters with midpoints (crosses) by a k-Means algorithm of the three dimensional state vectors $\left( x_{\rm i}, y_{\rm i}, T_\text{Pref, i} \right)(t)$ for agent $i$ in the year $1650\, {\rm A.D.}$.}
+	\label{fig:clusterstds1650}
+\end{figure}
+
+\FloatBarrier
+\section{Additional Results: Variation in the Agents' Strategy of Adapting the Tree Preference}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\linewidth]{images/Results/TPref/TPrefAdaption_Trees}
+	\caption{Number of Burnt Trees in the four different Adoption strategies of the tree preference.}
+	\label{fig:tprefadaptiontrees}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images/Results/TPref/TPrefAdaption_BurntTrees}
+	\caption{Number of Burnt Trees in the four different Adoption strategies of the tree preference.}
+	\label{fig:tprefadaptionburnttrees}
 \end{figure}

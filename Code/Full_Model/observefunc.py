@@ -255,7 +255,7 @@ def plot_movingProb(P, folder, data):
     #             AG_index] = [ToSavePenalties[key] for key in ToSavePenalties.keys()]
     
     plt.rcParams.update({"font.size":15})
-    fig = plt.figure(figsize=(9*3,6*3))
+    fig = plt.figure(figsize=(6*3,6*3))
     #gs = fig.add_gridspec(3,4,width_ratios=[18,18,18,1])
 
     ax = fig.add_subplot(3,3,1,fc='gainsboro')
@@ -301,11 +301,12 @@ def plot_movingProb(P, folder, data):
     else:
         mv_inds = np.arange(config.EI.N_c)
     #penalties = [config.AG0_total_penalties, config.AG0_MovingProb, config.AG0_water_penalties, config.AG0_tree_penalty, config.AG0_agriculture_penalty, config.AG0_pop_density_penalty, config.AG0_map_penalty, config.AG0_nosettlement_zones]
-    penalties = [P['AG_total_penalties'], P['AG_MovingProb'], P['AG_water_penalties'], P['AG_tree_penalty'], P['AG_agriculture_penalty'], P['AG_pop_density_penalty'], P['AG_map_penalty'], P['AG_nosettlement_zones']]
-    penalties_key = ["total_penalties", "MovingProb","water_penalties", "tree_penalty", "agriculture_penalty", "pop_density_penalty", "Map_Penalty","Allowed_settlements"]
+    penalties = [P['AG_total_penalties'], P['AG_MovingProb'], P['AG_map_penalty'],P['AG_water_penalties'], P['AG_pop_density_penalty'], P['AG_tree_penalty'], P['AG_agriculture_penalty'],  P['AG_nosettlement_zones']]
+    penalties_key = ["total_penalties", "MovingProb","Map_Penalty","water_penalties",  "pop_density_penalty", "tree_penalty", "agriculture_penalty","Allowed_settlements"]
     plot=[None for _ in range(10)]
+    label=["", "", r"$P_{\rm tot}(c)$", r"$Pr(c)$",r"Geography $P_{\rm G}$",  r"Water $P_{\rm W}$", r"Pop Density $P_{\rm D}$", r"Tree $P_{\rm T}$", r"Farming $P_{\rm T}$", r"Farming/Tree Condition"]
     for k, penalty,key in zip([2,3,4,5,6,7,8,9], penalties, penalties_key):
-        ax2  = fig.add_subplot(3,3,k, fc="aquamarine")
+        ax2  = fig.add_subplot(3,3,k, fc="gainsboro")
         #ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
         #        config.EI.EI_triangles, facecolors=np.array([1 for _ in range(config.EI.N_els)]), vmin = 0, vmax = 1, cmap="binary", alpha=1)
 
@@ -336,7 +337,7 @@ def plot_movingProb(P, folder, data):
             colors = np.array([0 for i in range(config.EI.N_c)])
             #colors[config.AG0_mv_inds] = [liste[mpl.colors.to_hex(penalty[:,i], keep_alpha=True)] for i in range(penalty.shape[1])]
             colors[mv_inds] = penalty#[1 if np.sum(penalty[:,i])==4 else 0 for i in range(penalty.shape[1])]
-            plot  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
+            plot[k] = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
                 config.EI.EI_triangles, facecolors=colors, vmin = 0, cmap='binary_r',alpha=1)
         else:
             prob = np.zeros([config.EI.N_c])-np.spacing(0.0)
@@ -360,7 +361,7 @@ def plot_movingProb(P, folder, data):
                 cmap.set_under('gray') 
                 vmin = 0.0
                 vmax=1
-                if k==6:
+                if k==8:
                     vmin = -1.0# np.min(penalty)
                     prob = np.zeros([config.EI.N_c])-2.0-np.spacing(0.0)
                     prob[mv_inds] = penalty
@@ -374,6 +375,11 @@ def plot_movingProb(P, folder, data):
             plot[k]  = ax2.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], 
                 config.EI.EI_triangles, facecolors=prob,vmin=vmin,vmax=vmax, cmap=cmap, alpha=1)
 
+        #if k==3 or k ==6:
+        #    divider = make_axes_locatable(plt.gca())
+        #    cax = divider.append_axes("right", "5%", pad="3%")
+        #    plt.colorbar(plot[k], cax =cax) 
+
 
                 
 
@@ -384,19 +390,16 @@ def plot_movingProb(P, folder, data):
         
     
         
-        ax2.set_title(key)
+        ax2.set_title(label[k])
         #print(np.min(prob),np.max(prob))
         #move_circle, tree_circle, agric_cirle = follow_ag(ag)
         #ax2.add_artist(move_circle)
         #ax2.add_artist(tree_circle)
         #ax2.add_artist(agric_cirle)
-        #divider = make_axes_locatable(plt.gca())
-        #cax = divider.append_axes("right", "5%", pad="3%")
-        #plt.colorbar(plot[-1], cax =cax) 
-
+        
     #fig.tight_layout()
     #fig.colorbar(p)
-    plt.savefig(folder+"Penalties_AG"+str(P['AG_index'])+"_t="+str(P['t'])+".svg", bbox_inches='tight')
+    plt.savefig(folder+"Penalties_AG"+str(P['AG_index'])+"_t="+str(P['t'])+".pdf", bbox_inches='tight')
 
 
 
