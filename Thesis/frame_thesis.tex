@@ -4,6 +4,12 @@
 %\usepackage[style=numeric, sorting=none, backend=bibtex]{biblatex}
 \usepackage[backend=bibtex, natbib=true, style=authoryear, dashed=false, maxbibnames=3, giveninits=true, uniquename=init]{biblatex}
 \renewcommand{\citet}[1]{\citeauthor{#1} (\citeyear{#1})}
+\newcommand{\citen}[1]{\citeauthor{#1}, \citeyear{#1}}
+
+\usepackage{caption}
+\captionsetup[figure]{font=footnotesize,labelfont=footnotesize}
+
+\usepackage{threeparttable}
 
 \usepackage[export]{adjustbox}[2011/08/13]
 %\usepackage{algorithm}
@@ -35,7 +41,7 @@
 \titlepage
 
 \begin{abstract}
-	English
+	\input{Abstract}
 \end{abstract}
 \begin{otherlanguage}{swedish}
 \end{otherlanguage}
@@ -47,6 +53,7 @@
 %\input{Abstract}
 
 \input{Introduction}
+\input{MathematicalTheory}
 
 \input{Methods}
 

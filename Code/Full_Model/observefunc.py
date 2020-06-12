@@ -138,7 +138,7 @@ def plot_agents_on_top(ax, divider, t, ncdf=False, data=None, specific_ag_to_fol
                 cax2=cbarax            
             cb2 = colorbar(plot, cax =cax2, ticks=[0.2,0.4,0.6,0.8])   
             cb2.ax.set_yticklabels([str(k) for k in [0.2,0.4,0.6,0.8]])
-            cb2.set_label_text("Tree Preference of Agents")
+            cb2.set_label_text("Tree Preference of Agents", fontsize=25)
     return ax, divider, plot, cmapPop
 
 
@@ -167,7 +167,7 @@ def plot_agricultureSites_onTop(ax, divider, t, data=None, ncdf=False, save=True
         else:
             cax2=cbarax
         cb2 = colorbar(AgricPlot, cax =cax2)     
-        cb2.set_label_text("Fraction of farmed land")# [${\rm acre/acre}$]")
+        cb2.set_label_text("Fraction of farmed land", fontsize=25)# [${\rm acre/acre}$]")
     return ax, divider, AgricPlot, (cmap, oranges[255])
 
 
@@ -217,7 +217,7 @@ def plot_TreeMap_only(fig, ax, t, data=None, ncdf=False, save=True, cbarax=None)
         cb1 = colorbar(treePlot, cax =cax)
         cb1.ax.set_yticks(np.arange(0,1/100*np.ceil(100*np.max(face_colors)), step=0.03) )
         cb1.ax.set_yticklabels([str(int(k*100)) for k in cb1.ax.get_yticks()])
-        cb1.set_label_text(r"Tree Density [$\rm{Trees/100\,m^2}$] ")
+        cb1.set_label_text(r"Tree Density [$\rm{Trees/100\,m^2}$]", fontsize=25)
     return fig, ax, divider, treePlot, (cmap, green[255])
 
 #  
@@ -574,7 +574,7 @@ def plot_F_PI_Map():
         ax.legend(handles = [lake], loc="lower right", frameon=False, fontsize=20)
 
         
-        plt.savefig("Map/Plot_F_PI_c.pdf")
+        plt.savefig("Map/Plot_F_PI_c.pdf", bbox_inches="tight")
 
         return #ax, divider, AgricPlot, (cmap, oranges[255])
 
@@ -599,7 +599,8 @@ def plot_Penalty_Map(which, label, name):
         cmap.set_under('gray') 
         #vmin = 0.0
         #vmax=1        #plot_agricultureSites_onTop(ax=ax, fig=fig)    
-        PGPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, facecolors=face_colors, cmap=cmap, alpha=None, vmax=1, vmin=0)
+        PGPlot = ax.tripcolor(config.EI.points_EI_km[:,0], config.EI.corners['upper_left'][1] - config.EI.points_EI_km[:,1], config.EI.EI_triangles, 
+        facecolors=face_colors, cmap=cmap, alpha=None, vmax=500, vmin=0)
         
         watertriangles = np.zeros([config.EI.N_c])
         watertriangles[config.EI.water_triangle_inds_NoDrought]=1
@@ -633,7 +634,7 @@ def plot_Penalty_Map(which, label, name):
         ax.legend(handles = [lake], loc="lower right", frameon=False, fontsize=20)
 
         
-        plt.savefig("Map/Plot_"+name+".pdf")
+        plt.savefig("Map/Plot_"+name+".pdf", bbox_inches='tight')
 
         return #ax, divider, AgricPlot, (cmap, oranges[255])
 
@@ -683,10 +684,11 @@ if __name__=="__main__":
     import xarray as xr 
     import matplotlib.pyplot as plt 
     import observefunc as obs
-    plt.rcParams.update({"font.size":18})
+    plt.rcParams.update({"font.size":20})
 
     #folder="/home/peter/EasterIslands/Code/Full_Model/Figs_May11_grid50/FullModel_grid50_repr7e-03_mv100_noRegrowth_highFix_seed101/"
-    folder="/home/peter/EasterIslands/Code/Full_Model/Figs_May18/FullModel_grid50_gH11e+00_noRegrowth_highFix_seed5/"
+    #folder="/home/peter/EasterIslands/Code/Full_Model/Figs_May18/FullModel_grid50_gH11e+00_noRegrowth_highFix_seed5/"
+    folder="/home/peter/EasterIslands/Runs_22May/Standard/FullModel_grid50_gH17e-3_noRegrowth_highFix_linear_NormPop_alphaStd_seed1/"
     data = xr.open_dataset(folder+"Statistics.ncdf")
 
     import pickle
@@ -698,7 +700,10 @@ if __name__=="__main__":
             config.EI = pickle.load(EIfile)
 
 
-    with open(folder+"Penalties_AG500_t=1638", "rb") as PenaltyFile:
-        P = pickle.load(PenaltyFile)
+    #with open(folder+"Penalties_AG500_t=1638", "rb") as PenaltyFile:
+    #    P = pickle.load(PenaltyFile)
+    
 
-    plot_movingProb(P, folder, data)
+    #plot_movingProb(P, folder, data)
+    plot_Penalty_Map(config.EI.el_c, r"Elevation [$m$]", "elevation")
+    plot_F_PI_Map()
