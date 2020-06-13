@@ -2,46 +2,42 @@
 
 \chapter{Conclusions}
 
-Many studies in general and throughout the field of Easter Island research in particular have emphasized the importance of heterogeneous, spatial and stochastic considerations and the consequent constraints imposed on modelling societies.
-E.g.\ \citet{Bousquet2004} describe the importance of modelling spatial and discrete in general, \citet{Merico2017} points out gaps of Easter Island modelling with respect to these aspects, \citet{Rull2020} argues that the spatio-temporal dynamics on Easter Island is heterogeneous, and \citet{Stevenson2015} among many other studies argues against an island-wide homogeneous dynamics before European contact.
+Many studies on human-resource interaction in general and in relation to Easter Island history in particular have emphasized the importance of heterogeneous, spatial and stochastic considerations and the consequent constraints associated to modelling societies.
+E.g.\ \citet{Bousquet2004} describe the importance of modelling spatial and discrete in characteristics, \citet{Merico2017} points out gaps of Easter Island modelling with respect to these aspects, \citet{Rull2020} argues that the spatio-temporal dynamics on Easter Island is heterogeneous, and \citet{Stevenson2015} among many other studies argues against an island-wide homogeneous dynamics before European contact.
 However, surprisingly very little effort has been put into quantifying such qualitative assessments.
-Here, I provided a first approach of a spatially explicit and realistic, stochastic and discrete model in the form of an Agent Based Model of human-resource interaction on Easter Island prior to European contact that simulates the settling of household agents interacting with a spatially explicit local environment. 
+Here, I provided a first approach of a spatially explicit and realistic, stochastic and discrete model in the form of an Agent Based Model of human-resource interaction on Easter Island prior to European contact. The model simulates the settling of household agents interacting with a spatially explicit local environment. 
 
-The model has several shortcomings as mentioned in the Model Description and Discussion:
-First, there are numerous parameters describing both the environment and the agent behaviour which are subject to uncertainties or even chosen by instinct as there is either not sufficient or no data at all.
-Agents in the model act entirely myopic (e.g.\ in the clearing of space for farming), self-centred and their harvest behaviour simply aims to maximise population size growth in each year regardless of future considerations or sustainability norms. 
-So far, all agents have homogeneous conditions (e.g.\ the same penalty evaluation or tree preference adaption strategy or minimum tree preference).
-There is neither agent-agent interaction, cooperation, trade nor any advanced economic or social structure (such as taboos) above the household level. 
-%Agents also do not plan ahead e.g.\ when it comes to using the trees before burning them to clear sites for farming.
-Further caveats include the rather simplified population growth module depending on resource harvest for a single agent, the oversimplified erosion process and assumptions of constant yield from a farming site regardless of e.g.\ labour considerations or climatic variation.
-
-Despite these numerous shortcomings, especially the agent behaviour can be sufficiently well constructed through plausible, intuitive anthropogenic rules.
-Or, as \citet{Kohler2000} put it: "Agent construction at this point is more art than science".
-The impacts of some of the other shortcomings are explored by testing different experiments and sensitivity of parameters.
-
-The standard run of the ABM presented here shows a boom and bust dynamics, i.e.\ an exponential growth of the population size, a short phase of peak population and a decrease (with rate in the order of the initial growth) thereafter.
-This corresponds to the classical ecocidal narrative of Easter Island history by \citet{Brander1998}, \citet{Diamond2011} or \citet{Bahn2017}.
+The standard configuration run of the ABM presented here shows a boom and bust dynamics, i.e.\ an exponential growth of the population size, a short phase of peak population and a decrease (with the declining rate in the order of the initial growth rate) thereafter.
+This corresponds to the classical ecocidal narrative of Easter Island history sustained by \citet{Brander1998}, \citet{Diamond2011} and \citet{Bahn2017}.
 Results that are more consistent with alternative population dynamic narratives, however, can be obtained by changing only a few parameters, in particular the tree regrowth and agricultural quality of the soil on Easter Island.
 
+Despite several novel aspects, the model is based on a number of simplifications.
+First, there are numerous parameters describing both the environment and the agent behaviour, which are subject to uncertainties and sometimes even chosen based on pure common sense due to lack of observational data.
+Agents in the model act entirely myopic (e.g.\ in the clearing of space for farming), self-centred and their harvest behaviour simply aims to maximise population size growth in each year regardless of future considerations or sustainability aspects. 
+All agents have homogeneous conditions (e.g.\ the same penalty evaluation, tree preference adaptation strategy or minimum tree preference).
+There is neither agent-agent interaction, cooperation, trade nor any advanced economic or social structure (such as taboos). 
+%Agents also do not plan ahead e.g.\ when it comes to using the trees before burning them to clear sites for farming.
+Further relevant simplifications are related to the population growth depending on resource harvest for a single agent, the oversimplified erosion process and the assumption of constant yields from farming sites regardless of e.g.\ labour considerations or climatic variation.
 
+Despite these simplifications, the agent behaviour can be sufficiently well constructed through plausible, intuitive anthropogenic rules.
+As \citet{Kohler2000} put it: "Agent construction at this point is more art than science".
+The impacts of some of the other simplifications are explored by testing different experiments and sensitivity of parameters.
 
-Next to the general proof of concept the ABM yields three major results:
-Firstly, the population decrease in the standard run is caused by the lack of either farming sites or trees in all potential locations on Easter Island but not an island-wide lack of either of these resources.
-Secondly, the model shows how spatial considerations of microscopic units constrain the population dynamics overall and thus are computationally irreducible.
+By experimenting with different model configurations, this study provides three major results:
+First, the population decrease in the standard configuration run is caused by the lack of either farming sites or trees in all potential locations on Easter Island but not an island-wide lack of either of these resources.
+Second, the model shows how spatial considerations of microscopic units constrain the population dynamics overall and thus are computationally irreducible.
 E.g.\ varying the resource search radii or having different moving strategies impact the total number of burnt trees, deforestation, and population size.
-Thirdly, slightly different strategies to adapt to the environmental degradation lead to different outcomes overall in the model. 
-In particular, the best strategy is to quickly decrease the tree preference, i.e.\ the dependence on a non-renewable resource. While this fast transition leads to more trees overall being burnt to clear land, the population size throughout the time period and even the total number of trees eventually are larger. 
+Third, slightly different strategies to adapt to environmental degradation lead to different outcomes overall in the model. 
+More specifically, the best strategy is to quickly decrease the tree preference, i.e.\ the dependence on a non-renewable resource. While this fast transition leads to more trees being burnt to clear land, the population size throughout the time period and even the total number of trees are larger. 
 %the model shows that allowing for individual and stochastic decisions (e.g.\ in the adaption strategy in relation to the tree preference and the penalty evaluation in the moving process) can lead to surprising aggregate behaviour.
-Fourth and finally, this ABM provides, for the first time, quantitative regional variations in the dynamics of population, tree, and agriculture density, which are in many aspects consistent with qualitative descriptions in the literature (of the ecocidal narrative).
-The regional dynamics are found to be very heterogeneous in shape and timings and far from a uniform island wide collapse.
+
+This ABM provides, for the first time, quantitative regional variations in the dynamics of population, trees, and agriculture, which are in many aspects consistent with qualitative descriptions in the literature (the ecocidal narrative).
+The regional dynamics are found to be very heterogeneous in shape and timing and far from a uniform island wide collapse.
 Such spatio-temporal patterns emerge from the assumption of discrete, non-ergodic, stochastic and individual decision making processes of the agents.
 %They are consistent in many aspects with qualitative descriptions of spatially explicit, natural and settlement history on Easter Island in the literature (of the ecocidal view).
-An important implication of these results is that data obtained from single sites and used for an island wide interpretation of the population dynamics should be considered with caution.
-In general, the model gives a novel view on Easter Island by adding a spatial impression to the ongoing debate about the island wide overall population dynamics before European contact.
+An important implication of these results is that archaeological data obtained in single sites cannot be directly extrapolated to explain island-wide population dynamics.
+In general, the model gives a novel view on Easter Island by adding relevant spatial considerations to the ongoing debate about the island's history before European contact.
 
-%The ABM presented in this thesis includes various processes and parameters motivated not so much by data or proven relations but by intuitive assumptions from everyday experience.
-%"Agent construction at this point is more art than science" \citep{Kohler2000}.
-
-A major advantage of Agent Based Modelling is its flexibility and that the complexity of the model does not need to be known a priori \citep{Bonabeau2002}.
-The presented model, can easily incorporate more, different or less modules, rules or processes.
-Further research, e.g.\ on emergent social institutions as suggested in the Discussion here, is, thus, strongly encouraged to use this or similar approaches to better understand the history of Easter Island before European contact and, thereby, to further explore the general concept of overpopulation in a world with limited resources.
+A major advantage of Agent Based Modelling is its flexibility and the fact that the complexity of the model does not need to be fixed a priori \citep{Bonabeau2002}.
+The presented model can easily incorporate more, different or less modules, rules or processes.
+Model development including the emergence of social institutions as suggested in the Discussion, is an obvious avenue for future research with the potential to further improve our understanding of the history of Easter Island before European contact and, thereby, to explore the general concept of overpopulation in a world with limited resources.
