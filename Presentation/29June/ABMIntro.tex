@@ -1,0 +1,95 @@
+% !TEX root = presentation_29Jun.tex
+
+%\begin{frame}{Agent Based Modelling}
+%\end{frame}
+%
+%\begin{frame}{Modelling Societies with ABM}
+%
+%%\begin{block}{\citet{Bookstaber2019}}
+%%	\TODO
+%%\end{block}
+%\end{frame}
+
+
+\begin{frame}{What is Agent-Based Modeling (ABM)}
+%\begin{itemize}
+%	\item Discrete units (Agents) in an environment with specific traits
+%	\item Asynchronous and autonomous update of agents:
+%	%\item In each update: 
+%	\begin{itemize}
+%		\item interaction based on rules and heuristics \\(often non-linear, heterogeneous, stochastic, adaptive, path-dependent)
+%		\item autonomous decisions of agents
+%	\end{itemize}
+%	\item Aggregate variables are (1) outcomes of and (2) contexts for the agents decisions and actions \citep{Kohler2000}
+%\end{itemize}
+
+
+
+\begin{algorithm}[H]
+	\textbf{Initialise} Environment  \\
+	\textbf{Initialise} discrete Agents with specific traits in some location within the environment\\
+	\For{$t \ \in\  \{t_{\rm start}, t_{\rm end}\}$}{
+		\For{agent (in asynchronous order)}{
+			\textbf{Interaction} between agent and environment based on rules and heuristics\\
+			\textbf{Update} agent according to autonomous decisions
+		}
+		\textbf{Calculate} aggregate variables of environment and agents
+	}
+	\caption{General Structure}
+\end{algorithm}
+\end{frame}
+
+
+
+\begin{frame}{Advantages of ABM with respect to ODE models}
+
+
+% 	\begin{block}{\citet{Epstein1996}}%, as cited in \citet{Bonabeau2002}}
+% 		 \begin{framed}
+%	On Agent-Based Modelling:
+%	"Perhaps one day people will interpret the question, ‘Can you explain [an observed social phenomenon]?’ as asking `Can you grow it?’"
+%\end{framed}
+%	 	\end{block}
+ 	 	%, as cited in \citet{Bonabeau2002}}
+ 	 	\begin{framed}
+ 	 		 \citet{Epstein1996}, \citet{Bonabeau2002} on Agent-Based Modelling:
+ 			\begin{center}
+ 				\textit{"Perhaps one day people will interpret the question, ‘Can you explain [an observed social phenomenon]?’ as asking `Can you grow it?’"
+} 			\end{center}
+ 		\end{framed}
+
+	From macroscopic, top-down description \ra to microscopic, bottom-up description
+	\begin{enumerate}
+		\item ABM allows for rules and heuristics to be 
+		\begin{itemize}
+			\item non-linear, discontinuous
+			\item heterogeneous,
+			\item stochastic, 
+			\item adaptive \newline
+			%\item path-dependent 
+			\ra non-ergodicity \& computational irreducibility
+		\end{itemize}
+		\pause\item \ra Emergent phenomena
+		%\item Non Ergodicity
+		%\pause\item \ra Computational irreducibility
+		\pause\item Decisions include stochasticity
+		\pause\item Natural implementation of heterogeneous space dependency
+	\end{enumerate}
+\end{frame}
+
+
+%\begin{frame}{Application of ABMs}
+%\begin{itemize}
+%	\item Typically: Problems related to cognitive psychology, game theory, and complexity science \citep{Bousquet2004}
+%	\item Also, Socio-ecological Systems \citep{Muller-Hansen2017} \ra Human-Resource Interaction
+%	\begin{itemize}
+%		\item \ldots
+%		\item Collapse of Ancient Societies
+%		\begin{itemize}
+%			\item Anasazi in Arizona, US \citet{Axtell2002}
+%			\item Maya \citet{Heckbert2013}
+%			\item Now: Easter Island
+%		\end{itemize}
+%	\end{itemize}
+%\end{itemize}
+%\end{frame}

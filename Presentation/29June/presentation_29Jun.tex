@@ -1,0 +1,228 @@
+\documentclass[aspectratio=1610]{beamer}
+
+\usetheme{KTH}
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}% redefines the caption setup of the figures environment in the beamer class.
+\captionsetup[subfigure]{labelformat=empty}
+
+\input{/home/peter/Organisatorisches/Latex_dinge/packages_beamer}
+
+\addbibresource{/home/peter/EasterIslands/Literature/EasterIslandbib.bib}
+
+\usepackage{appendixnumberbeamer}
+
+\addtobeamertemplate{navigation symbols}{}{%
+	\usebeamerfont{footline}%
+	\usebeamercolor[fg]{footline}%
+	\hspace{5em}%
+	\insertframenumber/\inserttotalframenumber
+}
+
+\usepackage{mwe}
+
+\usepackage{multimedia}
+\usepackage{media9}
+
+\author{Peter Steiglechner}
+\title{Easter Island ABM}
+\subtitle{Masterthesis Presentation Defence}
+\institute{ZMT Bremen}
+\date{\today}
+
+% remove this if using XeLaTeX or LuaLaTeX
+\usepackage[utf8]{inputenc}
+\usepackage{wasysym}
+
+\usepackage[ruled,vlined]{algorithm2e}
+
+\AtBeginSection[]
+{
+	\begin{frame}[noframenumbering]{Outline}
+	\begin{Large}\begin{center}
+			\textbf{A Spatially Explicit Agent-Based Model \\ for Human-Resource Interaction on Easter Island}
+	\end{center}\end{Large}
+	\tableofcontents[currentsection]
+\end{frame}
+}
+
+\begin{document}
+	
+	\startpage
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\begin{frame}[noframenumbering]
+	
+	\vspace{0.02\textheight}
+	\begin{Large}\begin{center}
+		\textbf{A Spatially Explicit Agent-Based Model \\ for Human-Resource Interaction on Easter Island}
+\end{center}\end{Large}
+	\vspace{0.01\textheight}
+
+	\begin{small}
+		\begin{center}
+		En Rumsligt Explicit Agentbaserad Modell av Interaktionen mellan Människor och Resurser på Påskön
+		\end{center}
+
+	\end{small}
+	
+	\vspace{0.02\textheight}
+	
+	\begin{small}
+		\begin{center}
+		\textit{Peter Steiglechner, 29 June 2020}
+		\end{center}
+
+	\end{small}
+\end{frame}
+
+
+\normalpage
+
+
+\begin{frame}[noframenumbering]
+\frametitle{Outline}
+	\begin{Large}\begin{center}
+	\textbf{A Spatially Explicit Agent-Based Model \\ for Human-Resource Interaction on Easter Island}
+	\end{center}\end{Large}
+\tableofcontents
+\end{frame}
+
+
+
+\section{Easter Island History}
+\input{EI}
+
+\section{Traditional Approach: Dynamic System Modelling}
+\input{TraditionalApproach}
+
+\section{New Approach: Agent-Based Modelling (ABM)}
+\input{ABMIntro}
+
+
+\section{The Easter Island ABM}
+\input{DevelopmentofABM}
+
+\section{Results and Discussion}
+\input{ResultsDiscussion}
+
+
+\begin{frame}{Conclusions}
+\begin{itemize}
+	\pause\item Limits of the study:
+	\begin{itemize}
+		\item Rules and processes often based on plausibility arguments
+		\item Uncertainty in the available data
+		\item More complex than macroscopic ODE models.
+		\item Possible improvements of the model
+		\begin{itemize}
+			\item Social structure
+			\item From myopic to far-sighted, sustainable harvest behaviour of agents
+			\item Stochasticity and uncertainty in the harvest behaviour of agents
+		\end{itemize}
+	\end{itemize}
+	\vspace{1cm}
+	\pause\item Benefits of the Model:
+	\begin{itemize}
+		\item Change of perspective on Easter Island: \newline From macroscopic, top-down to microscopic, bottom-up
+		\item Spatial considerations
+		\item Identifying regions of interest for archaeological work \& \newline Interpret data from single locations
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[noframenumbering]{Summary}
+\begin{Large}\begin{center}
+		\textbf{A Spatially Explicit Agent-Based Model \\ for Human-Resource Interaction on Easter Island}
+\end{center}\end{Large}
+\begin{minipage}[t][0.66\textheight][t]{0.6\textwidth}
+	\vspace{0pt}
+	\tableofcontents
+\end{minipage}
+\begin{minipage}[t][0.7\textheight][t]{0.35\textwidth}
+	\vspace{0pt}
+		\includegraphics[width=\linewidth]{images/summaryEI}
+	\includegraphics[width=0.7\textwidth]{../../Thesis/images/Brander1998_EIBaseCase_presentation}
+	\includegraphics[width=0.8\linewidth]{images/map_time1500}
+\end{minipage}
+%\end{columns}
+
+\end{frame}
+
+\begin{frame}{Thank you!}
+
+\vspace{0.02\textheight}
+
+\begin{Large}
+	A Spatially Explicit Agent-Based Model for Human-Resource Interaction on Easter Island
+\end{Large}
+
+\vspace{0.02\textheight}
+\centering
+\includegraphics[width=0.5\linewidth]{images/map_time1500}
+% \movie[width=0.6\textwidth, showcontrols=true, poster, autostart]{\includegraphics[width=0.6\textwidth]{images/map_time800}}{movieFast.mp4}
+% 
+% \includemedia[
+% width=0.6\textwidth,height=0.6\textheight,
+% activate=pageopen,
+% addresource=movieFast.mp4,
+% flashvars={
+% 	source=movieFast.mp4
+% 	&autoPlay=true
+% }
+% ]{}{VPlayer.swf}
+ 
+ \vfill 
+Special thanks to Agostino Merico, Esteban Acevedo Trejos, and Michael Hanke.
+
+\end{frame}
+
+
+\appendix
+\input{Backup}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{frame}
+%\frametitle{Making a KTH Presentation}
+%
+%\begin{block}{Steps needed}
+%	\begin{itemize}
+%		\item Copy the following files:
+%		\begin{itemize}
+%			\item \texttt{examplepresentation.tex} (this file)
+%			\item \texttt{beamerthemeKTH.sty}
+%			\item \texttt{kthgraphics} (with all its contents)
+%		\end{itemize}
+%		\item Replace the contents in \texttt{examplepresentation.tex} with your own
+%		\item Run \texttt{pdflatex} (or \texttt{xelatex} or \texttt{lualatex}) a couple of times
+%		\item Present your slides using a PDF-viewer
+%	\end{itemize}
+%\end{block}
+%
+%\end{frame}
+%
+%\end{document}
+
+
+%
+%
+%\section{Introduction}
+%%\subsection{The mystery of the Easter Island society}
+%\input{EasterIslandHistory}
+%%\subsection{Modelling answers to the mystery}
+%\input{EImodels}
+%%\subsection{Agent Based Modelling}
+%\input{ABMintro}
+%
+%\section{Methods/Model}
+%%\subsection{General Idea}
+%\input{GeneralEIABM}
+%%\subsection{Modules}
+%%\subsubsection{Harvest -- Trees and Agriculture}
+%%\subsubsection{Moving}
+%%\subsubsection{Reproduction and Death}
+%%\subsection{Statistical Runs}
+%\section{Results}
+%\input{Results}
+%
+%\end{document}
