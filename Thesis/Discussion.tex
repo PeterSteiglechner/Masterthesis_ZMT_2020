@@ -1,0 +1,114 @@
+%With this procedure, agent's move (as resource availability becomes scarce or a subgroup splits from a large household) according to environmental features. 
+%The specific settings create spatial patterns of settlement behaviour which in turn non-linearly change the agent-environment interaction and, thus, environment dynamics overall.
+
+\chapter{Conclusion}
+\begin{itemize}
+	\item 
+\end{itemize}
+
+The ABM presented here successfully simulates household agents situated in the Easter Island environment and interacting with it through resource acquisition. 
+Different scenarios, which are related to the strongly contradictory storylines of prehistoric population dynamics can be obtained by changing only a few parameters.
+The standard run here shows a boom and bust, i.e.\ an exponential growth of the population size, a short phase of peak population and sharp decrease thereafter.
+This corresponds to the classical view of the dynamics by \citet{Brander1998}, \citet{Diamond2005} or \citet{Bahn2017}.
+Including tree regeneration the population stabilises at a certain equilibrium population size.
+Similarly, \citet{Brander1998} make the slow response of the trees responsible for the over-exploitation of the resource and, thus, the boom-bust cycle.
+
+If arable land has a lower Nitrogen fixation (as defined by \citet{Puleston2017}) a very different dynamic is obtained.
+Population size rises exponentially and then only linearly decreases or levels off at the peak value (if tree regeneration is allowed). 
+This scenario corresponds more with the view 
+
+%In general, the population size in this model is larger than most estimates stated in the literature.
+%This is partly due to the fact, that there is no upper restriction on the amount of labour that agents can put into the resource acquisition. 
+%Also, no social development w.r.t.\ the population dynamics is included in the model.
+%Agents instead follow the rationale to maximise their population size.
+%Further, I assume that except for erosion events, arable land has a constant crop output (in particular even constant during the drought periods). 
+%\todo{A certain stochastic variation due to different climatic conditions each year could be implemented into the model.}
+
+
+The ABM naturally includes many processes that determine the behaviour and interaction with the environment. 
+Many of these processes are connected to parameters with large uncertainty for the Easter Island population.
+
+Given all the shortcomings mentioned above, I argue, that the model should therefore not be used to obtain a realistic estimation of the size of the population at a given time. 
+Rather the shape of the dynamics influenced through the different processes constrained by the spatial explicity of the model open the possibility to rethink the aggregate dynamics.
+
+%In particular, given the strong variation of the dynamics between different regions, this model makes a point in being careful about extrapolating data from single locations but might give a more insightful idea as to how such data should be interpreted.
+
+%For the first time, this model quantitatively models a spatial extent of the .
+%Here, I compare the model results with a qualitative sketch of deforestation obtained from charcoal and pollen data of the three crater lakes in \citet{Rull2020} and with a qualitative description of the different phases of settling from \citet{Bahn2017} based on information collected in the book. 
+%The spatial deforestation pattern in \citet{Rull2020} includes natural and anthropogenic drivers. Here, neglecting natural drivers, I obtain very similar patterns (compare Figure \ref{fig:STDrull} and Figure 9 in \citet{Rull2020}).
+%\citet{Bahn2017} (p.245) developed a qualitative four phase sequence of events.
+%Additionally they describe the early phase with ...
+
+
+%The only processes including foresight in the model is the switch from tree to an agriculturally focused society (via the tree preference) upon changes in the local environment and the moving process, in which agents prefer long-term locations.
+
+
+%The model does not explicitly include agent-agent interaction. 
+%This is a major shortcoming in the model. 
+%As most locations either lack one of either trees or 	arable land in the transition phase between exponential growth and population decline, trade as well as socio-economic structure would significantly change the dynamics.
+%Here, all agents harvest individually from their local environments without hierarchy or socio-economic and political institutions.
+%The agents further do not explicitly care about other agents or the society as a whole but only their individual expansion.
+%Agents in the model 
+
+%While I do not imply that the Easter Island population acted myopic or unsustainably, in this model setup the agents are designed to create a boom-bust (if the resource tree is not regenerating).
+
+
+
+MOAI 
+
+HETEROGENEOUS
+
+MORAL DILEMMA
+
+Given the tree preferen
+
+
+
+
+
+
+
+
+% Todo --> Put the following two into the Variation of availability and requirement parameters
+%The quality of farming and soil suitability on Easter Island and its spatial dependency is an ongoing research field, with crucial implications for the peak population size \citep{Puleston2017}.
+%The parametrisation of farming productivity shown in the remaining section, thus, is a strong limitation on the population dynamics.
+
+
+
+%This fraction of arable land is in line with several different estimates from e.g.\ \TODO \citet{Bahn2017}???
+%. TODO SOMEONE SAID THAT 50\% of the land was cultivated?
+
+
+%%Freq pp and TREq pp
+%These constant parameters determine the amount of tree harvesting and farmland occupation and, thus, are crucial for the temporal development of the island's environment. 
+
+
+
+% Todo --> Put the following two into the Variation of availability and requirement parameters
+
+%In this model, I do not consider fallowing as farming practice to increase productivity of arable land, as this, in general, reduces the productivity per total occupied area needed for each individual (see Table 1 in \citet{Puleston2017}).
+%In fact, the only constrain for farming is availability of arable land in this model, not workforce or any social/political constraints (as included in \citet{Puleston2017}).
+%I.e.\ I assume that, if enough land is available, the agent's occupy as many sites as necessary.
+
+%Of course, an agent could also use these trees first and (e.g.\ for extracting the sugary sap) then burn the remaining material to clear the land for next year as indicated by \citet{Mieth2015}, but this would require agents that plan ahead, which I do not consider in the harvesting process.
+
+
+% DONE --> VARIATION IN THE DEMOGRAPHY MODEL
+%It should be noted, that the use of the model in \citet{Puleston2017} is strongly simplified here.
+%E.g.\ I am using a different notion of food/tree availability, which I express via the smoothed happiness $H_\text{i}(t)$, rather than \citet{Puleston2017}'s food ratio.
+%Also the distinction between survival and fertility rate especially given their age-dependency is entirely neglected.
+%Nevertheless, the resulting dependency of the growth/decline rate on the agent's happiness (and consequently its success in resource acquisition) given in Figure \ref{fig:growthrate} seems to be a reasonable functional parametrisation. 
+%
+% DONE --> VARIATION OF THE RESOURCE SEARCH RADII!
+%It is clear that the social structure of the Easter Island population is much more complex than the independent, small households of a few dozen people assumed in this model. 
+%E.g.\ \citet{Diamond2011} describes the existence of roughly a dozen clans or chiefdoms, or \citet{Puleston2017} consider an economic structure including an elite and working class.
+%Also, there is clear evidence of exchange of goods between households, e.g.\ fish, stone tools or the Moai.
+%All of theses complex, cooperative structures are not considered here, but each agent farms and deforests individually.
+
+%
+%The choice of penalty contributions and their functional dependency is described in the remaining Section.
+%There is, of course, substantial freedom in modelling these evaluations and the decision making process.
+%The framework is therefore kept flexible and other assumptions or new categories can easily be added or adjusted.
+%There is no comparable approach for Easter Island society yet.
+%In the ABM simulating the Anasazi people from \citet{Axtell2002} (and \citet{Janssen2009}), agents that relocate their farms (and settlements) consider all eligible cells that fulfil certain nutrient production and water availability criteria and then choose the cell closest to the previous location.
+%In general, I use a similar rationale but implement a more elaborate evaluation process that in particular introduces non-linear, continuous rather than binary evaluation criteria, more/different penalty categories and stochasticity in the decision making process.  

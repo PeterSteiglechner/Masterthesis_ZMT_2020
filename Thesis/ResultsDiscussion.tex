@@ -136,7 +136,7 @@ Settlement of some coastal regions, especially South East Coast near Rano Kau an
 \paragraph{Temporal Dynamics in Different Regions.}
 The model results suggest strong regional variation in the dynamics of the population as well as the deforestation as shown in Figure \ref{fig:STDrull}. 
 To quantitatively analyse these different developments, I divide the island into seven different regions with specific geographical features (Figure \ref{fig:mapregionscoarse}): (1) the area around the crater lake Rano Kau, (2) the South Coast, (3) Rano Raraku, (4) Anakena Beach, (5) the steep North West Coast, (6) the fertile area covering today's main town, Hanga Roa, and (7) the upland area including Poike Peninsula. 
-By choosing centre points of each region or several sub-regions on the map by hand, a region is defined by the cells allocated to the corresponding Voroni Diagram.
+By choosing centre points of each region or several sub-regions on the map by hand, a region is defined by the cells allocated to the corresponding Voronoi Diagram.
 
 \begin{figure}
 	\centering
@@ -187,7 +187,7 @@ Figure \ref{fig:ensemblestatisticsalltheories} shows four different scenarios wi
 	\item The upper right panel, shows the case with low Nitrogen fixation by \citet{Puleston2017}, i.e.\ agents have a higher requirement of farmed land per person.
 	Population size (blue) peaks earlier and at a smaller number (ca. $6000$ people) and the consequent decrease is slower with a rate close to $-0.2\%/yr$.
 	The amount of burnt trees (red) especially in the first phase with constant population growth rate is higher in this scenario, because more arable land needs to be occupied by the agents.
-	\item In the corresponding bottom panels, tree regeneration is enabled with parameters set as in Table \ref{tab:sensitivity}. 
+	\item In the corresponding bottom panels, slow logistic regeneration of trees is enabled with parameters set as in Table \ref{tab:sensitivity}. 
 	For both cases with tree regrowth (lower panels), a heterogeneous pattern of agents with different tree preferences emerges with some areas characterised by agents with maximum, some with minimum tree preference (not shown here).
 	\begin{itemize}
 		\item In the lower left panel, with high Nitrogen fixation, a population of nearly $24\cdot10^3$ individuals is reached at a later time than in the standard setting. After that peak, the population size then declines slowly until an equilibrium between tree renewal and tree cutting is reached with all arable sites being occupied after $1700\, {\rm A.D.}$.
@@ -216,7 +216,7 @@ In particular, the low Nitrogen fixation scenario\footnote{consistent with \cite
 \begin{figure}
 	\centering
 	\includegraphics[width=1.3\textwidth, center]{images/Results/Standard/EnsembleStatistics_allTheories}
-	\caption{Dynamics of aggregate population size, trees, and burnt trees for four different parameter settings: The high or low N fixation scenario determining the amount of arable land required per person in combination with disabled/enabled tree regrowth.
+	\caption{Dynamics of aggregate population size, trees, and burnt trees for four different parameter settings: The high or low N fixation scenario determining the amount of arable land required per person in combination with disabled/enabled tree regrowth (see Table \ref{tab:sensitivity}).
 		All panels show mean dynamics obtained from an ensemble of 15 runs.}
 	\label{fig:ensemblestatisticsalltheories}
 \end{figure}
@@ -253,7 +253,7 @@ For all tested years (between $1200$ and $1900\, {\rm A.D.}$) a number of $7$ to
 	Running the k-Means algorithm with more clusters only linearly decreases the distortion, i.e.\ the sum of the squared distances of an agents 3D state to the cluster centres.}.
 While this analysis is very preliminary, clustering might open up the possibility of including stronger links within clusters of agents that tend to move towards each other (e.g.\ negative population density penalty), harvest cooperatively, and increase the resource search radius with the cluster size.
 One could even think of including a trading module between clusters (as in \citen{Heckbert2013}).
-Future research with this model could investigate more complex economic and social structures and, thereby, overcome one of the major weakness, the self-centred, non-cooperative harvest behaviour of the agents considered here.
+Future research with this model could investigate more complex economic and social structures and, thereby, overcome one of the major shortcomings here, the self-centred, non-cooperative harvest behaviour of the agents.
 
 \FloatBarrier
 \subsection{Population Growth}
