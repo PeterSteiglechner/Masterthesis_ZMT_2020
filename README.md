@@ -1,9 +1,15 @@
-# Masterthesis at KTH Stockholm by Peter Steiglechner
+# Easter Island ABM – Masterthesis by Peter Steiglechner
 
 as part of the [COSSE Master](https://www.kth.se/en/studies/master/computer-simulations-for-science-and-engineering/msc-computer-simulations-for-science-and-engineering-1.44243) at KTH Stockholm and TU Berlin, 2018 - 2020.
 
+***
+Associated publication: 
+
+Steiglechner, P., Merico, A. (2022). Spatio-Temporal Patterns of Deforestation, Settlement, and Land Use on Easter Island Prior to European Arrivals. In: Rull, V., Stevenson, C. (eds) The Prehistory of Rapa Nui (Easter Island). Developments in Paleoenvironmental Research, vol 22. Springer, Cham. https://doi.org/10.1007/978-3-030-91127-0_16
+***
+
 <img src="COSSE_workshop_tafel" alt="drawing" width="600"/>
-Sketch from a participant after a presentation of the model at a workshop of the COSSE master programme.
+Sketch created by a participant during a workshop of the COSSE master programme, where I presented the model.
 
 ## Overview:
 
