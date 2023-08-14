@@ -1,5 +1,5 @@
 # A Spatially Explicit Agent-Based Model of Human-Resource Interaction on Easter Island
-## – Masterthesis by Peter Steiglechner
+## Masterthesis by Peter Steiglechner
 
 as part of the [COSSE Master](https://www.kth.se/en/studies/master/computer-simulations-for-science-and-engineering/msc-computer-simulations-for-science-and-engineering-1.44243) at KTH Stockholm and TU Berlin, 2018 - 2020.
 
